@@ -1,0 +1,4 @@
+*.pyc
+config.py
+.ve
+__pycache__
