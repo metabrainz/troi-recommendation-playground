@@ -15,7 +15,7 @@ class MBRelatedArtistsDataSource(DataSource):
         self.db_connect = db_connect_string
 
 
-    def get(self, artist, threshold = 2, max_items = 100):
+    def get(self, artist, threshold = 1, max_items = 100):
 
         # If we only have an mbid, look up the id and load the rest of the metadata
         if 'artist_id' not in artist.musicbrainz:
@@ -35,8 +35,12 @@ class MBRelatedArtistsDataSource(DataSource):
                                   JOIN artist a0 ON arr.artist_0 = a0.id
                                   JOIN artist a1 ON arr.artist_1 = a1.id
                                  WHERE (arr.artist_0 = %s OR arr.artist_1 = %s)
-                                   AND count > 2
-                              ORDER BY count desc""", (artist.musicbrainz['artist']['artist_id'], artist.musicbrainz['artist']['artist_id']))
+                                   AND count >= %s
+                              ORDER BY count desc
+                                 LIMIT %s""", (artist.musicbrainz['artist']['artist_id'], 
+                                               artist.musicbrainz['artist']['artist_id'],
+                                               threshold,
+                                               max_items))
 
                 relations = []
                 while True:
@@ -44,14 +48,16 @@ class MBRelatedArtistsDataSource(DataSource):
                     if not row:
                         break
 
-                    if artist.id == row['artist_1_id']: 
+                    if artist.musicbrainz['artist']['artist_id'] == row['artist_1_id']: 
                         e = Entity(EntityEnum("artist"),
                             row['artist_0_mbid'], 
                             row['artist_0_name'],
                             { 
                                 'musicbrainz' : { 
-                                    'artist_id ' : row['artist_0_id'],
-                                    'artist_relations_count' : row['count'] 
+                                    'artist' : {
+                                        'artist_id ' : row['artist_0_id'],
+                                        'artist_relations_count' : row['count'] 
+                                    }
                                 }
                             })
                     else:
@@ -60,8 +66,10 @@ class MBRelatedArtistsDataSource(DataSource):
                             row['artist_1_name'],
                             { 
                                 'musicbrainz' : { 
-                                    'artist_id ' : row['artist_1_id'],
-                                    'artist_relations_count' : row['count'] 
+                                    'artist' : {
+                                        'artist_id ' : row['artist_1_id'],
+                                        'artist_relations_count' : row['count'] 
+                                    }
                                 }
                             })
 
