@@ -1,6 +1,9 @@
 import abc
 
-class DataSource(object):
+class DataSource():
+    '''
+        This is the base class for implementing a data source component
+    '''
 
     @abc.abstractmethod
     def get(self):

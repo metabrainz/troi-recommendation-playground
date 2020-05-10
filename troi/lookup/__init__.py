@@ -1,6 +1,9 @@
 import abc
 
-class Lookup(object):
+class Lookup():
+    '''
+        Base class for lookup classes
+    '''
 
     @abc.abstractmethod
     def lookup(self, entity):

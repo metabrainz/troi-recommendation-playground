@@ -1,6 +1,6 @@
 import enum
 
-class EntityEnum(enum.Enum): 
+class EntityEnum(enum.Enum):
     '''
         Defines the various MusicBrainz entities. Not all types have been defined,
         just a few that we will likely use before too long.
@@ -12,9 +12,12 @@ class EntityEnum(enum.Enum):
     recording = "recording"
 
 
-class Entity(object):
+class Entity():
+    '''
+        The core class that represent metadata entity.
+    '''
 
-    def __init__(self, etype = None , id = "", name = "", metadata = None):
+    def __init__(self, etype=None, id="", name="", metadata=None):
 
         # define the domain of the metadata. At first, just MusicBrainz, but other
         # domains might be added later, such as a Spotify domain
@@ -35,14 +38,14 @@ class Entity(object):
         # will define they keys and subkeys of their own metadata space.
 
         if not metadata:
-            self.metadata = { 
-                'musicbrainz' : { 
+            self.metadata = {
+                'musicbrainz' : {
                     'artist' : {},
                     'release' : {},
                     'recording' : {}
-                }, 
-                'listenbrainz' : {}, 
-                'acousticbrainz' : {} 
+                },
+                'listenbrainz' : {},
+                'acousticbrainz' : {}
             }
         else:
             self.metadata = metadata
