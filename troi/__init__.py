@@ -6,6 +6,7 @@ class EntityEnum(enum.Enum):
         just a few that we will likely use before too long.
     '''
     artist = "artist"
+    artist_credit = "artist-credit"
     release_group = "release-group"
     release = "relase"
     recording = "recording"
@@ -34,13 +35,33 @@ class Entity(object):
         # will define they keys and subkeys of their own metadata space.
 
         if not metadata:
-            self.metadata = { 'musicbrainz' : {}, 'listenbrainz' : {}, 'acousticbrainz' : {} }
+            self.metadata = { 
+                'musicbrainz' : { 
+                    'artist' : {},
+                    'release' : {},
+                    'recording' : {}
+                }, 
+                'listenbrainz' : {}, 
+                'acousticbrainz' : {} 
+            }
         else:
             self.metadata = metadata
 
     @property
     def musicbrainz(self):
         return self.metadata['musicbrainz']
+
+    @property
+    def mb_artist(self):
+        return self.metadata['musicbrainz']['artist']
+
+    @property
+    def mb_release(self):
+        return self.metadata['musicbrainz']['release']
+
+    @property
+    def mb_recording(self):
+        return self.metadata['musicbrainz']['recording']
 
     @property
     def listenbrainz(self):

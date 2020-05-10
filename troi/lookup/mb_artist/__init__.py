@@ -17,12 +17,7 @@ class MBArtistLookup(object):
         assert(artist.type == "artist")
         assert(artist.domain == "musicbrainz")
 
-        try:
-            a = artist.musicbrainz['artist']
-        except KeyError:
-            artist.musicbrainz['artist'] = {}
-            a = artist.musicbrainz['artist']
-
+        a = artist.musicbrainz['artist']
         with psycopg2.connect(self.db_connect) as conn:
             with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as curs:
                 curs.execute('''SELECT *
