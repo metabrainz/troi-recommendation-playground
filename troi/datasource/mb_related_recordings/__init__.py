@@ -56,6 +56,8 @@ class MBRelatedRecordingsDataSource(DataSource):
                                    row['recording_0_name'],
                                    {
                                        'musicbrainz' : {
+                                           'artist' : {},
+                                           'release' : {},
                                            'recording' : {
                                                'recording_id' : row['recording_0_id'],
                                                'recording_relations_count' : row['count']
@@ -68,6 +70,8 @@ class MBRelatedRecordingsDataSource(DataSource):
                                    row['recording_1_name'],
                                    {
                                        'musicbrainz' : {
+                                           'artist' : {},
+                                           'release' : {},
                                            'recording' : {
                                                'recording_id' : row['recording_1_id'],
                                                'recording_relations_count' : row['count']

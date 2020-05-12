@@ -1,4 +1,5 @@
 import enum
+from uuid import UUID
 
 class EntityEnum(enum.Enum):
     '''
@@ -17,17 +18,32 @@ class Entity():
         The core class that represent metadata entity.
     '''
 
-    def __init__(self, etype=None, id="", name="", metadata=None):
+    def __init__(self, etype=None, id=None, name="", metadata=None):
 
         # define the domain of the metadata. At first, just MusicBrainz, but other
         # domains might be added later, such as a Spotify domain
         self.domain = "musicbrainz"
 
         # The type of this entity
-        self.type = etype
+        if etype and isinstance(etype, Entity):
+            self.type = etype
+        else:
+            try:
+                self.type = EntityEnum(etype)
+            except ValueError:
+                raise ValueError("%s is not a valid EntityType")
 
         # The canonical ID of this entity.
-        self.id = id
+        if id and isinstance(id, UUID):
+            self.id = id
+        else:
+            try:
+                self.id = UUID(id)
+            except (ValueError, AttributeError):
+                try:
+                    self.id = int(id)
+                except ValueError:
+                    raise ValueError("Entity ids need to be integer or UUID")
 
         # The name of this entity, if applicable
         self.name = name

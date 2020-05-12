@@ -16,7 +16,7 @@ class MBArtistCreditLookup():
 
 
     def lookup(self, artist_credit):
-        assert artist_credit.type == "artist_credit"
+        assert artist_credit.type == EntityEnum("artist-credit")
         assert artist_credit.domain == "musicbrainz"
 
         ac = artist_credit.musicbrainz['artist']
