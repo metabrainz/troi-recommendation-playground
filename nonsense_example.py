@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import click
+import io
+import subprocess
 import ujson
 
 from troi import Entity
@@ -79,45 +81,43 @@ def serialize_recordings_to_listen_format(entities):
 
     return ujson.dumps(listens, indent=4, sort_keys=True)
 
-  
+
 def make_playlist(recording_mbids):
 
-    ac_ds = MBRelatedArtistCreditsDataSource(config.DB_CONNECT)
-    recording_ds = MBRelatedRecordingsDataSource(config.DB_CONNECT)
-    acl = MBArtistCreditLookup(config.DB_CONNECT)
-    rl = MBRecordingLookup(config.DB_CONNECT)
+    # setup components
+    datasource_artist_credits = MBRelatedArtistCreditsDataSource(config.DB_CONNECT)
+    datasource_recording = MBRelatedRecordingsDataSource(config.DB_CONNECT)
 
-    recordings = []
-    artist_credits = []
-    for mbid in recording_mbids:
-        recording = Entity("recording", mbid)
-        rl.lookup(recording)
-        recordings.append(recording)
+    lookup_artist_credit = MBArtistCreditLookup(config.DB_CONNECT)
+    lookup_recording = MBRecordingLookup(config.DB_CONNECT)
 
-        artist_credit = Entity("artist-credit", recording.mb_recording['artist_credit'])
-        acl.lookup(artist_credit)
-        artist_credits.append(artist_credit)
 
+    # Create objects for each recording argument and look them up
+    recordings = [ Entity("recording", mbid) for mbid in recording_mbids ]
+    lookup_recording.lookup(recordings)
+
+    # Fetch the artist credits for each of given tracks and then find related artists for each of them
+    artist_credits = [ Entity("artist-credit", recording.mb_recording['artist_credit']) for recording in recordings ]
     related_artist_credits = []
     for ac in artist_credits:
-        related_artist_credits.extend(ac_ds.get(ac, max_items=25))
+        related_artist_credits.extend(datasource_artist_credits.get(ac, max_items=25))
 
     related_artist_credits = make_unique(related_artist_credits)
     related_artist_credits = sorted(related_artist_credits, key=lambda e: e.mb_artist['artist_credit_relations_count'], reverse=True)
+
+    related_recordings = []
+    for recording in recordings:
+        related_recordings.extend(datasource_recording.get(recording))
+
+    related_recordings = make_unique(related_recordings)
+    related_recordings = sorted(related_recordings, key=lambda e: e.mb_recording['recording_relations_count'], reverse=True)
+    lookup_recording.lookup(related_recordings)
+
 
     print("load %d related artist_credits" % (len(related_artist_credits)))
     for e in related_artist_credits[:5]:
         print("  %3d %7d %s" % (e.mb_artist['artist_credit_relations_count'], int(e.id), e.mb_artist['artist_name']))
     print()
-
-
-    related_recordings = []
-    for recording in recordings:
-        related_recordings.extend(recording_ds.get(recording))
-
-    related_recordings = make_unique(related_recordings)
-    related_recordings = sorted(related_recordings, key=lambda e: e.mb_recording['recording_relations_count'], reverse=True)
-    rl.lookup(related_recordings)
 
     print("load %d related recordings (%s %s)" % (len(related_recordings), 
                                                      str(recording.id)[:6], 
@@ -125,7 +125,13 @@ def make_playlist(recording_mbids):
     for e in related_recordings[:5]:
         print("  %3d %s %-30s %s" % (e.mb_recording['recording_relations_count'], str(e.id)[:6], e.mb_artist['artist_credit_name'][:29], e.name))
 
-    print(serialize_recordings_to_listen_format(related_recordings))
+    json_playlist = serialize_recordings_to_listen_format(related_recordings[:15])
+
+    with open("playlist.json", "w") as f:
+        f.write(json_playlist)
+
+#    with io.StringIO(json_playlist) as jp:
+    subprocess.run(['./openpost.py', '-s', '--key listens', 'https://beta.listenbrainz.org/player'], input=json_playlist, encoding="utf-8")
 
 
 @click.command()

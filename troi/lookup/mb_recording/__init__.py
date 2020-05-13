@@ -43,11 +43,19 @@ class MBRecordingLookup():
         with psycopg2.connect(self.db_connect) as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
                 mbids = tuple([ psycopg2.extensions.adapt(r.id) for r in recordings ])
-                curs.execute('''SELECT r.gid AS gid, r.id AS recording_id, r.name AS recording_name, length, comment, 
-                                       ac.id AS artist_credit_id, ac.name AS artist_credit_name
+                curs.execute('''SELECT r.gid AS gid, r.id AS recording_id, r.name AS recording_name, r.length, r.comment, 
+                                       ac.id AS artist_credit_id, ac.name AS artist_credit_name, 
+                                       array_agg(r.gid) AS artist_mbids
                                   FROM recording r
-                                  JOIN artist_credit ac ON r.artist_credit = ac.id
-                                 WHERE gid IN %s''', (mbids,))
+                                  JOIN artist_credit ac 
+                                    ON r.artist_credit = ac.id
+                                  JOIN artist_credit_name acn
+                                    ON ac.id = acn.artist_credit
+                                  JOIN artist a
+                                    ON acn.artist = a.id
+                                 WHERE r.gid 
+                                    IN %s
+                              GROUP BY r.gid, r.id, r.name, r.length, r.comment, ac.id, ac.name''', (mbids,))
                 while True:
                     row = curs.fetchone()
                     if not row:
@@ -62,3 +70,4 @@ class MBRecordingLookup():
                     r.mb_recording['comment'] = row['comment']
                     r.mb_artist['artist_credit_id'] = row['artist_credit_id']
                     r.mb_artist['artist_credit_name'] = row['artist_credit_name']
+                    r.mb_artist['artist_mbids'] = row['artist_mbids']
