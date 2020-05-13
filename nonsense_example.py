@@ -6,57 +6,16 @@ import io
 import subprocess
 import ujson
 
-from troi import Entity
+from troi import Entity, EntityEnum
 from troi.lookup.mb_artist_credit import MBArtistCreditLookup
 from troi.lookup.mb_recording import MBRecordingLookup
 from troi.datasource.mb_related_artist_credits import MBRelatedArtistCreditsDataSource
 from troi.datasource.mb_related_recordings import MBRelatedRecordingsDataSource
 from troi.datafilter.mb_artist_credit_filter import MBArtistCreditFilter
 from troi.operations import is_homogeneous, make_unique, union
+from troi.playlist import launch_playlist
+from troi.utils import print_entities
 import config
-
-a = '''
-{
-    "listened_at": 1443521965,
-        "track_metadata": {
-            "additional_info": {
-                "release_mbid": "bf9e91ea-8029-4a04-a26a-224e00a83266",
-                "artist_mbids": [
-                    "db92a151-1ac2-438b-bc43-b82e149ddd50"
-                ],
-                "recording_mbid": "98255a8c-017a-4bc7-8dd6-1fa36124572b",
-                "tags": [ "you", "just", "got", "rick rolled!"]
-            },
-            "artist_name": "Rick Astley",
-            "track_name": "Never Gonna Give You Up",
-            "release_name": "Whenever you need somebody"
-        }
-}
-'''
-
-def serialize_recordings_to_listen_format(entities):
-
-    if not is_homogeneous(entities, "recording"):
-        raise TypeError("entity list not homogeneous")
-
-
-    listens = []
-    for e in entities:
-        artist_mbids = [ str(mbid) for mbid in e.mb_artist.get('artist_mbids', []) ]
-        listens.append({
-            'listened_at' : 0,
-            'track_metadata' : {
-                'artist_name' : e.mb_artist.get('artist_credit_name', ''),
-                'track_name' : e.name,
-                'release_name' : e.mb_release.get('release_name', ''),
-                'additional_info' : {
-                    'recording_mbid' : str(e.id),
-                    'artist_mbids' : artist_mbids
-                }
-            }
-        })
-
-    return ujson.dumps(listens, indent=4, sort_keys=True)
 
 
 def make_nonsense_playlist(recording_mbids):
@@ -98,30 +57,20 @@ def make_nonsense_playlist(recording_mbids):
     playlist = filter_artist_credit.filter(related_recordings, related_artist_credits)
 
     # The "playlist" is now done. :). The rest is reporting what was done
+    print("The input recordings were:")
+    print_entities(recordings)
 
-    print("load %d related artist_credits" % (len(related_artist_credits)))
-    for e in related_artist_credits[:5]:
-        print("  %3d %7d %s" % (e.mb_artist['artist_credit_relations_count'], int(e.id), e.mb_artist['artist_name']))
-    print()
+    print("Related to those artists, %d related artist_credits were loaded (5 shown):" % (len(related_artist_credits)))
+    print_entities(related_artist_credits, 5)
 
-    print("load %d related recordings (%s %s)" % (len(related_recordings), 
-                                                     str(recording.id)[:6], 
-                                                     recording.name))
-    for e in related_recordings[:5]:
-        print("  %3d %s %-30s %s" % (e.mb_recording['recording_relations_count'], str(e.id)[:6], e.mb_artist['artist_credit_name'][:29], e.name))
-    print()
+    print("load %d related recordings to the given recordings. (5 shown):" % (len(related_recordings)))
+    print_entities(related_recordings, 5)
 
-    print("filter list down to the following playlist:")
-    for e in playlist:
-        print("  %3d %s %-30s %s" % (e.mb_recording['recording_relations_count'], str(e.id)[:6], e.mb_artist['artist_credit_name'][:29], e.name))
+    print("Filter related recordings by excluding tracks not in the related artists list:")
+    print_entities(playlist)
 
-    json_playlist = serialize_recordings_to_listen_format(related_recordings[:15])
+    launch_playlist(playlist)
 
-    with open("playlist.json", "w") as f:
-        f.write(json_playlist)
-
-#    with io.StringIO(json_playlist) as jp:
-    subprocess.run(['./openpost.py', '-s', '-k', '--key', 'listens', 'https://listenbrainz.org/player'], input=json_playlist, encoding="utf-8")
 
 
 @click.command()
