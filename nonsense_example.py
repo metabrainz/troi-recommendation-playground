@@ -12,7 +12,7 @@ from troi.lookup.mb_recording import MBRecordingLookup
 from troi.datasource.mb_related_artist_credits import MBRelatedArtistCreditsDataSource
 from troi.datasource.mb_related_recordings import MBRelatedRecordingsDataSource
 from troi.datafilter.mb_artist_credit_filter import MBArtistCreditFilter
-from troi.operations import is_homogeneous, make_unique
+from troi.operations import is_homogeneous, make_unique, union
 import config
 
 a = '''
@@ -59,7 +59,7 @@ def serialize_recordings_to_listen_format(entities):
     return ujson.dumps(listens, indent=4, sort_keys=True)
 
 
-def make_playlist(recording_mbids):
+def make_nonsense_playlist(recording_mbids):
 
     # setup components
     datasource_artist_credits = MBRelatedArtistCreditsDataSource(config.DB_CONNECT)
@@ -78,19 +78,26 @@ def make_playlist(recording_mbids):
     artist_credits = [ Entity("artist-credit", recording.mb_recording['artist_credit']) for recording in recordings ]
     related_artist_credits = []
     for ac in artist_credits:
-        related_artist_credits.extend(datasource_artist_credits.get(ac, max_items=25))
+        related_artist_credits = union(related_artist_credits, datasource_artist_credits.get(ac, max_items=25))
 
+    # Remove duplicate artist credits and sort by relevance score
     related_artist_credits = make_unique(related_artist_credits)
     related_artist_credits = sorted(related_artist_credits, key=lambda e: e.mb_artist['artist_credit_relations_count'], reverse=True)
 
+    # For each of the provided recordings, find related recordings
     related_recordings = []
     for recording in recordings:
-        related_recordings.extend(datasource_recording.get(recording))
+        related_recordings = union(related_recordings, datasource_recording.get(recording))
 
+    # Unique and sort the list
     related_recordings = make_unique(related_recordings)
     related_recordings = sorted(related_recordings, key=lambda e: e.mb_recording['recording_relations_count'], reverse=True)
     lookup_recording.lookup(related_recordings)
+  
+    # Finally filter out recordings not in the related artist list
+    playlist = filter_artist_credit.filter(related_recordings, related_artist_credits)
 
+    # The "playlist" is now done. :). The rest is reporting what was done
 
     print("load %d related artist_credits" % (len(related_artist_credits)))
     for e in related_artist_credits[:5]:
@@ -102,10 +109,10 @@ def make_playlist(recording_mbids):
                                                      recording.name))
     for e in related_recordings[:5]:
         print("  %3d %s %-30s %s" % (e.mb_recording['recording_relations_count'], str(e.id)[:6], e.mb_artist['artist_credit_name'][:29], e.name))
+    print()
 
-    print("filter list down to:")
-    filtered_recordings = filter_artist_credit.filter(related_recordings, related_artist_credits)
-    for e in filtered_recordings:
+    print("filter list down to the following playlist:")
+    for e in playlist:
         print("  %3d %s %-30s %s" % (e.mb_recording['recording_relations_count'], str(e.id)[:6], e.mb_artist['artist_credit_name'][:29], e.name))
 
     json_playlist = serialize_recordings_to_listen_format(related_recordings[:15])
@@ -120,7 +127,7 @@ def make_playlist(recording_mbids):
 @click.command()
 @click.argument("recordings", nargs=-1)
 def playlist(recordings):
-    make_playlist(recordings)
+    make_nonsense_playlist(recordings)
 
 
 def usage(command):

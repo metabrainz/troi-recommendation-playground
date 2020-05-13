@@ -21,6 +21,12 @@ class MBArtistCreditFilter(DataFilter):
 
     def filter(self, recordings, artist_credits, exclude=True): 
 
+        if not artist_credits:
+            raise ValueError("artist credit list is empty")
+
+        if not recordings:
+            raise ValueError("recordings list is empty")
+
         if not is_homogeneous(recordings, "recording"):
             raise TypeError("Recording list is not homogeneous.")
 
