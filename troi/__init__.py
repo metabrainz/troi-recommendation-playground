@@ -92,3 +92,4 @@ class Entity():
 
     def __str__(self):
         return "<Entity(%s, %s, '%s')>" % (self.type, self.id, self.name)
+

@@ -60,6 +60,7 @@ class MBRelatedArtistCreditsDataSource(DataSource):
                                        'musicbrainz' : {
                                            'artist' : {
                                                'artist_id' : row['artist_0_id'],
+                                               'artist_credit_id' : row['artist_credit_0_id'],
                                                'artist_mbid' : row['artist_0_mbid'],
                                                'artist_name' : row['artist_0_name'],
                                                'artist_credit_relations_count' : row['count']
@@ -74,6 +75,7 @@ class MBRelatedArtistCreditsDataSource(DataSource):
                                        'musicbrainz' : {
                                            'artist' : {
                                                'artist_id' : row['artist_1_id'],
+                                               'artist_credit_id' : row['artist_credit_1_id'],
                                                'artist_mbid' : row['artist_1_mbid'],
                                                'artist_name' : row['artist_1_name'],
                                                'artist_credit_relations_count' : row['count']
