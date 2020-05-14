@@ -33,6 +33,9 @@ def make_nonsense_playlist(recording_mbids):
     recordings = [ Entity("recording", mbid) for mbid in recording_mbids ]
     lookup_recording.lookup(recordings)
 
+    print("The input recordings were:")
+    print_entities(recordings)
+
     # Fetch the artist credits for each of given tracks and then find related artists for each of them
     artist_credits = [ Entity("artist-credit", recording.mb_recording['artist_credit']) for recording in recordings ]
     related_artist_credits = []
@@ -42,6 +45,9 @@ def make_nonsense_playlist(recording_mbids):
     # Remove duplicate artist credits and sort by relevance score
     related_artist_credits = make_unique(related_artist_credits)
     related_artist_credits = sorted(related_artist_credits, key=lambda e: e.mb_artist['artist_credit_relations_count'], reverse=True)
+    if not related_artist_credits:
+        print("Not enough related artists were found.")
+        return
 
     # For each of the provided recordings, find related recordings
     related_recordings = []
@@ -52,13 +58,15 @@ def make_nonsense_playlist(recording_mbids):
     related_recordings = make_unique(related_recordings)
     related_recordings = sorted(related_recordings, key=lambda e: e.mb_recording['recording_relations_count'], reverse=True)
     lookup_recording.lookup(related_recordings)
+
+    if not related_recordings:
+        print("The given tracks could not generate related recordings.")
+        return
   
     # Finally filter out recordings not in the related artist list
     playlist = filter_artist_credit.filter(related_recordings, related_artist_credits)
 
     # The "playlist" is now done. :). The rest is reporting what was done
-    print("The input recordings were:")
-    print_entities(recordings)
 
     print("Related to those artists, %d related artist_credits were loaded (5 shown):" % (len(related_artist_credits)))
     print_entities(related_artist_credits, 5)

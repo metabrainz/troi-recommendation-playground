@@ -22,6 +22,9 @@ class MBRecordingLookup():
             Given an entity or a list of entities, lookup the basic metadata for each of the items
         '''
 
+        if not recording_arg:
+            return []
+
         if type(recording_arg) == list:
             recordings = recording_arg
         elif isinstance(recording_arg, Entity):
