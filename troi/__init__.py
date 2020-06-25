@@ -9,7 +9,7 @@ class EntityEnum(enum.Enum):
     artist = "artist"
     artist_credit = "artist-credit"
     release_group = "release-group"
-    release = "relase"
+    release = "release"
     recording = "recording"
 
 
@@ -31,7 +31,7 @@ class Entity():
             try:
                 self.type = EntityEnum(etype)
             except ValueError:
-                raise ValueError("%s is not a valid EntityType")
+                raise ValueError("%s is not a valid EntityType" % type(etype))
 
         # The canonical ID of this entity.
         if id and isinstance(id, UUID):
@@ -92,4 +92,3 @@ class Entity():
 
     def __str__(self):
         return "<Entity(%s, %s, '%s')>" % (self.type, self.id, self.name)
-

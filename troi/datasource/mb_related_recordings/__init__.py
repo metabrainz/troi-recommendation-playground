@@ -33,7 +33,7 @@ class MBRelatedRecordingsDataSource(DataSource):
                                        rrr.recording_1 as recording_1_id,
                                        a1.gid AS recording_1_mbid,
                                        a1.name AS recording_1_name
-                                  FROM recording_recording_relations rrr
+                                  FROM relations.recording_recording_relations rrr
                                   JOIN recording a0 ON rrr.recording_0 = a0.id
                                   JOIN recording a1 ON rrr.recording_1 = a1.id
                                  WHERE (rrr.recording_0 = %s OR rrr.recording_1 = %s) AND

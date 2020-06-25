@@ -1,5 +1,6 @@
 import subprocess
 import ujson
+import openpost
 
 from troi.operations import is_homogeneous
 
@@ -32,4 +33,7 @@ def _serialize_recordings_to_listen_format(entities):
 def launch_playlist(playlist):
 
     json_playlist = _serialize_recordings_to_listen_format(playlist)
-    subprocess.run(['./openpost.py', '-s', '-k', '--key', 'listens', 'https://listenbrainz.org/player'], input=json_playlist, encoding="utf-8")
+
+    op = openpost.OpenPost('https://beta.listenbrainz.org/player', keep_file=True)
+    op.add_key('listens', json_playlist)
+    op.send_post()

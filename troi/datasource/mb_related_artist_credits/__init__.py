@@ -35,7 +35,7 @@ class MBRelatedArtistCreditsDataSource(DataSource):
                                        a1.id AS artist_1_id,
                                        a1.gid AS artist_1_mbid,
                                        a1.name AS artist_1_name
-                                  FROM artist_credit_artist_credit_relations arr
+                                  FROM relations.artist_credit_artist_credit_relations arr
                                   JOIN artist a0 ON arr.artist_credit_0 = a0.id
                                   JOIN artist a1 ON arr.artist_credit_1 = a1.id
                                  WHERE (arr.artist_credit_0 = %s OR arr.artist_credit_1 = %s)

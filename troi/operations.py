@@ -44,7 +44,7 @@ def _ensure_conformity(entities_0, entities_1):
     if not is_homogeneous(entities_1, entities_1[0].type):
         raise TypeError("entities_1 list not homogenous")
 
-    if entities_1[0].type != entities_1[1].type:
+    if entities_0 and entities_1 and entities_0[0].type != entities_1[0].type:
         raise TypeError("entities_0 and entities_1 must both be homogenous with all the same type")
 
 
