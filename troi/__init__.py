@@ -1,94 +1,93 @@
-import enum
-from uuid import UUID
-
-class EntityEnum(enum.Enum):
-    '''
-        Defines the various MusicBrainz entities. Not all types have been defined,
-        just a few that we will likely use before too long.
-    '''
-    artist = "artist"
-    artist_credit = "artist-credit"
-    release_group = "release-group"
-    release = "release"
-    recording = "recording"
+from abc import ABC, abstractmethod
 
 
-class Entity():
-    '''
-        The core class that represent metadata entity.
-    '''
+class Entity(ABC):
+    """
+        This is the base class for entity objects in troi. Each object will have
+        a name, mbid, msid attributes which are all optional. There will also be
+        three dicts named musicbrainz, listenbrainz and acousticbrainz that will
+        contain collected metadata respective of each project. 
 
-    def __init__(self, etype=None, id=None, name="", metadata=None):
-
-        # define the domain of the metadata. At first, just MusicBrainz, but other
-        # domains might be added later, such as a Spotify domain
-        self.domain = "musicbrainz"
-
-        # The type of this entity
-        if etype and isinstance(etype, Entity):
-            self.type = etype
-        else:
-            try:
-                self.type = EntityEnum(etype)
-            except ValueError:
-                raise ValueError("%s is not a valid EntityType" % type(etype))
-
-        # The canonical ID of this entity.
-        if id and isinstance(id, UUID):
-            self.id = id
-        else:
-            try:
-                self.id = UUID(id)
-            except (ValueError, AttributeError):
-                try:
-                    self.id = int(id)
-                except ValueError:
-                    raise ValueError("Entity ids need to be integer or UUID")
-
-        # The name of this entity, if applicable
-        self.name = name
-
-        # A collection of metadata for this object. If a component has some metdata available
-        # about this entity, it should write that metadata into this dict. This dict will
-        # have contain string keys, for each domain that has metadata available. Each domain
-        # will define they keys and subkeys of their own metadata space.
-
-        if not metadata:
-            self.metadata = {
-                'musicbrainz' : {
-                    'artist' : {},
-                    'release' : {},
-                    'recording' : {}
-                },
-                'listenbrainz' : {},
-                'acousticbrainz' : {}
-            }
-        else:
-            self.metadata = metadata
+        For instance, the musicbrainz dict might have keys that shows the type
+        of an artist or the listenbrainz dict might contain the BPM for a track.
+        How exactly these dicts will be organized is TDB.
+    """
+    self __init__(self, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+        self.name = None
+        self.mbid = None
+        self.msid = None
+        self.musicbrainz = musicbrainz
+        self.listenbrainz = listenbrainz
+        self.acousticbrainz = acousticbrainz
 
     @property
-    def musicbrainz(self):
-        return self.metadata['musicbrainz']
+    def mb(self):
+        return self.musicbrainz
 
     @property
-    def mb_artist(self):
-        return self.metadata['musicbrainz']['artist']
+    def lb(self):
+        return self.listenbrainz
 
     @property
-    def mb_release(self):
-        return self.metadata['musicbrainz']['release']
-
-    @property
-    def mb_recording(self):
-        return self.metadata['musicbrainz']['recording']
-
-    @property
-    def listenbrainz(self):
-        return self.metadata['listenbrainz']
-
-    @property
-    def acousticbrainz(self):
-        return self.metadata['acousticbrainz']
+    def ab(self):
+        return self.acousticbrainz
 
     def __str__(self):
-        return "<Entity(%s, %s, '%s')>" % (self.type, self.id, self.name)
+        return "<Entity()>"
+
+
+class Artist(Entity):
+    """
+        The class that represents an artist.
+    """
+    self __init__(self, name=None, mbid=None, msid=None, musicbrainz=None, 
+                  listenbrainz=None, acousticbrainz=None):
+        self.name = name
+        self.mbid = mbid
+        self.msid = msid
+
+    def __str__(self):
+        return "<Artist('%s', %s, %s)>" % (self.name, self.mbid, self.msid)
+
+
+class Release(Entity):
+    """
+        The class that represents a release.
+    """
+    self __init__(self, name=None, mbid=None, msid=None, artist=None, 
+                  musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+        self.artist = None
+        self.name = name
+        self.mbid = mbid
+        self.msid = msid
+
+    @property
+    def artist(self):
+        return self.artist
+
+    def __str__(self):
+        return "<Release('%s', %s, %s)>" % (self.name, self.mbid, self.msid)
+
+
+class Recording(Entity):
+    """
+        The class that represents a recording.
+    """
+    self __init__(self, name=None, mbid=None, msid=None, artist=None, release=None, 
+                  musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+        self.artist = None
+        self.release = None
+        self.name = name
+        self.mbid = mbid
+        self.msid = msid
+
+    @property
+    def artist(self):
+        return self.artist
+
+    @property
+    def release(self):
+        return self.release
+
+    def __str__(self):
+        return "<Recording('%s', %s, %s)>" % (self.name, self.mbid, self.msid)

@@ -3,6 +3,8 @@ from enum import Enum
 import requests
 import ujson
 
+from troi import Entity, EntityEnum
+
 class ListenBrainzEntityEnum(Enum):
     artist = "artist"
     release = "release"
@@ -61,7 +63,6 @@ class ListenBrainzStatsDataSource():
                 args.append("count=%d" % self.count)
             url += "?" + "&".join(args)
 
-        print(url)
         r = requests.get(url)
         if r.status_code != 200:
             r.raise_for_status()
@@ -71,4 +72,13 @@ class ListenBrainzStatsDataSource():
         except Exception as err:
             raise RuntimeError(str(err))
 
-        return response['payload'][self.type.name + "s"]
+        entities = []
+        for row in response['payload'][self.type.name + "s"]:
+            entities.append(Entity(EntityEnum(self.type.name),
+               None,
+               row['track_name'],
+               artist=row['artist_name'],
+               release=row['release_name'],
+               recording=row['track_name']))
+
+        return entities
