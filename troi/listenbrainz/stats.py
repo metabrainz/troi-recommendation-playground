@@ -1,84 +1,76 @@
-from enum import Enum
 
 import requests
 import ujson
+from troi import Element, Artist, Release, Recording
+import pylistenbrainz
 
-from troi import Entity, EntityEnum
 
-class ListenBrainzEntityEnum(Enum):
-    artist = "artist"
-    release = "release"
-    recording = "recording"
-
-class ListenBrainzStatsRangeEnum(Enum):
-    all_time = "all_time"
-    week = "week"
-    month = "month"
-    year = "year"
-
-class ListenBrainzStatsDataSource():
+class UserArtistsElement(Element):
     '''
-        Acts as common base class for fetching ListenBrainz stats.
+        Fetch artist statistics from ListenBrainz
     '''
 
-    SERVER_URL = "https://api.listenbrainz.org/1/stats/user"
-
-    def __init__(self, user_name, etype, range, count=None):
-
-        if not user_name:
-            raise ValueError("A valid MusicBrainz user name must be given")
+    def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
+        self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
+        self.count = count
+        self.offset = offset
+        self.time_range = time_range
 
-        if etype and isinstance(etype, ListenBrainzEntityEnum):
-            self.type = etype
-        else:
-            try:
-                self.type = ListenBrainzEntityEnum(etype)
-            except ValueError:
-                raise ValueError("%s is not a valid ListenBrainzEntityEnum" % str(etype))
+    def read(self):
 
-        if range and isinstance(range, ListenBrainzStatsRangeEnum):
-            self.range = range
-        else:
-            try:
-                self.range = ListenBrainzStatsRangeEnum(range)
-            except ValueError:
-                raise ValueError("%s is not a valid ListenBrainzStatsRangeEnum" % str(range))
-          
-        if count:
-            try:
-                self.count = int(count)
-            except ValueError:
-                raise ValueError("count must be a non-zero positive integer.")
-        else:
-            self.count = None
+        artist_list = []
+        artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
+        for a in artists['payload']['artists']:
+            artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids'], msid=a['artist_msid']))
 
-    def get(self):
-        url = self.SERVER_URL + "/" + self.user_name + "/" + self.type.name + "s"
-        if self.range or self.count:
-            args = []
-            if self.range:
-                args.append("range=%s" % self.range.name)
-            if self.count:
-                args.append("count=%d" % self.count)
-            url += "?" + "&".join(args)
+        return artist_list
 
-        r = requests.get(url)
-        if r.status_code != 200:
-            r.raise_for_status()
 
-        try:
-            response = ujson.loads(r.text)
-        except Exception as err:
-            raise RuntimeError(str(err))
+class UserReleasesElement(Element):
+    '''
+        Fetch release statistics from ListenBrainz
+    '''
 
-        entities = []
-        for row in response['payload'][self.type.name + "s"]:
-            entities.append(Entity(EntityEnum(self.type.name),
-               None,
-               row['track_name'],
-               artist=row['artist_name'],
-               release=row['release_name'],
-               recording=row['track_name']))
+    def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
+        self.client = pylistenbrainz.ListenBrainz()
+        self.user_name = user_name
+        self.count = count
+        self.offset = offset
+        self.time_range = time_range
 
-        return entities
+    def read(self):
+
+        release_list = []
+        releases = self.client.get_user_releases(self.user_name, self.count, self.offset, self.time_range)
+        for r in releases['payload']['releases']:
+            artist = Artist(r['artist_name'], mbids=r['artist_mbids'], msid=r['artist_msid'])
+            release_list.append(Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'], 
+                                artist=artist))
+
+        return release_list
+
+
+class UserRecordingElement(Element):
+    '''
+        Fetch recording statistics from ListenBrainz
+    '''
+
+    def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
+        self.client = pylistenbrainz.ListenBrainz()
+        self.user_name = user_name
+        self.count = count
+        self.offset = offset
+        self.time_range = time_range
+
+    def read(self):
+
+        recording_list = []
+        recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
+        for r in recordings['payload']['recordings']:
+            artist = Artist(r['artist_name'], mbids=r['artist_mbids'], msid=r['artist_msid'])
+            release = Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'])
+            recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], msid=r['recording_msid'], 
+                                  artist=artist, release=release))
+
+        return recording_list
