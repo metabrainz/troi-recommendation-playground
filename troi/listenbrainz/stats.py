@@ -17,14 +17,17 @@ class UserArtistsElement(Element):
         self.offset = offset
         self.time_range = time_range
 
-    def read(self):
+    def outputs(self):
+        return [Artist]
+
+    def push(self, inputs = []):
 
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
         for a in artists['payload']['artists']:
             artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids'], msid=a['artist_msid']))
 
-        return artist_list
+        self.next_elements[0].push(artist_list)
 
 
 class UserReleasesElement(Element):
@@ -39,7 +42,10 @@ class UserReleasesElement(Element):
         self.offset = offset
         self.time_range = time_range
 
-    def read(self):
+    def outputs(self):
+        return [Release]
+
+    def push(self, inputs = []):
 
         release_list = []
         releases = self.client.get_user_releases(self.user_name, self.count, self.offset, self.time_range)
@@ -48,7 +54,7 @@ class UserReleasesElement(Element):
             release_list.append(Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'], 
                                 artist=artist))
 
-        return release_list
+        self.next_elements[0].push(release_list)
 
 
 class UserRecordingElement(Element):
@@ -63,8 +69,10 @@ class UserRecordingElement(Element):
         self.offset = offset
         self.time_range = time_range
 
-    def read(self):
+    def outputs(self):
+        return [Recording]
 
+    def push(self, inputs = []):
         recording_list = []
         recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
         for r in recordings['payload']['recordings']:
@@ -73,4 +81,4 @@ class UserRecordingElement(Element):
             recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], msid=r['recording_msid'], 
                                   artist=artist, release=release))
 
-        return recording_list
+        self.next_elements[0].push([recording_list])

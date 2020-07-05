@@ -3,37 +3,46 @@ import ujson
 import openpost
 
 from troi.operations import is_homogeneous
+import troi
 
+class PlaylistElement(troi.Element):
 
-def _serialize_recordings_to_listen_format(entities):
+    def __init__(self):
+        self.playlist = None
 
-    if not is_homogeneous(entities, "recording"):
-        raise TypeError("entity list not homogeneous")
+    def inputs(self):
+        return [Recording]
 
+    def push(self, inputs):
 
-    listens = []
-    for e in entities:
-        artist_mbids = [ str(mbid) for mbid in e.mb_artist.get('artist_mbids', []) ]
-        listens.append({
-            'listened_at' : 0,
-            'track_metadata' : {
-                'artist_name' : e.mb_artist.get('artist_credit_name', ''),
-                'track_name' : e.name,
-                'release_name' : e.mb_release.get('release_name', ''),
-                'additional_info' : {
-                    'recording_mbid' : str(e.id),
-                    'artist_mbids' : artist_mbids
+        entities = inputs[0]
+        if not is_homogeneous(entities):
+            raise TypeError("entity list not homogeneous")
+
+        listens = []
+        for e in entities:
+            artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
+            listens.append({
+                'listened_at' : 0,
+                'track_metadata' : {
+                    'artist_name' : e.artist.name,
+                    'track_name' : e.name,
+                    'release_name' : e.release.name,
+                    'additional_info' : {
+                        'recording_mbid' : str(e.mbid),
+                        'artist_mbids' : artist_mbids
+                    }
                 }
-            }
-        })
+            })
 
-    return ujson.dumps(listens, indent=4, sort_keys=True)
+        self.playlist = ujson.dumps(listens, indent=4, sort_keys=True)
 
 
-def launch_playlist(playlist):
+    def launch(self):
 
-    json_playlist = _serialize_recordings_to_listen_format(playlist)
+        if not self.playlist:
+            raise RuntimeError("Playlist has not been generated yet.")
 
-    op = openpost.OpenPost('https://beta.listenbrainz.org/player', keep_file=True)
-    op.add_key('listens', json_playlist)
-    op.send_post()
+        op = openpost.OpenPost('https://beta.listenbrainz.org/player', keep_file=True)
+        op.add_key('listens', self.playlist)
+        op.send_post()

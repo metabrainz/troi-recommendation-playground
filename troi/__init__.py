@@ -6,12 +6,52 @@ class Element(ABC):
         Base class for elements
     """
 
+    def __init__(self):
+        self.next_elements = []
+
+    def connect(self, next_elements):
+        """
+            This function chains the next Element to the outputs of
+            this element. The items in next_elements must correspond in
+            type and sequence to the outputs of this element. If the outputs
+            function specifies [ Artist, Release] then next_elements must
+            contains other elements; the first one must accept a list of artists
+            and the second one must accept a list of releases.
+        """
+
+        if not isinstance(next_elements, list):
+            next_elements = [ next_elements ]
+        self.next_elements = next_elements
+
+    def inputs(self):
+        """
+            Return a list of Artist, Release or Recording classes that define
+            the type and number of input lists to this element. 
+            e.g. [ Artist, Recording ] means that this element expects
+            a list of artists and a list of recordings for inputs.
+        """
+        return None
+
+    def outputs(self):
+        """
+            Return a list of Artist, Release or Recording classes that define
+            the type and number of output lists returned by this element. 
+            e.g. [ Artist, Recording ] means that this element returns
+            a list of artists and a list of recordings.
+        """
+        return None
+
     @abstractmethod
-    def read(self):
+    def push(self, inputs):
         ''' 
+            This method is where the action happens -- when a connected has generated
+            data ready for this element to process, it will call push with the 
+            expected inputs. This element should carry out its task and then
+            call push on its next elements.
         '''
 
         pass
+
 
 class Entity(ABC):
     """

@@ -19,9 +19,15 @@ class MSBMappingLookupElement(Element):
     def __init__(self, remove_unmatched=False):
         self.remove_unmatched = remove_unmatched
 
+    def inputs(self):
+        return [Recording]
 
-    def read(self, in_recordings):
+    def outputs(self):
+        return [Recording]
 
+    def push(self, inputs):
+
+        in_recordings = inputs[0]
         artists = ",".join([ r.artist.name for r in in_recordings ])
         recordings = ",".join([ r.name for r in in_recordings ])
 
@@ -68,4 +74,4 @@ class MSBMappingLookupElement(Element):
 
             entities.append(r)
 
-        return entities
+        self.next_elements[0].push([entities])
