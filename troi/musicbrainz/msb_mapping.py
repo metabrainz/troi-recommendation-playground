@@ -5,12 +5,10 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi.datafilter import DataFilter
-from troi import Entity, EntityEnum
+from troi import Element
 
 
-
-class MSBMappingFilter(DataFilter):
+class MSBMappingLookupElement(Element):
     '''
        Look up MBIDs for the given recordings, if possible. If recordings
        are not found, their data remains unchanged.
@@ -18,14 +16,14 @@ class MSBMappingFilter(DataFilter):
 
     SERVER_URL = "http://bono.metabrainz.org:8000/msid-mapping/json"
 
-    def __init__(self):
-        pass
+    def __init__(self, remove_unmatched=False):
+        self.remove_unmatched = remove_unmatched
 
 
-    def filter(self, recordings): 
+    def read(self, in_recordings): 
 
-        artists = ",".join([ r.mb_artist['artist_credit_name'] for r in recordings ])
-        recordings = ",".join([ r.mb_recording['recording_name'] for r in recordings ])
+        artists = ",".join([ r.artist.name for r in in_recordings ])
+        recordings = ",".join([ r.name for r in in_recordings ])
 
         # msid-mapping/json?[msb_artist_credit_name]=portishead%2Cu2&[msb_recording_name]=strangers%2Csunday+bloody+sunday
         url = self.SERVER_URL + "?[msb_artist_credit_name]=" + quote(artists) + \
@@ -40,22 +38,27 @@ class MSBMappingFilter(DataFilter):
         except Exception as err:
             raise RuntimeError(str(err))
 
+
         entities = []
         for row in mappings:
-            entities.append(Entity(EntityEnum("recording"),
-               row['mb_recording_mbid'],
-               row['mb_recording_name'],
-               {
-                   'musicbrainz' : {
-                       'artist' : {
-                           'artist_credit_id ': row['mb_recording_mbid'],
-                           'artist_credit_name': row['mb_artist_name']
-                       },
-                       'release' : {
-                           'release_mbid ': row['mb_release_mbid'],
-                           'release_name': row['mb_release_name']
-                       }
-                   }
-               }))
+            r = in_recordings[int(row['index'])]
+            if not row['mb_artist_name']:
+                if not self.remove_unmatched:
+                    entities.append(r)
+                continue
+
+            if r.mbid:
+                r.add_note("recording mbid %s overwritten by msb_lookup" % (r.mbid))
+            r.mbid = row['mb_recording_mbid']
+
+            if r.artist.artist_credit_id:
+                r.artist.add_note("artist_credit_id %d overwritten by msb_lookup" % (r.artist.artist_credit_id))
+            r.artist.artist_credit_id = row['mb_artist_credit_id']
+
+            if r.release.mbid:
+                r.release.add_note("mbid %d overwritten by msb_lookup" % (r.release.mbid))
+            r.release.mbid = row['mb_release_mbid']
+
+            entities.append(r)
 
         return entities

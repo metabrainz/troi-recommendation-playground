@@ -30,6 +30,11 @@ class TestOperations(unittest.TestCase):
         assert len(u_alist) == 1
         assert u_alist[0].mbids == ['8756f690-18ca-488d-a456-680fdaf234bd']
 
+        alist = [ Artist(artist_credit_id=65),
+                  Artist(artist_credit_id=65) ]
+        u_alist = troi.operations.unique(alist, 'artist_credit_id')
+        assert len(u_alist) == 1
+        assert u_alist[0].artist_credit_id == 65
 
         # Test recording (not testing release since rel and rec use same code)
         rlist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'), 

@@ -30,15 +30,15 @@ def unique(entities, key):
         raise TypeError("entity list not homogenous")
 
     if isinstance(entities[0], troi.Artist):
-        if key not in ['mbids', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
+        if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
+            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
     else:
         if key not in ['mbid', 'msid', 'name']:
             raise ValueError("key must be one of mbid/s, msid or name.")
 
     entity_dict = {}
     for e in entities:
-        if isinstance(e, troi.Artist):
+        if isinstance(e, troi.Artist) and key == "mbids":
             entity_dict[",".join(getattr(e, key))] = e
         else:
             entity_dict[getattr(e, key)] = e
@@ -92,8 +92,8 @@ def intersection(entities_0, entities_1, key):
     _ensure_conformity(entities_0, entities_1)
 
     if isinstance(entities_0[0], troi.Artist):
-        if key not in ['mbids', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
+        if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
+            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
     else:
         if key not in ['mbid', 'msid', 'name']:
             raise ValueError("key must be one of mbid/s, msid or name.")
@@ -134,8 +134,8 @@ def difference(entities_0, entities_1, key):
     _ensure_conformity(entities_0, entities_1)
 
     if isinstance(entities_0[0], troi.Artist):
-        if key not in ['mbids', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
+        if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
+            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
     else:
         if key not in ['mbid', 'msid', 'name']:
             raise ValueError("key must be one of mbid/s, msid or name.")

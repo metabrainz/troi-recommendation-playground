@@ -31,6 +31,7 @@ class Entity(ABC):
         self.musicbrainz = musicbrainz
         self.listenbrainz = listenbrainz
         self.acousticbrainz = acousticbrainz
+        self.notes = []
 
     @property
     def mb(self):
@@ -44,6 +45,12 @@ class Entity(ABC):
     def ab(self):
         return self.acousticbrainz
 
+    def add_note(self, note):
+        '''
+            This allows various parts of the pipeline to leave notes/comments in the data/
+        '''
+        self.notes.append(note)
+
     def __str__(self):
         return "<Entity()>"
 
@@ -52,10 +59,11 @@ class Artist(Entity):
     """
         The class that represents an artist.
     """
-    def __init__(self, name=None, mbids=None, msid=None, 
+    def __init__(self, name=None, mbids=None, msid=None, artist_credit_id=None,
                  musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, musicbrainz, listenbrainz, acousticbrainz)
         self.name = name
+        self.artist_credit_id = artist_credit_id
         if mbids:
             if not isinstance(mbids, list):
                 raise TypeError("Artist mbids must be a list.")
@@ -65,7 +73,7 @@ class Artist(Entity):
         self.msid = msid
 
     def __str__(self):
-        return "<Artist('%s', [%s], %s)>" % (self.name, ",".join(self.mbids), self.msid)
+        return "<Artist('%s', [%s], %s)>" % (self.name, ",".join(self.mbids or []), self.msid)
 
 
 class Release(Entity):
