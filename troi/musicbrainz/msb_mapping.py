@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi import Element
+from troi import Element, Release
 
 
 class MSBMappingLookupElement(Element):
@@ -50,15 +50,21 @@ class MSBMappingLookupElement(Element):
             if r.mbid:
                 r.add_note("recording mbid %s overwritten by msb_lookup" % (r.mbid))
             r.mbid = row['mb_recording_mbid']
+            r.name = row['mb_recording_name']
 
             if r.artist.artist_credit_id:
                 r.artist.add_note("artist_credit_id %d overwritten by msb_lookup" % (r.artist.artist_credit_id))
             r.artist.artist_credit_id = row['mb_artist_credit_id']
+            r.artist.name = row['mb_artist_name']
 
-            if r.release.mbid:
-                r.release.add_note("mbid %d overwritten by msb_lookup" % (r.release.mbid))
-            r.release.mbid = row['mb_release_mbid']
-
+            if r.release:
+                if r.release.mbid:
+                    r.release.add_note("mbid %d overwritten by msb_lookup" % (r.release.mbid))
+                r.release.mbid = row['mb_release_mbid']
+                r.release.name = row['mb_release_name']
+            else:
+                r.release = Release(row['mb_release_name'], mbid=row['mb_release_mbid'])
+            
             entities.append(r)
 
         return entities
