@@ -3,7 +3,7 @@ import unittest
 import unittest.mock
 
 import troi
-import troi.musicbrainz.msb_mapping 
+import troi.musicbrainz.msb_mapping
 
 return_json = """[
 
@@ -34,7 +34,7 @@ class TestMSBMapping(unittest.TestCase):
 
         r = troi.Recording("trigger hippie", artist=troi.Artist("morcheeba"))
         entities = e.read([r])
-        req.assert_called_with(e.SERVER_URL + 
+        req.assert_called_with(e.SERVER_URL +
             "?[msb_artist_credit_name]=morcheeba&[msb_recording_name]=trigger%20hippie")
 
         assert len(entities) == 1
@@ -44,3 +44,17 @@ class TestMSBMapping(unittest.TestCase):
         assert entities[0].release.name == "Who Can You Trust?"
         assert entities[0].mbid == "97e69767-5d34-4c97-b36a-f3b2b1ef9dae"
         assert entities[0].name == "Trigger Hippie"
+
+
+    @unittest.mock.patch('requests.get')
+    def test_read_remove_unmatched(self, req):
+
+        mock = unittest.mock.MagicMock()
+        mock.status_code = 200
+        mock.text = "{}"
+        req.return_value = mock
+        e = troi.musicbrainz.msb_mapping.MSBMappingLookupElement(True)
+
+        r = troi.Recording("track not found", artist=troi.Artist("artist not found"))
+        entities = e.read([r])
+        assert len(entities) == 0

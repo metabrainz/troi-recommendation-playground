@@ -20,7 +20,7 @@ class MSBMappingLookupElement(Element):
         self.remove_unmatched = remove_unmatched
 
 
-    def read(self, in_recordings): 
+    def read(self, in_recordings):
 
         artists = ",".join([ r.artist.name for r in in_recordings ])
         recordings = ",".join([ r.name for r in in_recordings ])
@@ -42,6 +42,7 @@ class MSBMappingLookupElement(Element):
         entities = []
         for row in mappings:
             r = in_recordings[int(row['index'])]
+
             if not row['mb_artist_name']:
                 if not self.remove_unmatched:
                     entities.append(r)
@@ -64,7 +65,7 @@ class MSBMappingLookupElement(Element):
                 r.release.name = row['mb_release_name']
             else:
                 r.release = Release(row['mb_release_name'], mbid=row['mb_release_mbid'])
-            
+
             entities.append(r)
 
         return entities
