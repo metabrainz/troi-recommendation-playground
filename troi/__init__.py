@@ -144,9 +144,10 @@ class Recording(Entity):
     """
         The class that represents a recording.
     """
-    def __init__(self, name=None, mbid=None, msid=None, artist=None, release=None, 
+    def __init__(self, name=None, mbid=None, msid=None, length=None, artist=None, release=None, 
                   musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, musicbrainz, listenbrainz, acousticbrainz)
+        self.length = length # track length in ms
         self.artist = artist
         self.release = release
         self.name = name
