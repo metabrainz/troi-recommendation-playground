@@ -21,6 +21,14 @@ class Element(ABC):
 
         if not isinstance(next_elements, list):
             next_elements = [ next_elements ]
+
+#        if len(self.inputs()) != len(next_elements):
+#            raise ValueError("Cannot connect a next element. The number of outputs from " +
+#                             "the connecting element must match the number  of next elements.")
+#
+#        for output, element in zip(self.outputs(), next_elements):
+
+
         self.next_elements = next_elements
 
     def inputs(self):

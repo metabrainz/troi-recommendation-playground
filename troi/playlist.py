@@ -38,6 +38,10 @@ class PlaylistElement(troi.Element):
         self.playlist = ujson.dumps(listens, indent=4, sort_keys=True)
 
 
+    def print(self):
+        print(self.playlist)
+
+
     def launch(self):
 
         if not self.playlist:

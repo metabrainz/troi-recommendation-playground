@@ -6,12 +6,14 @@ import io
 import ujson
 
 import troi.listenbrainz.stats
+import troi.acousticbrainz.annoy
 import troi.musicbrainz.msb_mapping
 import troi.playlist
+import troi.utils
 import config
 
 
-def test():
+def lb_stats_test():
     stats = troi.listenbrainz.stats.UserRecordingElement("rob") 
     lookup = troi.musicbrainz.msb_mapping.MSBMappingLookupElement(True)
     playlist = troi.playlist.PlaylistElement()
@@ -20,8 +22,14 @@ def test():
     lookup.connect(playlist)
     stats.push()
 
-    playlist.launch()
+    playlist.print()
 
+
+def ab_similarity_test():
+    sim = troi.acousticbrainz.annoy.AnnoyLookupElement("mfccsw", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
+    dump = troi.utils.DumpElement()
+    sim.connect(dump)
+    sim.push([])
 
 if __name__ == "__main__":
-    test()
+    ab_similarity_test()
