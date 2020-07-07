@@ -22,9 +22,11 @@ class RecordingLookupElement(Element):
     def outputs(self):
         return [ Recording ]
 
-    def push(self, inputs):
+    def read(self, inputs):
 
         recordings = inputs[0]
+        if not recordings:
+            return []
 
         mbid_index = {}
         for i, r in enumerate(recordings):
@@ -59,4 +61,6 @@ class RecordingLookupElement(Element):
                     r = Recording(row['recording_name'], str(row['gid']), length=row['length'], artist=a)
                     output.append(r)
 
-        self.next_elements[0].push([output])
+        print("  MB recording lookup: read %d recordings" % len(output))
+
+        return output

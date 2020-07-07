@@ -22,13 +22,15 @@ class AnnoyLookupElement(Element):
             The given recording mbid is the source track that will be looked up 
             in the annoy index using the passed metric.
         '''
+        Element.__init__(self)
         self.mbid = mbid
         self.metric = metric
 
     def outputs(self):
         return [Recording]
 
-    def push(self, inputs):
+    def read(self, inputs):
+        print("  annoy: read for %s/%s" % (self.metric, self.mbid))
 
         url = self.SERVER_URL + self.metric + "/" + self.mbid
         r = requests.get(url)
@@ -52,4 +54,6 @@ class AnnoyLookupElement(Element):
             r.add_note("Related to %s" % self.mbid)
             entities.append(r)
 
-        self.next_elements[0].push([entities])
+        print("  annoy: read %d recordings" % len(entities))
+
+        return entities

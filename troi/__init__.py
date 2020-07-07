@@ -7,29 +7,36 @@ class Element(ABC):
     """
 
     def __init__(self):
-        self.next_elements = []
+        self.sources = []
 
-    def connect(self, next_elements):
+    def set_sources(self, sources):
         """
-            This function chains the next Element to the outputs of
-            this element. The items in next_elements must correspond in
-            type and sequence to the outputs of this element. If the outputs
-            function specifies [ Artist, Release] then next_elements must
-            contains other elements; the first one must accept a list of artists
-            and the second one must accept a list of releases.
         """
 
-        if not isinstance(next_elements, list):
-            next_elements = [ next_elements ]
+        # TODO: add type checking of the pipeline
+        if not isinstance(sources, list):
+            sources = [ sources ]
 
-#        if len(self.inputs()) != len(next_elements):
-#            raise ValueError("Cannot connect a next element. The number of outputs from " +
-#                             "the connecting element must match the number  of next elements.")
-#
-#        for output, element in zip(self.outputs(), next_elements):
+        self.sources = sources
 
 
-        self.next_elements = next_elements
+    def generate(self):
+        """
+            Generate output from the pipeline. This should be called on
+            the last element in the pipeline and no where else. At the root
+            node generate returns the results, but on interior nodes it
+            returns data to be used as input in the next level.
+        """
+
+        source_lists = []
+        if self.sources:
+            for source in self.sources:
+                source_lists.append(source.generate())
+           
+        ret = self.read(source_lists)
+        return ret
+        
+
 
     def inputs(self):
         """
@@ -50,12 +57,13 @@ class Element(ABC):
         return None
 
     @abstractmethod
-    def push(self, inputs):
+    def read(self, source_data_list):
         ''' 
-            This method is where the action happens -- when a connected has generated
-            data ready for this element to process, it will call push with the 
-            expected inputs. This element should carry out its task and then
-            call push on its next elements.
+            This method is where the action happens -- when the consumer wants to 
+            read data from the pipeline, it calls read() on the last element in
+            the pipeline and this casues the while pipeline to generate result.
+            If the initializers of other objects in the pipeline are updated,
+            calling read() again will generate the set new.
         '''
 
         pass

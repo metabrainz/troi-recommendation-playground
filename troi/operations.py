@@ -16,36 +16,6 @@ def is_homogeneous(entities):
     return len(type_set) == 1
 
 
-def unique(entities, key):
-    '''
-        Make this passed list of entities unique base on the passed key
-        (must be one of name, mbid or msid) and return the unique list.
-        Currently the order of the list is not preserved. This should be improved on...
-    '''
-
-    if not entities:
-        return []
-
-    if not is_homogeneous(entities):
-        raise TypeError("entity list not homogenous")
-
-    if isinstance(entities[0], troi.Artist):
-        if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
-            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-    else:
-        if key not in ['mbid', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
-
-    entity_dict = {}
-    for e in entities:
-        if isinstance(e, troi.Artist) and key == "mbids":
-            entity_dict[",".join(getattr(e, key))] = e
-        else:
-            entity_dict[getattr(e, key)] = e
-
-    return list(entity_dict.values())
-
-
 def _ensure_conformity(entities_0, entities_1):
     '''
         Check that both entity lists are homogenous and of the same type.
@@ -63,98 +33,165 @@ def _ensure_conformity(entities_0, entities_1):
     return True
 
 
-def union(entities_0, entities_1):
+class UniqueElement(troi.Element):
+    '''
+        Make this passed list of entities unique base on the passed key
+        (must be one of name, mbid or msid) and return the unique list.
+        Currently the order of the list is not preserved. This should be improved on...
+    '''
+
+    def __init__(self, key = "mbid"):
+        self.key = key
+
+    def inputs(self):
+        return []
+
+    def read(self, entities_arg):
+        entities = entities_arg[0]
+
+        if not entities:
+            return []
+
+        if not is_homogeneous(entities):
+            raise TypeError("entity list not homogenous")
+
+        if isinstance(entities[0], troi.Artist):
+            if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
+                raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
+        else:
+            if key not in ['mbid', 'msid', 'name']:
+                raise ValueError("key must be one of mbid/s, msid or name.")
+
+        entity_dict = {}
+        for e in entities:
+            if isinstance(e, troi.Artist) and key == "mbids":
+                entity_dict[",".join(getattr(e, key))] = e
+            else:
+                entity_dict[getattr(e, key)] = e
+
+        return list(entity_dict.values())
+
+
+class UnionElement(troi.Element):
     '''
         Combine both entities lists into one
     '''
 
-    if not entities_0:
-        return entities_1
+    def __init__(self, key = "mbid"):
+        self.key = key
 
-    if not entities_1:
-        return entities_0
-
-    _ensure_conformity(entities_0, entities_1)
-
-    result = copy.copy(entities_0)
-    result.extend(entities_1)
-    return result
-
-
-def intersection(entities_0, entities_1, key):
-    '''
-        Return the list of recordings that exist in both entities lists.
-    '''
-
-    if not entities_0 or not entities_1:
+    def inputs(self):
         return []
 
-    _ensure_conformity(entities_0, entities_1)
+    def read(self, entities):
+        entities_0 = entities[0]
+        entities_1 = entities[1]
 
-    if isinstance(entities_0[0], troi.Artist):
-        if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
-            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-    else:
-        if key not in ['mbid', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
+        if not entities_0:
+            return entities_1
 
-    entity_dict = {}
-    for e in entities_1:
-        if isinstance(e, troi.Artist) and key == "mbids":
-            entity_dict[",".join(getattr(e, key))] = e
+        if not entities_1:
+            return entities_0
+
+        _ensure_conformity(entities_0, entities_1)
+
+        result = copy.copy(entities_0)
+        result.extend(entities_1)
+
+        return result
+
+
+class IntersectionElement(troi.Element):
+    """
+        Return the list of entities that exist in both entities lists.
+    """
+
+    def __init__(self, key = "mbid"):
+        self.key = key
+
+    def inputs(self):
+        return []
+
+    def read(self, entities):
+        entities_0 = entities[0]
+        entities_1 = entities[1]
+
+        if not entities_0 or not entities_1:
+            return []
+
+        _ensure_conformity(entities_0, entities_1)
+
+        if isinstance(entities_0[0], troi.Artist):
+            if self.key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
+                raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
         else:
-            entity_dict[getattr(e, key)] = e
+            if self.key not in ['mbid', 'msid', 'name']:
+                raise ValueError("key must be one of mbid/s, msid or name.")
 
-    results = []
-    for e in entities_0:
-        if isinstance(e, troi.Artist) and key == "mbids":
-            if ",".join(getattr(e, key)) in entity_dict:
-                results.append(e)
-        else:
-            if getattr(e, key) in entity_dict:
-                results.append(e)
+        entity_dict = {}
+        for e in entities_1:
+            if isinstance(e, troi.Artist) and self.key == "mbids":
+                entity_dict[",".join(getattr(e, self.key))] = e
+            else:
+                entity_dict[getattr(e, self.key)] = e
+
+        results = []
+        for e in entities_0:
+            if isinstance(e, troi.Artist) and self.key == "mbids":
+                if ",".join(getattr(e, self.key)) in entity_dict:
+                    results.append(e)
+            else:
+                if getattr(e, self.key) in entity_dict:
+                    results.append(e)
 
 
-    return results
-
-    return results
+        return results
 
 
-def difference(entities_0, entities_1, key):
+class DifferenceElement(troi.Element):
     '''
         Return the list of recordings in entities_0 minus those in entities_1
     '''
 
-    if not entities_0:
+    def __init__(self, key = "mbid"):
+        self.key = key
+
+    def inputs(self):
         return []
 
-    if not entities_1:
-        return entities_0
+    def read(self, entities):
+        entities_0 = entities[0]
+        entities_1 = entities[1]
 
-    _ensure_conformity(entities_0, entities_1)
+        if not entities_0:
+            return []
 
-    if isinstance(entities_0[0], troi.Artist):
-        if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
-            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-    else:
-        if key not in ['mbid', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
+        if not entities_1:
+            return entities_0
 
-    entity_dict = {}
-    for e in entities_1:
-        if isinstance(e, troi.Artist) and key == "mbids":
-            entity_dict[",".join(getattr(e, key))] = e
+        _ensure_conformity(entities_0, entities_1)
+
+        if isinstance(entities_0[0], troi.Artist):
+            if key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
+                raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
         else:
-            entity_dict[getattr(e, key)] = e
+            if key not in ['mbid', 'msid', 'name']:
+                raise ValueError("key must be one of mbid/s, msid or name.")
 
-    results = []
-    for e in entities_0:
-        if isinstance(e, troi.Artist) and key == "mbids":
-            if ",".join(getattr(e, key)) not in entity_dict:
-                results.append(e)
-        else:
-            if getattr(e, key) not in entity_dict:
-                results.append(e)
+        entity_dict = {}
+        for e in entities_1:
+            if isinstance(e, troi.Artist) and key == "mbids":
+                entity_dict[",".join(getattr(e, key))] = e
+            else:
+                entity_dict[getattr(e, key)] = e
 
+        results = []
+        for e in entities_0:
+            if isinstance(e, troi.Artist) and key == "mbids":
+                if ",".join(getattr(e, key)) not in entity_dict:
+                    results.append(e)
+            else:
+                if getattr(e, key) not in entity_dict:
+                    results.append(e)
 
-    return results
+        return results

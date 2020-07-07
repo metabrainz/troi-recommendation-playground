@@ -25,7 +25,7 @@ class MSBMappingLookupElement(Element):
     def outputs(self):
         return [Recording]
 
-    def push(self, inputs):
+    def read(self, inputs):
 
         in_recordings = inputs[0]
         artists = ",".join([ r.artist.name for r in in_recordings ])
@@ -74,4 +74,4 @@ class MSBMappingLookupElement(Element):
 
             entities.append(r)
 
-        self.next_elements[0].push([entities])
+        return entities

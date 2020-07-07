@@ -11,6 +11,7 @@ import troi.musicbrainz.msb_mapping
 import troi.musicbrainz.recording_lookup
 import troi.playlist
 import troi.utils
+import troi.operations
 import config
 
 
@@ -27,12 +28,22 @@ def lb_stats_test():
 
 
 def ab_similarity_test():
-    sim = troi.acousticbrainz.annoy.AnnoyLookupElement("mfccsw", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
+    # Create elements
+    mfccsw = troi.acousticbrainz.annoy.AnnoyLookupElement("mfccsw", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
+    gfccsw = troi.acousticbrainz.annoy.AnnoyLookupElement("gfccsw", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
+#    onsetrate = troi.acousticbrainz.annoy.AnnoyLookupElement("onsetrate", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(config.DB_CONNECT)
     dump = troi.utils.DumpElement()
-    sim.connect(r_lookup)
-    r_lookup.connect(dump)
-    sim.push([])
+
+    intersect1 = troi.operations.IntersectionElement()
+    intersect2 = troi.operations.IntersectionElement()
+
+    # Connect elements
+    intersect1.set_sources([mfccsw, gfccsw])
+#    intersect2.set_sources([onsetrate, intersect1])
+    r_lookup.set_sources(intersect1)
+    dump.set_sources(r_lookup)
+    dump.generate()
 
 if __name__ == "__main__":
     ab_similarity_test()

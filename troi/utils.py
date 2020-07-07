@@ -2,6 +2,10 @@ from troi import Element, Artist, Release, Recording
 
 def print_entity_list(entities, count=0):
 
+    if len(entities) == 0:
+        print("[ empty entity list ]")
+        return
+
     if count == 0:
         count = len(entities)
 
@@ -31,7 +35,7 @@ class DumpElement(Element):
     def inputs(self):
         return []
 
-    def push(self, inputs):
+    def read(self, inputs):
 
         for input in inputs:
             print_entity_list(input)
