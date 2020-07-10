@@ -32,7 +32,7 @@ class TestMSBMapping(unittest.TestCase):
         req.return_value = mock
         e = troi.musicbrainz.msb_mapping.MSBMappingLookupElement()
 
-        r = troi.Recording("trigger hippie", artist=troi.Artist("morcheeba"))
+        r = [ troi.Recording("trigger hippie", artist=troi.Artist("morcheeba")) ]
         entities = e.read([r])
         req.assert_called_with(e.SERVER_URL +
             "?[msb_artist_credit_name]=morcheeba&[msb_recording_name]=trigger%20hippie")
@@ -55,6 +55,6 @@ class TestMSBMapping(unittest.TestCase):
         req.return_value = mock
         e = troi.musicbrainz.msb_mapping.MSBMappingLookupElement(True)
 
-        r = troi.Recording("track not found", artist=troi.Artist("artist not found"))
+        r = [ troi.Recording("track not found", artist=troi.Artist("artist not found")) ]
         entities = e.read([r])
         assert len(entities) == 0

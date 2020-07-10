@@ -31,7 +31,7 @@ def ab_similarity_test():
     # Create elements
     mfccsw = troi.acousticbrainz.annoy.AnnoyLookupElement("mfccsw", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
     gfccsw = troi.acousticbrainz.annoy.AnnoyLookupElement("gfccsw", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
-#    onsetrate = troi.acousticbrainz.annoy.AnnoyLookupElement("onsetrate", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
+    moods = troi.acousticbrainz.annoy.AnnoyLookupElement("moods", "145f5c43-0ac2-4886-8b09-63d0e92ded5d") 
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(config.DB_CONNECT)
     dump = troi.utils.DumpElement()
 
@@ -40,7 +40,7 @@ def ab_similarity_test():
 
     # Connect elements
     intersect1.set_sources([mfccsw, gfccsw])
-#    intersect2.set_sources([onsetrate, intersect1])
+#    intersect2.set_sources([moods, intersect1])
     r_lookup.set_sources(intersect1)
     dump.set_sources(r_lookup)
     dump.generate()

@@ -27,7 +27,7 @@ class UserArtistsElement(Element):
         for a in artists['payload']['artists']:
             artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids'], msid=a['artist_msid']))
 
-        return [artist_list]
+        return artist_list
 
 
 class UserReleasesElement(Element):
@@ -54,7 +54,7 @@ class UserReleasesElement(Element):
             release_list.append(Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'], 
                                 artist=artist))
 
-        return [release_list]
+        return release_list
 
 
 class UserRecordingElement(Element):
@@ -81,4 +81,4 @@ class UserRecordingElement(Element):
             recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], msid=r['recording_msid'], 
                                   artist=artist, release=release))
 
-        return [recording_list]
+        return recording_list

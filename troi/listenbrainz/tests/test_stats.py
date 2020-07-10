@@ -72,6 +72,7 @@ class TestStats(unittest.TestCase):
         stats_mock.return_value = artist_ret
         u = troi.listenbrainz.stats.UserArtistsElement("rob", 1, 1, "week")
         entities = u.read()
+        print(entities)
         stats_mock.assert_called_with("rob", 1, 1, "week")
         assert len(entities) == 1
         assert isinstance(entities[0], Artist)

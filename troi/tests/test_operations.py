@@ -21,32 +21,38 @@ class TestOperations(unittest.TestCase):
         # Test artists
         alist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']), 
                   Artist(mbids=['a1c35a51-d102-4ce7-aefb-79a361e843b6']) ]
-        u_alist = troi.operations.unique(alist, 'mbids')
+        e = troi.operations.UniqueElement('mbids')
+        u_alist = e.read([alist])
         assert len(u_alist) == 2
 
         alist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']), 
                   Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']) ]
-        u_alist = troi.operations.unique(alist, 'mbids')
+        e = troi.operations.UniqueElement('mbids')
+        u_alist = e.read([alist])
         assert len(u_alist) == 1
         assert u_alist[0].mbids == ['8756f690-18ca-488d-a456-680fdaf234bd']
 
         alist = [ Artist(artist_credit_id=65),
                   Artist(artist_credit_id=65) ]
-        u_alist = troi.operations.unique(alist, 'artist_credit_id')
+        e = troi.operations.UniqueElement('artist_credit_id')
+        u_alist = e.read([alist])
         assert len(u_alist) == 1
         assert u_alist[0].artist_credit_id == 65
 
         # Test recording (not testing release since rel and rec use same code)
         rlist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'), 
                   Recording(mbid='a1c35a51-d102-4ce7-aefb-79a361e843b6') ]
+        e = troi.operations.UniqueElement('mbids')
         with self.assertRaises(ValueError):
-            u_rlist = troi.operations.unique(rlist, 'mbids')
-        u_rlist = troi.operations.unique(rlist, 'mbid')
+            u_rlist = e.read([rlist])
+
+        e = troi.operations.UniqueElement('mbid')
+        u_rlist = e.read([rlist])
         assert len(u_rlist) == 2
 
         rlist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'), 
                   Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd') ]
-        u_rlist = troi.operations.unique(rlist, 'mbid')
+        u_rlist = e.read([rlist])
         assert len(u_rlist) == 1
         assert u_rlist[0].mbid == '8756f690-18ca-488d-a456-680fdaf234bd'
 
@@ -79,7 +85,8 @@ class TestOperations(unittest.TestCase):
         # Test artists
         alist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']) ]
         blist = [ Artist(mbids=['a1c35a51-d102-4ce7-aefb-79a361e843b6']) ]
-        ulist = troi.operations.union(alist, blist)
+        e = troi.operations.UnionElement()
+        ulist = e.read([alist, blist])
         assert len(ulist) == 2
         assert ulist[0].mbids == ['8756f690-18ca-488d-a456-680fdaf234bd']
         assert ulist[1].mbids == ['a1c35a51-d102-4ce7-aefb-79a361e843b6']
@@ -87,7 +94,7 @@ class TestOperations(unittest.TestCase):
         # Test recording (not testing release since rel and rec use same code)
         alist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd') ]
         blist = [ Recording(mbid='a1c35a51-d102-4ce7-aefb-79a361e843b6') ]
-        ulist = troi.operations.union(alist, blist)
+        ulist = e.read([alist, blist])
         assert len(ulist) == 2
         assert ulist[0].mbid == '8756f690-18ca-488d-a456-680fdaf234bd'
         assert ulist[1].mbid == 'a1c35a51-d102-4ce7-aefb-79a361e843b6'
@@ -97,32 +104,36 @@ class TestOperations(unittest.TestCase):
         alist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']), 
                   Artist(mbids=['73a9d0db-0ec7-490e-9a85-0525a5ccef8e']) ]
         blist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']) ]
+        e = troi.operations.IntersectionElement('mbid')
         with self.assertRaises(ValueError):
-            ilist = troi.operations.intersection(alist, blist, 'mbid')
+            ilist = e.read([alist, blist])
 
-        ilist = troi.operations.intersection(alist, blist, 'mbids')
+        e = troi.operations.IntersectionElement('mbids')
+        ilist = e.read([alist, blist])
         assert len(ilist) == 1
         assert ilist[0].mbids == blist[0].mbids
 
         alist = [ Artist(mbids=['73a9d0db-0ec7-490e-9a85-0525a5ccef8e']) ]
         blist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']) ]
-        ilist = troi.operations.intersection(alist, blist, 'mbids')
+        ilist = e.read([alist, blist])
         assert len(ilist) == 0
 
         # Test recording (not testing release since rel and rec use same code)
         alist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'), 
                   Recording(mbid='73a9d0db-0ec7-490e-9a85-0525a5ccef8e') ]
         blist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd') ]
+        e = troi.operations.IntersectionElement('mbids')
         with self.assertRaises(ValueError):
-            ilist = troi.operations.intersection(alist, blist, 'mbids')
+            ilist = e.read([alist, blist])
 
-        ilist = troi.operations.intersection(alist, blist, 'mbid')
+        e = troi.operations.IntersectionElement('mbid')
+        ilist = e.read([alist, blist])
         assert len(ilist) == 1
         assert ilist[0].mbid == blist[0].mbid
 
         alist = [ Recording(mbid='73a9d0db-0ec7-490e-9a85-0525a5ccef8e') ]
         blist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd') ]
-        ilist = troi.operations.intersection(alist, blist, 'mbid')
+        ilist = e.read([alist, blist])
         assert len(ilist) == 0
 
     def test_difference(self):
@@ -130,17 +141,19 @@ class TestOperations(unittest.TestCase):
         alist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']), 
                   Artist(mbids=['73a9d0db-0ec7-490e-9a85-0525a5ccef8e']) ]
         blist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']) ]
+        e = troi.operations.DifferenceElement('mbid')
         with self.assertRaises(ValueError):
-            ilist = troi.operations.difference(alist, blist, 'mbid')
+            ilist = e.read([alist, blist])
 
-        ilist = troi.operations.difference(alist, blist, 'mbids')
+        e = troi.operations.DifferenceElement('mbids')
+        ilist = e.read([alist, blist])
         assert len(ilist) == 1
         assert ilist[0].mbids == ['73a9d0db-0ec7-490e-9a85-0525a5ccef8e']
 
         alist = [ Artist(mbids=['8756f690-18ca-488d-a456-680fdaf234bd']), 
                   Artist(mbids=['73a9d0db-0ec7-490e-9a85-0525a5ccef8e']) ]
         blist = [ Artist(mbids=['a1c35a51-d102-4ce7-aefb-79a361e843b6']) ]
-        dlist = troi.operations.difference(alist, blist, 'mbids')
+        dlist = e.read([alist, blist])
         assert len(dlist) == 2
         assert dlist[0].mbids == ['8756f690-18ca-488d-a456-680fdaf234bd']
         assert dlist[1].mbids == ['73a9d0db-0ec7-490e-9a85-0525a5ccef8e']
@@ -149,17 +162,19 @@ class TestOperations(unittest.TestCase):
         alist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'), 
                   Recording(mbid='73a9d0db-0ec7-490e-9a85-0525a5ccef8e') ]
         blist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd') ]
+        e = troi.operations.DifferenceElement('mbids')
         with self.assertRaises(ValueError):
-            ilist = troi.operations.difference(alist, blist, 'mbids')
+            ilist = e.read([alist, blist])
 
-        ilist = troi.operations.difference(alist, blist, 'mbid')
+        e = troi.operations.DifferenceElement('mbid')
+        ilist = e.read([alist, blist])
         assert len(ilist) == 1
         assert ilist[0].mbid == '73a9d0db-0ec7-490e-9a85-0525a5ccef8e'
 
         alist = [ Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'), 
                   Recording(mbid='73a9d0db-0ec7-490e-9a85-0525a5ccef8e') ]
         blist = [ Recording(mbid='a1c35a51-d102-4ce7-aefb-79a361e843b6') ]
-        dlist = troi.operations.difference(alist, blist, 'mbid')
+        dlist = e.read([alist, blist])
         assert len(dlist) == 2
         assert dlist[0].mbid == '8756f690-18ca-488d-a456-680fdaf234bd'
         assert dlist[1].mbid == '73a9d0db-0ec7-490e-9a85-0525a5ccef8e'
