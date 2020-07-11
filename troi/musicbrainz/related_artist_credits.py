@@ -1,88 +1,55 @@
 import sys
+import urllib
+import copy
+from collections import defaultdict
+from urllib.parse import quote
 
-import psycopg2
-import psycopg2.extras
+import requests
+import ujson
 
-from troi.datasource import DataSource
-from troi.lookup.mb_artist_credit import MBArtistCreditLookup
-from troi import Entity, EntityEnum
+from troi import Element, Release
 
 
-class MBRelatedArtistCreditsDataSource(DataSource):
+class RelatedArtistCreditsElement(Element):
     '''
-        Lookup related artist credits
+        Look up related artist_credits, given a list of artists_credits
     '''
 
-    def __init__(self, db_connect_string):
-        self.db_connect = db_connect_string
+    SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-similarity/json"
 
+    def __init__(self, threshold=0):
+        self.threshold = threshold
 
-    def get(self, artist_credit, threshold=1, max_items=100):
+    def inputs(self):
+        return [Recording]
 
-        # If we only have an mbid, look up the id and load the rest of the metadata
-        if 'artist_id' not in artist_credit.musicbrainz:
-            MBArtistCreditLookup(self.db_connect).lookup(artist_credit)
+    def outputs(self):
+        return [Recording]
 
-        with psycopg2.connect(self.db_connect) as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
+    def read(self, inputs):
 
-                curs.execute("""SELECT count,
-                                       arr.artist_credit_0 AS artist_credit_0_id,
-                                       a0.id AS artist_0_id,
-                                       a0.gid AS artist_0_mbid,
-                                       a0.name AS artist_0_name,
-                                       arr.artist_credit_1 as artist_credit_1_id,
-                                       a1.id AS artist_1_id,
-                                       a1.gid AS artist_1_mbid,
-                                       a1.name AS artist_1_name
-                                  FROM relations.artist_credit_artist_credit_relations arr
-                                  JOIN artist a0 ON arr.artist_credit_0 = a0.id
-                                  JOIN artist a1 ON arr.artist_credit_1 = a1.id
-                                 WHERE (arr.artist_credit_0 = %s OR arr.artist_credit_1 = %s)
-                                   AND count >= %s
-                              ORDER BY count desc
-                                 LIMIT %s""", (artist_credit.musicbrainz['artist']['artist_credit_id'],
-                                               artist_credit.musicbrainz['artist']['artist_credit_id'],
-                                               threshold,
-                                               max_items))
+        artists = inputs[0]
+        ac_ids = ",".join([ str(a.artist_credit_id) for a in artists ])
+        url = self.SERVER_URL + "?[artist_credit_id]=" + quote(ac_ids) + \
+            "&threshold=%d" % self.threshold
 
-                relations = []
-                while True:
-                    row = curs.fetchone()
-                    if not row:
-                        break
+        r = requests.get(url)
+        if r.status_code != 200:
+            r.raise_for_status()
 
-                    if artist_credit.musicbrainz['artist']['artist_credit_id'] == row['artist_credit_1_id']:
-                        e = Entity(EntityEnum("artist-credit"),
-                                   row['artist_credit_0_id'],
-                                   "",
-                                   {
-                                       'musicbrainz' : {
-                                           'artist' : {
-                                               'artist_id' : row['artist_0_id'],
-                                               'artist_credit_id' : row['artist_credit_0_id'],
-                                               'artist_mbid' : row['artist_0_mbid'],
-                                               'artist_name' : row['artist_0_name'],
-                                               'artist_credit_relations_count' : row['count']
-                                           }
-                                       }
-                                   })
-                    else:
-                        e = Entity(EntityEnum("artist-credit"),
-                                   row['artist_credit_1_id'],
-                                   "",
-                                   {
-                                       'musicbrainz' : {
-                                           'artist' : {
-                                               'artist_id' : row['artist_1_id'],
-                                               'artist_credit_id' : row['artist_credit_1_id'],
-                                               'artist_mbid' : row['artist_1_mbid'],
-                                               'artist_name' : row['artist_1_name'],
-                                               'artist_credit_relations_count' : row['count']
-                                           }
-                                       }
-                                   })
+        try:
+            relations = ujson.loads(r.text)
+        except Exception as err:
+            raise RuntimeError(str(err))
 
-                    relations.append(e)
+        index = defaultdict(list)
+        for row in relations:
+            index[row['artist_credit_id']].append(row)
 
-                return relations
+        entities = []
+        for artist in artists:
+            a = copy.deepcopy(artist)
+            a.mb['related_artist_credit_ids'] = index[artist.artist_credit_id]
+            entities.append(a)
+
+        return entities

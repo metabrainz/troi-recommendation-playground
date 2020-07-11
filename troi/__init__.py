@@ -80,7 +80,7 @@ class Entity(ABC):
         of an artist or the listenbrainz dict might contain the BPM for a track.
         How exactly these dicts will be organized is TDB.
     """
-    def __init__(self, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, musicbrainz={}, listenbrainz={}, acousticbrainz={}):
         self.name = None
         self.mbid = None
         self.msid = None
@@ -116,7 +116,7 @@ class Artist(Entity):
         The class that represents an artist.
     """
     def __init__(self, name=None, mbids=None, msid=None, artist_credit_id=None,
-                 musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+                 musicbrainz={}, listenbrainz={}, acousticbrainz={}):
         Entity.__init__(self, musicbrainz, listenbrainz, acousticbrainz)
         self.name = name
         self.artist_credit_id = artist_credit_id
@@ -129,7 +129,7 @@ class Artist(Entity):
         self.msid = msid
 
     def __str__(self):
-        return "<Artist('%s', [%s], %s)>" % (self.name, ",".join(self.mbids or []), self.msid)
+        return "<Artist('%s', [%s], %s, %s)>" % (self.name, ",".join(self.mbids or []), self.msid, self.artist_credit_id)
 
 
 class Release(Entity):
@@ -137,7 +137,7 @@ class Release(Entity):
         The class that represents a release.
     """
     def __init__(self, name=None, mbid=None, msid=None, artist=None, 
-                  musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+                  musicbrainz={}, listenbrainz={}, acousticbrainz={}):
         Entity.__init__(self, musicbrainz, listenbrainz, acousticbrainz)
         self.artist = artist
         self.name = name
@@ -153,7 +153,7 @@ class Recording(Entity):
         The class that represents a recording.
     """
     def __init__(self, name=None, mbid=None, msid=None, length=None, artist=None, release=None, 
-                  musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+                  musicbrainz={}, listenbrainz={}, acousticbrainz={}):
         Entity.__init__(self, musicbrainz, listenbrainz, acousticbrainz)
         self.length = length # track length in ms
         self.artist = artist
