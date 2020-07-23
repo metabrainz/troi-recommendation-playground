@@ -19,6 +19,18 @@ class Element(ABC):
 
         self.sources = sources
 
+    def check(self):
+        """
+            Check to see if the necessary connections are in place
+            and that types match correctly.
+        """
+
+        if not self.sources:
+            raise RuntimeError("element %s has no sources defined." % str(type(self)))
+
+        for source in self.sources:
+            source.check()
+
 
     def generate(self):
         """
@@ -35,9 +47,16 @@ class Element(ABC):
            
         ret = self.read(source_lists)
         return ret
-        
-
-
+      
+    def run(self):
+        """ 
+            This function should be called on the very last element of the
+            pipeline to generate output from the timeline. Run will santiy
+            check the pipeline first, and then generate output if it can.
+        """
+        self.check()
+        return self.generate()
+            
     def inputs(self):
         """
             Return a list of Artist, Release or Recording classes that define

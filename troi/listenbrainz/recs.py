@@ -14,6 +14,7 @@ class UserRecordingRecommendationsElement(Element):
         """
             The offset parameter does not work yet.
         """
+        Element.__init__(self)
         self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
         self.count = count

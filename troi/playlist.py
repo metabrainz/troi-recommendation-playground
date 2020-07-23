@@ -13,7 +13,7 @@ class PlaylistElement(troi.Element):
     def inputs(self):
         return [Recording]
 
-    def push(self, inputs):
+    def read(self, inputs):
 
         entities = inputs[0]
         if not is_homogeneous(entities):
@@ -27,7 +27,7 @@ class PlaylistElement(troi.Element):
                 'track_metadata' : {
                     'artist_name' : e.artist.name,
                     'track_name' : e.name,
-                    'release_name' : e.release.name,
+                    'release_name' : e.release.name if e.release else "",
                     'additional_info' : {
                         'recording_mbid' : str(e.mbid),
                         'artist_mbids' : artist_mbids
@@ -47,6 +47,6 @@ class PlaylistElement(troi.Element):
         if not self.playlist:
             raise RuntimeError("Playlist has not been generated yet.")
 
-        op = openpost.OpenPost('https://beta.listenbrainz.org/player', keep_file=True)
+        op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True)
         op.add_key('listens', self.playlist)
         op.send_post()

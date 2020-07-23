@@ -6,6 +6,7 @@ import io
 import ujson
 
 import troi.listenbrainz.stats
+import troi.listenbrainz.recs
 import troi.acousticbrainz.annoy
 import troi.musicbrainz.msb_mapping
 import troi.musicbrainz.recording_lookup
@@ -24,8 +25,6 @@ def lb_stats_test():
     lookup.connect(playlist)
     stats.push()
 
-    playlist.print()
-
 
 def ab_similarity_test():
     # Create elements
@@ -43,7 +42,19 @@ def ab_similarity_test():
 #    intersect2.set_sources([moods, intersect1])
     r_lookup.set_sources(intersect1)
     dump.set_sources(r_lookup)
-    dump.generate()
+    dump.run()
+
+def recommended_recordings():
+    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement("rob") 
+    r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(config.DB_CONNECT)
+    dump = troi.utils.DumpElement()
+    playlist = troi.playlist.PlaylistElement()
+
+    r_lookup.set_sources(recs)
+    playlist.set_sources(r_lookup)
+    playlist.generate()
+    playlist.launch()
+
 
 if __name__ == "__main__":
-    ab_similarity_test()
+    recommended_recordings()
