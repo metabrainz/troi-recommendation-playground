@@ -14,8 +14,8 @@ import troi.playlist
 import troi.utils
 import troi.operations
 
-def recommended_recordings(user):
-    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user, count=25)
+def recommended_recordings(user, type):
+    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user, artist_type=type, count=25)
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
     dump = troi.utils.DumpElement()
     playlist = troi.playlist.PlaylistElement()
@@ -27,4 +27,4 @@ def recommended_recordings(user):
 
 
 if __name__ == "__main__":
-    recommended_recordings(sys.argv[1])
+    recommended_recordings(sys.argv[1], sys.argv[2])
