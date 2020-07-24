@@ -5,15 +5,30 @@ A recommendation engine playground that should hopefully make playing with music
 ## installation
 
 
+**Linux**
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
 pip3 install -r requirements.txt
 ```
 
+**Windows**
+```
+virtualenv -p python3 .ve
+.ve\Scripts\activate.bat
+pip3 install -r requirements.txt
+```
+
 ## sample use
 
+**Linux**
 ```
-./recommend_recordings.py <user name>
+./recommended_recordings.py <user name>
 open OpenPost.html
+```
+
+**Windows**
+```
+python recommended_recordings.py <user name>
+OpenPost.html
 ```
