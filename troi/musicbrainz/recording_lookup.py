@@ -1,8 +1,11 @@
 import sys
 import uuid
+from urllib.parse import quote
 
 import psycopg2
 import psycopg2.extras
+import requests
+import ujson
 
 from troi import Element, Artist, Recording
 
@@ -13,8 +16,7 @@ class RecordingLookupElement(Element):
         Look up a musicbrainz data for a list of recordings, based on MBID. 
     '''
 
-    def __init__(self, db_connect_string):
-        self.db_connect = db_connect_string
+    SERVER_URL = "http://bono.metabrainz.org:8000/recording-mbid-lookup/json"
 
     def inputs(self):
         return [ Recording ]
@@ -28,39 +30,37 @@ class RecordingLookupElement(Element):
         if not recordings:
             return []
 
+        r_mbids = ",".join([ r.mbid for r in recordings ])
+        url = self.SERVER_URL + "?[recording_mbid]=" + quote(r_mbids)
+
+        r = requests.get(url)
+        if r.status_code != 200:
+            r.raise_for_status()
+
+        try:
+            rows = ujson.loads(r.text)
+        except Exception as err:
+            raise RuntimeError(str(err))
+
         mbid_index = {}
-        for i, r in enumerate(recordings):
-            mbid_index[r.mbid] = i
+        for row in rows:
+            mbid_index[row['recording_mbid']] = row
 
-        with psycopg2.connect(self.db_connect) as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
-                mbids = tuple([ psycopg2.extensions.adapt(r.mbid) for r in recordings ])
-                curs.execute('''SELECT r.gid AS gid, r.id AS recording_id, r.name AS recording_name, r.length, r.comment, 
-                                       ac.id AS artist_credit_id, ac.name AS artist_credit_name, 
-                                       array_agg(r.gid) AS artist_mbids
-                                  FROM recording r
-                                  JOIN artist_credit ac 
-                                    ON r.artist_credit = ac.id
-                                  JOIN artist_credit_name acn
-                                    ON ac.id = acn.artist_credit
-                                  JOIN artist a
-                                    ON acn.artist = a.id
-                                 WHERE r.gid 
-                                    IN %s
-                              GROUP BY r.gid, r.id, r.name, r.length, r.comment, ac.id, ac.name''', (mbids,))
+        for r in recordings:
+            row = mbid_index[r.mbid]
+            if not r.artist:
+                a = Artist(name=row['artist_credit_name'],
+                           mbids=row['artist_credit_mbids'],
+                           artist_credit_id=row['artist_credit_id'])
+                r.artist = a
+            else:
+                r.artist.name = row['artist_credit_name']
+                r.artist.mbids = row['artist_credit_mbids']
+                r.artist.artist_credit_id = row['artist_credit_id']
 
-                output = []
-                while True:
-                    row = curs.fetchone()
-                    if not row:
-                        break
+            r.name = row['recording_name']
+            r.length = row['length']
 
-                    a = Artist(name=row['artist_credit_name'],
-                               mbids=row['artist_mbids'],
-                               artist_credit_id=row['artist_credit_id'])
-                    r = Recording(row['recording_name'], str(row['gid']), length=row['length'], artist=a)
-                    output.append(r)
+        print("  MB recording lookup: read %d recordings" % len(recordings))
 
-        print("  MB recording lookup: read %d recordings" % len(output))
-
-        return output
+        return recordings

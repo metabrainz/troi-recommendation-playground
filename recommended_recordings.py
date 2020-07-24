@@ -13,11 +13,10 @@ import troi.musicbrainz.recording_lookup
 import troi.playlist
 import troi.utils
 import troi.operations
-import config
 
 def recommended_recordings(user):
-    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user, count=100)
-    r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(config.DB_CONNECT)
+    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user, count=25)
+    r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
     dump = troi.utils.DumpElement()
     playlist = troi.playlist.PlaylistElement()
 
