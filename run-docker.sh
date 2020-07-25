@@ -18,6 +18,12 @@ then
     exit
 fi
 
+if [ "$1" = "test" ]
+then
+    docker exec -it troi-sandbox ./test.sh
+    exit
+fi
+
 docker exec -it troi-sandbox python3 $@
 if [ "$?" -eq 137 ]; then
     echo "Error: docker container failed. Out of ram?"

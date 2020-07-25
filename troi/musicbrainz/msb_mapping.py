@@ -31,7 +31,6 @@ class MSBMappingLookupElement(Element):
         artists = ",".join([ r.artist.name for r in in_recordings ])
         recordings = ",".join([ r.name for r in in_recordings ])
 
-        # msid-mapping/json?[msb_artist_credit_name]=portishead%2Cu2&[msb_recording_name]=strangers%2Csunday+bloody+sunday
         url = self.SERVER_URL + "?[msb_artist_credit_name]=" + quote(artists) + \
             "&[msb_recording_name]=" + quote(recordings)
 

@@ -43,6 +43,12 @@ When you are done with the container, take it down with:
 ./run-docker.sh up
 ```
 
+To run tests:
+
+```
+./run-docker.sh test
+```
+
 
 ## sample use
 

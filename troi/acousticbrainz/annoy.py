@@ -15,7 +15,6 @@ class AnnoyLookupElement(Element):
     '''
 
     SERVER_URL = "http://similarity.acousticbrainz.org/api/v1/similarity/"
-#    mfccsw/4a1d9e0f-b268-4580-b30a-fe0cbd9e9705"
 
     def __init__(self, metric, mbid):
         '''
