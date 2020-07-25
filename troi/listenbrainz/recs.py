@@ -10,7 +10,7 @@ class UserRecordingRecommendationsElement(Element):
         Fetch recommended recording for a user from ListenBrainz
     '''
 
-    def __init__(self, user_name, count=25, offset=0, artist_type='top'):
+    def __init__(self, user_name, artist_type, count=25, offset=0):
         """
             The offset parameter does not work yet.
         """
