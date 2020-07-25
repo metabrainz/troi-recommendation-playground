@@ -69,13 +69,13 @@ To use this container, you first need to build the container and start it:
 Now you can run any of the scripts via run-docker.sh:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
+./run-docker.sh recommend_recordings.py -u rob -t similar
 ```
 
 When you are done with the container, take it down with:
 
 ```
-./run-docker.sh up
+./run-docker.sh down
 ```
 
 To run tests:
@@ -89,13 +89,13 @@ To run tests:
 
 **Linux**
 ```
-./recommended_recordings.py <user name>
+./recommended_recordings.py -u <user name> -t <artist type [top/similar]>
 open OpenPost.html
 ```
 
 **Windows**
 ```
-python recommended_recordings.py <user name>
+./recommended_recordings.py -u <user name> -t <artist type [top/similar]>
 OpenPost.html
 ```
 
@@ -104,6 +104,6 @@ OpenPost.html
 If you installed the system via docker, you can run scripts via:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
+./run-docker.sh recommend_recordings.py -u rob -t similar
 open OpenPost.html
 ```
