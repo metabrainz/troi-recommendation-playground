@@ -5,7 +5,7 @@ A recommendation engine playground that should hopefully make playing with music
 ## installation
 
 
-**Linux**
+**Linux and Mac**
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
