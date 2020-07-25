@@ -19,6 +19,31 @@ virtualenv -p python3 .ve
 pip3 install -r requirements.txt
 ```
 
+**Docker**
+
+On non Linux operating systems installing python modules can be a bit of a pain. For that a thin-shell docker
+container can be created. Note that docker is not required, but helpful if you're not on Linux.
+
+To use this container, you first need to build the container and start it:
+
+```
+./run-docker.sh build
+./run-docker.sh up
+```
+
+Now you can run any of the scripts via run-docker.sh:
+
+```
+./run-docker.sh recommend_recordings.py rob similar
+```
+
+When you are done with the container, take it down with:
+
+```
+./run-docker.sh up
+```
+
+
 ## sample use
 
 **Linux**
@@ -31,4 +56,13 @@ open OpenPost.html
 ```
 python recommended_recordings.py <user name>
 OpenPost.html
+```
+
+**Docker**
+
+If you installed the system via docker, you can run scripts via:
+
+```
+./run-docker.sh recommend_recordings.py rob similar
+open OpenPost.html
 ```
