@@ -12,7 +12,14 @@ source .ve/bin/activate
 pip3 install -r requirements.txt
 ```
 
+If you plan to do local development or run tests, you'll need to:
+
+```
+pip3 install -e .
+```
+
 **Windows**
+
 ```
 virtualenv -p python3 .ve
 .ve\Scripts\activate.bat
