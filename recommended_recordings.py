@@ -20,9 +20,8 @@ def cli():
     pass
 
 @cli.command()
-@click.option("--user", "-u", help="MusicBrainz ID of the user", required=True)
-@click.option("--type", "-t", type=click.Choice(['top', 'similar']), default="top", show_default=True,
-              help="Type of artists used to generate playlist")
+@click.argument("user", required=True)
+@click.argument("type", type=click.Choice(['top', 'similar']), default="top")
 def recommended_recordings(user, type):
     recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user, artist_type=type, count=25)
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
