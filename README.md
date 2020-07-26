@@ -75,7 +75,7 @@ Now you can run any of the scripts via run-docker.sh:
 When you are done with the container, take it down with:
 
 ```
-./run-docker.sh up
+./run-docker.sh down
 ```
 
 To run tests:
@@ -89,13 +89,13 @@ To run tests:
 
 **Linux**
 ```
-./recommended_recordings.py <user name>
+./recommended_recordings.py <user name> <artist type [top/similar]>
 open OpenPost.html
 ```
 
 **Windows**
 ```
-python recommended_recordings.py <user name>
+./recommended_recordings.py <user name> <artist type [top/similar]>
 OpenPost.html
 ```
 

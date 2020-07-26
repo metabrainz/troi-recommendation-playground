@@ -4,6 +4,7 @@ import sys
 import copy
 import io
 import ujson
+import click
 
 import troi.listenbrainz.stats
 import troi.listenbrainz.recs
@@ -14,8 +15,15 @@ import troi.playlist
 import troi.utils
 import troi.operations
 
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+@click.argument("user", required=True)
+@click.argument("type", type=click.Choice(['top', 'similar']), default="top")
 def recommended_recordings(user, type):
-    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user, artist_type=type, count=25)
+    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user, artist_type=type, count=25)
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
     dump = troi.utils.DumpElement()
     playlist = troi.playlist.PlaylistElement()
@@ -27,4 +35,4 @@ def recommended_recordings(user, type):
 
 
 if __name__ == "__main__":
-    recommended_recordings(sys.argv[1], sys.argv[2])
+    recommended_recordings()
