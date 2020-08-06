@@ -1,7 +1,7 @@
 # Introduction
 
 This project is aim to create a sandbox for developers to develop and 
-experiment with music recommendation engines. To accomlish this goal,
+experiment with music recommendation engines. To accomplish this goal,
 the MetaBrainz Foundation has created and hosted a number of data-sets
 that can be accessed as part of this project.
 
