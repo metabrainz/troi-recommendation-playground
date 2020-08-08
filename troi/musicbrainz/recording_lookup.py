@@ -30,10 +30,11 @@ class RecordingLookupElement(Element):
         if not recordings:
             return []
 
+        data = []
         r_mbids = ",".join([ r.mbid for r in recordings ])
-        url = self.SERVER_URL + "?[recording_mbid]=" + quote(r_mbids)
-
-        r = requests.get(url)
+        for r in recordings:
+            data.append({ 'recording_mbid': r.mbid })
+        r = requests.post(self.SERVER_URL, json=data)
         if r.status_code != 200:
             r.raise_for_status()
 
@@ -50,7 +51,7 @@ class RecordingLookupElement(Element):
             row = mbid_index[r.mbid]
             if not r.artist:
                 a = Artist(name=row['artist_credit_name'],
-                           mbids=row['artist_credit_mbids'],
+                           mbids=row['[artist_credit_mbids]'],
                            artist_credit_id=row['artist_credit_id'])
                 r.artist = a
             else:

@@ -23,7 +23,7 @@ def cli():
 @click.argument("user", required=True)
 @click.argument("type", type=click.Choice(['top', 'similar']), default="top")
 def recommended_recordings(user, type):
-    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user, artist_type=type, count=25)
+    recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user, artist_type=type, count=200)
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
     dump = troi.utils.DumpElement()
     playlist = troi.playlist.PlaylistElement()

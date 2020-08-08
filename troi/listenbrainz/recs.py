@@ -29,7 +29,7 @@ class UserRecordingRecommendationsElement(Element):
         recordings = self.client.get_user_recommendation_recordings(self.user_name, self.artist_type, self.count, self.offset)
 
         artist_type = self.artist_type + "_artist"  
-        for r in recordings['payload'][artist_type]['recording_mbid']:
-            recording_list.append(Recording(mbid=r))
+        for r in recordings['payload']['mbids']:
+            recording_list.append(Recording(mbid=r[0], listenbrainz={'rating':r[1]}))
 
         return recording_list
