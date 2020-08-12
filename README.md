@@ -1,6 +1,6 @@
 # Introduction
 
-This project is aim to create a sandbox for developers to develop and 
+This project is aim to create a sandbox for developers to develop and
 experiment with music recommendation engines. To accomplish this goal,
 the MetaBrainz Foundation has created and hosted a number of data-sets
 that can be accessed as part of this project.
@@ -9,13 +9,13 @@ You can see some of the data sets that are hosted here:
 
   http://bono.metabrainz.org:8000
 
-The AcousticBrainz project hosts the Annoy indexes that allows 
+The AcousticBrainz project hosts the Annoy indexes that allows
 you to find recordings that have similar characteristics given a
 in initial recording.
 
 The ListenBrainz project offers a number of data sets:
 
-1. Collaborative filtered recordings that suggest what recordings a 
+1. Collaborative filtered recordings that suggest what recordings a
 user should listen to based on their previous listening habits.
 2. User statistics that were derived from users recent listening
 habits.
@@ -69,7 +69,7 @@ To use this container, you first need to build the container and start it:
 Now you can run any of the scripts via run-docker.sh:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
+./run-docker.sh recommended_recordings.py rob similar
 ```
 
 When you are done with the container, take it down with:
@@ -104,6 +104,6 @@ OpenPost.html
 If you installed the system via docker, you can run scripts via:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
+./run-docker.sh recommended_recordings.py rob similar
 open OpenPost.html
 ```
