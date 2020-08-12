@@ -1,21 +1,20 @@
 # Introduction
 
-This project is aim to create a sandbox for developers to develop and 
+This project is aim to create a sandbox for developers to develop and
 experiment with music recommendation engines. To accomplish this goal,
 the MetaBrainz Foundation has created and hosted a number of data-sets
-that can be accessed as part of this project.
+that can be accessed as a part of this project.
 
 You can see some of the data sets that are hosted here:
 
   http://bono.metabrainz.org:8000
 
-The AcousticBrainz project hosts the Annoy indexes that allows 
-you to find recordings that have similar characteristics given a
-in initial recording.
+The AcousticBrainz project hosts the Annoy indexes that allows
+you to find recordings that have similar characteristics given an initial recording.
 
 The ListenBrainz project offers a number of data sets:
 
-1. Collaborative filtered recordings that suggest what recordings a 
+1. Collaborative filtered recordings that suggest what recordings a
 user should listen to based on their previous listening habits.
 2. User statistics that were derived from users recent listening
 habits.
@@ -26,11 +25,11 @@ MusicBrainz provides:
 
 MessyBrainz provides:
 
-1. MessyBrainz -> MusicBrain mapping for mapping listens with MSIDs
+1. MessyBrainz -> MusicBrainz mapping for mapping listens with MSIDs
    to MusicBrainz MBIDs
 
 
-## installation
+## Installation
 
 
 **Linux and Mac**
