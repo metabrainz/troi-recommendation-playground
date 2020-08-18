@@ -11,6 +11,8 @@ class Element(ABC):
 
     def set_sources(self, sources):
         """
+           Check if sources are not in the form of list then convert them
+           into the list type.
         """
 
         # TODO: add type checking of the pipeline

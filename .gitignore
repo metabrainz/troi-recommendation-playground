@@ -1,5 +1,5 @@
 *.pyc
 config.py
-.ve
+.env
 __pycache__
 OpenPost.html

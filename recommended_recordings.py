@@ -27,7 +27,6 @@ def recommended_recordings(user, type):
     r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
     dump = troi.utils.DumpElement()
     playlist = troi.playlist.PlaylistElement()
-
     r_lookup.set_sources(recs)
     playlist.set_sources(r_lookup)
     playlist.generate()

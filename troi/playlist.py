@@ -11,7 +11,7 @@ class PlaylistElement(troi.Element):
         self.playlist = None
 
     def inputs(self):
-        return [Recording]
+        return [ Recording ]
 
     def read(self, inputs):
 
@@ -21,6 +21,8 @@ class PlaylistElement(troi.Element):
 
         listens = []
         for e in entities:
+            if e.artist == None:
+                continue
             artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
             listens.append({
                 'listened_at' : 0,

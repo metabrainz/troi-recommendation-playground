@@ -34,9 +34,14 @@ MessyBrainz provides:
 
 **Linux and Mac**
 ```
-virtualenv -p python3 .ve
-source .ve/bin/activate
+python3 -m venv .env
+source .env/bin/activate
 pip3 install -r requirements.txt
+```
+
+If you are using Mac, use sudo -H flag for installing requirements if you need some permissions:
+```
+sudo -H pip3 install -r requirements.txt
 ```
 
 If you plan to do local development or run tests, you'll need to:
@@ -48,8 +53,8 @@ pip3 install -e .
 **Windows**
 
 ```
-virtualenv -p python3 .ve
-.ve\Scripts\activate.bat
+python3 -m venv .env
+.env\Scripts\activate.bat
 pip3 install -r requirements.txt
 ```
 
@@ -68,7 +73,7 @@ To use this container, you first need to build the container and start it:
 Now you can run any of the scripts via run-docker.sh:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
+./run-docker.sh recommended_recordings.py rob similar
 ```
 
 When you are done with the container, take it down with:
@@ -103,6 +108,6 @@ OpenPost.html
 If you installed the system via docker, you can run scripts via:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
+./run-docker.sh recommended_recordings.py rob similar
 open OpenPost.html
 ```

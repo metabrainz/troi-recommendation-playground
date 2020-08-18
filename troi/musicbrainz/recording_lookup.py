@@ -48,6 +48,8 @@ class RecordingLookupElement(Element):
             mbid_index[row['recording_mbid']] = row
 
         for r in recordings:
+            if mbid_index.get(r.mbid) == None:
+                continue
             row = mbid_index[r.mbid]
             if not r.artist:
                 a = Artist(name=row['artist_credit_name'],
