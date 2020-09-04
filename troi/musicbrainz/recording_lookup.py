@@ -51,12 +51,12 @@ class RecordingLookupElement(Element):
             row = mbid_index[r.mbid]
             if not r.artist:
                 a = Artist(name=row['artist_credit_name'],
-                           mbids=row['[artist_credit_mbids]'],
+                           mbids=row.get('[artist_credit_mbids]', []),
                            artist_credit_id=row['artist_credit_id'])
                 r.artist = a
             else:
                 r.artist.name = row['artist_credit_name']
-                r.artist.mbids = row['artist_credit_mbids']
+                r.artist.mbids = row.get('[artist_credit_mbids]', []),
                 r.artist.artist_credit_id = row['artist_credit_id']
 
             r.name = row['recording_name']

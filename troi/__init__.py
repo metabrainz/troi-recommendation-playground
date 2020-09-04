@@ -130,6 +130,19 @@ class Entity(ABC):
         return "<Entity()>"
 
 
+class Area(Entity):
+    """
+        The class that represents an area.
+    """
+    def __init__(self, id=id, name=None):
+        Entity.__init__(self)
+        self.name = name
+        self.id = id
+
+    def __str__(self):
+        return "<Area('%s', %d)>" % (self.name, self.id)
+
+
 class Artist(Entity):
     """
         The class that represents an artist.
