@@ -62,6 +62,4 @@ class RecordingLookupElement(Element):
             r.name = row['recording_name']
             r.length = row['length']
 
-        print("  MB recording lookup: read %d recordings" % len(recordings))
-
         return recordings

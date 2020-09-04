@@ -19,9 +19,11 @@ class AreaRandomTracksElement(Element):
 
     SERVER_URL = "http://bono.metabrainz.org:8000/area-random-recordings/json"
 
-    def __init__(self, area_id):
+    def __init__(self, area_id, start_year=0, end_year=3000):
         Element.__init__(self)
         self.area_id = area_id
+        self.start_year = start_year
+        self.end_year = end_year
 
     def inputs(self):
         return [ ]
@@ -31,7 +33,7 @@ class AreaRandomTracksElement(Element):
 
     def read(self, inputs):
 
-        data = [ { 'area_id': self.area_id, 'start_year' : '0', 'end_year' : '3000' } ]
+        data = [ { 'area_id': self.area_id, 'start_year' : self.start_year, 'end_year' : self.end_year } ]
         r = requests.post(self.SERVER_URL, json=data)
         if r.status_code != 200:
             r.raise_for_status()
@@ -47,7 +49,5 @@ class AreaRandomTracksElement(Element):
                                         name=row['recording_name'], 
                                         artist=Artist(name=row['artist_credit_name'],
                                                       artist_credit_id=row['artist_credit_id'])))
-
-        print("   country random recording: read %d recordings" % len(recordings))
 
         return recordings

@@ -5,10 +5,12 @@ import openpost
 from troi.operations import is_homogeneous
 import troi
 
+
 class PlaylistElement(troi.Element):
 
     def __init__(self):
         self.playlist = None
+        self.entities = None
 
     def inputs(self):
         return [Recording]
@@ -35,11 +37,19 @@ class PlaylistElement(troi.Element):
                 }
             })
 
+
+        self.entities = entities
         self.playlist = ujson.dumps(listens, indent=4, sort_keys=True)
 
 
     def print(self):
-        print(self.playlist)
+
+        if not self.playlist:
+            print("[no playlist generated yet]")
+            return
+
+        for recording in self.entities:
+            print("%-60s %-50s" % (recording.name[:59], recording.artist.name[:49]))
 
 
     def launch(self):
@@ -47,6 +57,6 @@ class PlaylistElement(troi.Element):
         if not self.playlist:
             raise RuntimeError("Playlist has not been generated yet.")
 
-        op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True)
+        op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True, file_name="playlist.html")
         op.add_key('listens', self.playlist)
         op.send_post()
