@@ -37,12 +37,9 @@ class Patch(ABC):
         return None
 
     @abstractmethod
-    def run(input_args):
+    def create(input_args):
         '''
-            The function that will carry out the actual work of constructing
-            the data pipeline and generating results.
-
-            Must always return a list of Recordings.
+            The function creates the data pipeline and then returns it.
         '''
 
         return None
