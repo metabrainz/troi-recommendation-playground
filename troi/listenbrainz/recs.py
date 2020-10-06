@@ -1,3 +1,4 @@
+import datetime
 
 import requests
 import ujson
@@ -20,16 +21,22 @@ class UserRecordingRecommendationsElement(Element):
         self.count = count
         self.offset = offset
         self.artist_type = artist_type
+        self._last_updated = None
 
     def outputs(self):
         return [Recording]
 
+    @property
+    def last_updated(self):
+        return self._last_updated
+
     def read(self, inputs = []):
         recording_list = []
         recordings = self.client.get_user_recommendation_recordings(self.user_name, self.artist_type, self.count, self.offset)
+        self._last_updated = datetime.datetime.fromtimestamp(recordings['payload']['last_updated'])
 
         artist_type = self.artist_type + "_artist"  
         for r in recordings['payload']['mbids']:
-            recording_list.append(Recording(mbid=r[0], listenbrainz={'rating':r[1]}))
+            recording_list.append(Recording(mbid=r['recording_mbid'], listenbrainz={'score':r['score']}))
 
         return recording_list

@@ -26,8 +26,9 @@ def discover_patches(patch_dir):
 
             for member in inspect.getmembers(patch):
                 if inspect.isclass(member[1]):
-                    p = member[1]()
-                    patch_dict[p.slug()] = member[1]
+                    if troi.patch.Patch in member[1].__bases__:
+                        p = member[1]()
+                        patch_dict[p.slug()] = member[1]
 
     return patch_dict
 

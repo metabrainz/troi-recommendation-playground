@@ -1,5 +1,24 @@
+from troi import Element
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
+
+
+class DailyJamsElement(Element):
+    '''
+        Split weekly recommended recordings into 7 sets, one for each day of the week.
+    '''
+
+    def __init__(self, recs):
+        Element.__init__(self)
+        self.recs = recs
+
+    def outputs(self):
+        return [Recording]
+
+    def read(self, inputs = []):
+        print(self.recs.last_updated)
+
+        return inputs[0]
 
 
 class LBRecommendedRecordingsPatch(troi.patch.Patch):
@@ -20,8 +39,11 @@ class LBRecommendedRecordingsPatch(troi.patch.Patch):
         if type not in ("top", "similar"):
             raise RuntimeError("type must be either 'top' or 'similar'")
 
-        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user, artist_type=type, count=200)
+        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name, artist_type=type, count=200)
+        jams = DailyJamsElement(recs)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        r_lookup.set_sources(recs)
+
+        jams.set_sources(recs)
+        r_lookup.set_sources(jams)
 
         return r_lookup
