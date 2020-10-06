@@ -52,7 +52,7 @@ def playlist(patch, args):
     if len(args) != len(inputs):
         print("%s: expects %d arguments, got %d:" % (patch.slug(), len(inputs), len(args)))
         for input in inputs:
-            print("    %15s, type %s" % (input[1], input[0]))
+            print("    %s, type %s" % (input[1], input[0]))
         quit()
 
     checked_args = []
@@ -82,7 +82,27 @@ def list():
 
     print("Available patches:")
     for slug in patches:
-        print("  ", slug)
+        print("  %s: %s" % (slug, patches[slug]().description()))
+
+
+@cli.command()
+@click.argument("patch", nargs=1)
+def info(patch):
+
+    patches = discover_patches("patches")
+    if not patch in patches:
+        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
+        quit()
+
+    patch = patches[patch]()
+    inputs = patch.inputs()
+
+    print("patch %s" % patch.slug())
+    print("  %s" % patch.description())
+    print()
+    print("  expected inputs:")
+    for input in inputs:
+        print("     %s, type %s" % (input[1], input[0]))
 
 
 def usage(command):
