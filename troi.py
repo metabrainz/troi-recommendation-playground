@@ -38,7 +38,8 @@ def cli():
 
 @cli.command()
 @click.argument("patch", nargs=1)
-def playlist(patch):
+@click.argument('args', nargs=-1)
+def playlist(patch, args):
 
     patches = discover_patches("patches")
     if not patch in patches:
@@ -46,7 +47,25 @@ def playlist(patch):
         quit()
 
     patch = patches[patch]()
-    pipeline = patch.create()
+    inputs = patch.inputs()
+
+    if len(args) != len(inputs):
+        print("%s: expects %d arguments, got %d:" % (patch.slug(), len(inputs), len(args)))
+        for input in inputs:
+            print("    %15s, type %s" % (input[1], input[0]))
+        quit()
+
+    checked_args = []
+    for input, arg in zip(inputs, args):
+        try:
+            value = input[0](arg)
+        except ValueError as err:
+            print("%s: Argument '%s' with type %s is invalid: %s" % (patch.slug(), input[1], input[0], err))
+            quit()
+
+        checked_args.append(value)
+
+    pipeline = patch.create(checked_args)
 
     playlist = troi.playlist.PlaylistElement()
     playlist.set_sources(pipeline)
