@@ -2,6 +2,7 @@ import random
 
 from troi import Element
 import troi.listenbrainz.recs
+import troi.filters
 import troi.musicbrainz.recording_lookup
 
 
@@ -53,10 +54,14 @@ class DailyJamsPatch(troi.patch.Patch):
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
                                                                           count=200)
-        jams = DailyJamsElement(recs, day=day)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        r_lookup.set_sources(recs)
 
-        jams.set_sources(recs)
-        r_lookup.set_sources(jams)
+        # If an artist should never appear in a playlist, add the artist_credit_id here
+        artist_filter = troi.filters.ArtistCreditFilterElement([])
+        artist_filter.set_sources(r_lookup)
 
-        return r_lookup
+        jams = DailyJamsElement(recs, day=day)
+        jams.set_sources(artist_filter)
+
+        return jams

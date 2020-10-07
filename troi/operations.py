@@ -195,34 +195,3 @@ class DifferenceElement(troi.Element):
                     results.append(e)
 
         return results
-
-
-class ArtistCreditFilterElement(troi.Element):
-    '''
-        Remove recordings if they do not belong to a given list of artists.
-    '''
-
-    def __init__(self):
-        pass
-
-    def inputs(self):
-        return [Recording, Artist]
-
-    def outputs(self):
-        return [Recording]
-
-    def read(self, inputs):
-
-        recordings = inputs[0]
-        artist_credits = inputs[1]
-
-        ac_index = {}
-        for ac in artist_credits:
-            ac_index[ac.artist_credit_id] = 1
-
-        results = []
-        for r in recordings:
-            if r.artist.artist_credit_id in ac_index:
-                results.append(r)
-
-        return results
