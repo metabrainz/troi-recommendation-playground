@@ -1,5 +1,3 @@
-import datetime
-
 import requests
 import ujson
 from troi import Element, Artist, Release, Recording
@@ -15,9 +13,6 @@ class UserRecordingRecommendationsElement(Element):
     MAX_RECORDINGS = 200
 
     def __init__(self, user_name, artist_type, count=25, offset=0):
-        """
-            The offset parameter does not work yet.
-        """
         Element.__init__(self)
         self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
@@ -41,7 +36,7 @@ class UserRecordingRecommendationsElement(Element):
             recordings = self.client.get_user_recommendation_recordings(self.user_name, 
                                                                         self.artist_type, 
                                                                         count=self.count - len(recording_list),
-                                                                        offset=len(recording_list))
+                                                                        offset=self.offset+len(recording_list))
 
             if not len(recordings['payload']['mbids']):
                 break
@@ -52,6 +47,6 @@ class UserRecordingRecommendationsElement(Element):
             if len(recording_list) >= self.count:
                 break
 
-        self._last_updated = datetime.datetime.fromtimestamp(recordings['payload']['last_updated'])
+        self._last_updated = recordings['payload']['last_updated']
 
         return recording_list
