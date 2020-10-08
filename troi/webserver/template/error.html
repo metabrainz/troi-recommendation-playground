@@ -1,0 +1,21 @@
+{%- extends 'base.html' -%}
+{%- block title -%}{{ slug }}{% endblock %}
+{%- block content -%}
+
+<h2><a href="/">Dataset Hoster</a></h2>
+
+{% if error %}
+  <p>An error occurred:</p>
+  <div>
+    <pre>{{ error }} </pre>
+  </div>
+{% endif %}
+
+<p>
+   <a href="/">Return to the index</a>.
+</p>
+
+{% endblock%}
+
+{% block scripts %}
+{% endblock %}

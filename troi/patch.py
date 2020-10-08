@@ -12,7 +12,7 @@ class Patch(ABC):
         '''
             This function should return a list of tuples of (entity/type, name) it expects as inputs.
             MusicBrainz entities and python base types can all be used.
-            e.g [(Recording, "seed recording"), (Album, "seed album")]
+            e.g [(Recording, "seed_recording"), (Album, "seed_album")]
         '''
         return None
 

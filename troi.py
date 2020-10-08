@@ -1,36 +1,12 @@
 #!/usr/bin/env python3
 
-import importlib
-import inspect
 import os
 import sys
 import click
 
 import troi
 import troi.playlist
-
-
-def discover_patches(patch_dir):
-
-    patch_dict = {}
-    for path in os.listdir(patch_dir):
-        if path in ['.', '..']:
-            continue
-
-        if path.endswith(".py"):
-            try:
-                patch = importlib.import_module(patch_dir + "." + path[:-3])
-            except ImportError as err:
-                print("Cannot import %s, skipping: %s" % (path, str(err)))
-                continue
-
-            for member in inspect.getmembers(patch):
-                if inspect.isclass(member[1]):
-                    if issubclass(member[1], troi.patch.Patch):
-                        p = member[1]()
-                        patch_dict[p.slug()] = member[1]
-
-    return patch_dict
+import troi.utils
 
 
 @click.group()
@@ -42,7 +18,7 @@ def cli():
 @click.argument('args', nargs=-1)
 def playlist(patch, args):
 
-    patches = discover_patches("patches")
+    patches = troi.utils.discover_patches("patches")
     if not patch in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
         quit()
@@ -79,7 +55,7 @@ def playlist(patch, args):
 @cli.command()
 def list():
 
-    patches = discover_patches("patches")
+    patches = troi.utils.discover_patches("patches")
 
     print("Available patches:")
     for slug in patches:
@@ -90,7 +66,7 @@ def list():
 @click.argument("patch", nargs=1)
 def info(patch):
 
-    patches = discover_patches("patches")
+    patches = troi.util.discover_patches("patches")
     if not patch in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
         quit()

@@ -15,6 +15,10 @@ class PlaylistElement(troi.Element):
     def inputs(self):
         return [Recording]
 
+    @property
+    def recordings(self):
+        return self.entities
+
     def read(self, inputs):
 
         entities = inputs[0]

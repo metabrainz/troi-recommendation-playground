@@ -1,0 +1,28 @@
+{%- extends 'base.html' -%}
+{%- block title -%}home{% endblock %}
+{%- block content -%}
+
+<h2>ListenBrainz Troi</h2>
+
+<p>
+   This is our Troi sandbox!
+<p>
+
+<p>
+  The following patches are available:
+</p>
+
+<ul>
+  {% for slug in patches %}
+    <li><a href="/{{ slug }}" style="color: #E80;">{{ slug }}</a>: {{ patches[slug].description }}</li>
+  {% endfor %}
+</ul>
+
+<p>
+   Space for more random guff.
+<p>
+
+{% endblock%}
+
+{% block scripts %}
+{% endblock %}

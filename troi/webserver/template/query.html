@@ -1,0 +1,55 @@
+{%- extends 'base.html' -%}
+{%- block title -%}{{ slug }}{% endblock %}
+{%- block content -%}
+
+<h2><a href="/">Troi</a> : {{ slug }}</h2>
+<p>
+   {{ desc }}
+</p>
+
+<form action="/{{ slug }}">
+  {% for input in inputs %}
+     <label for="{{ input[1] }}">{{ input[1] }}</label>
+     <input type="text" 
+            id="{{ input[1] }}" 
+            name="{{ input[1] }}" 
+            placeholder="{{ input[0] }}"
+            value="{{args[input] | escape }}"><br>
+  {% endfor %}
+  <input type="submit" value="generate playlist">
+</form>
+
+{% if error %}
+  <p>An error occurred:</p>
+  <div>
+    <pre>{{ error }} </pre>
+  </div>
+{% endif %}
+
+{% if count >= 0 %}
+    <p><b>{{ count }} rows returned</b></p>
+{% endif %}
+
+{% if recordings %}
+  <table>
+    <thead>
+      <tr>
+        <th>recording</th>
+        <th>artist</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rec in recordings %}
+        <tr>
+          <td><a href="https://musicbrainz.org/recording/{{ rec.mbid }}">{{ rec.name }}</a></td>
+          <td><a href="https://musicbrainz.org/artist/{{ rec.artist.mbid }}">{{ rec.artist.name }}</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% endblock%}
+
+{% block scripts %}
+{% endblock %}

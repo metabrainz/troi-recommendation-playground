@@ -100,9 +100,8 @@ OpenPost.html
 
 **Docker**
 
-If you installed the system via docker, you can run scripts via:
 
 ```
-./run-docker.sh recommend_recordings.py rob similar
-open OpenPost.html
+docker build -t metabrainz/troi-hoster .
+docker run --rm -p 8000:80 --name troi-hoster metabrainz/troi-hoster
 ```

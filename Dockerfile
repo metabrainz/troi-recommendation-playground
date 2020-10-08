@@ -1,16 +1,15 @@
-FROM python:3.8.5-buster
+FROM tiangolo/uwsgi-nginx-flask:python3.8
 
-#RUN apt-get update && apt-get install -y python3-pip \
-#        python3-setuptools \ 
-#        python3-virtualenv
+RUN apt-get update && apt-get install -y ca-certificates
+RUN python3 -m pip install --upgrade pip
 
-ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+COPY requirements.txt /tmp
+RUN python3 -m pip install -r /tmp/requirements.txt
 
-RUN mkdir -p /code/troi
-WORKDIR /code/troi
+RUN mkdir -p /app/troi /app/troi/template
+WORKDIR /app/troi
+COPY . /app
 
-COPY requirements.txt setup.py ./
-RUN pip3 install -r requirements.txt
-RUN pip3 install -e .
+COPY troi/webserver/main.py /app
+RUN chmod +x /app/main.py
+COPY troi/webserver/template/* /app/template/

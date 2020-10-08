@@ -1,4 +1,35 @@
+import importlib
+import inspect
+import os
+import traceback
+
 from troi import Element, Artist, Release, Recording
+import troi.patch
+
+
+def discover_patches(patch_dir):
+
+    patch_dict = {}
+    for path in os.listdir(patch_dir):
+        if path in ['.', '..']:
+            continue
+
+        if path.endswith(".py"):
+            try:
+                patch = importlib.import_module(patch_dir + "." + path[:-3])
+            except ImportError as err:
+                print("Cannot import %s, skipping:" % (path))
+                traceback.print_exc()
+                continue
+
+            for member in inspect.getmembers(patch):
+                if inspect.isclass(member[1]):
+                    if issubclass(member[1], troi.patch.Patch):
+                        p = member[1]()
+                        patch_dict[p.slug()] = member[1]
+
+    return patch_dict
+
 
 def print_entity_list(entities, count=0):
 

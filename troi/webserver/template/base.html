@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% block styles %}
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+    {% endblock %}
+
+    <title>ListenBrainz Troi: {% block title %}{% endblock %}</title>
+
+    {% endblock %}
+  </head>
+  <body>
+      <div style="width: 90%; margin-left: 5%">
+        <div style="float: right">
+          <img style="padding-top: 10px" src="https://listenbrainz.org/static/img/navbar_logo.svg">
+        </div>
+        {% block content %}
+        {% endblock %}
+      </div>
+  
+    {% block scripts %}
+    {% endblock %}
+  </body>
+</html>
+

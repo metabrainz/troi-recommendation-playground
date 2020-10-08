@@ -2,14 +2,10 @@ import sys
 import uuid
 from urllib.parse import quote
 
-import psycopg2
-import psycopg2.extras
 import requests
 import ujson
 
 from troi import Element, Artist, Recording
-
-psycopg2.extras.register_uuid()
 
 def area_lookup(area_name):
     '''
