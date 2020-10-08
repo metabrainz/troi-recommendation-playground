@@ -19,10 +19,6 @@ registered_queries = {}
 app = Flask(__name__,
             template_folder = TEMPLATE_FOLDER)
 
-
-patches = troi.utils.discover_patches(PATCH_FOLDER)
-print("Loaded %d patches from %s" % (len(patches), PATCH_FOLDER))
-
 @app.route('/')
 def index():
     """ The home page that shows all of the available queries."""
@@ -105,9 +101,10 @@ def web_patch_handler():
         This is the view handler for the web page.
     """
   
-    patch_name = request.path
+    patch_name = request.path[1:]
+    print("patch name '%s'" % patch_name)
     try:
-        patch = patches[patch]()
+        patch = patches[patch_name]()
     except KeyError:
         return render_template("error.html", error="Cannot load patch %s" % patch_name), 404
 
@@ -148,3 +145,10 @@ def web_patch_handler():
                            args=request.args,
                            desc=desc,
                            slug=patch_name)
+
+patches = troi.utils.discover_patches(PATCH_FOLDER)
+for patch in patches:
+    slug = patches[patch]().slug()
+    app.add_url_rule('/%s' % slug, slug, web_patch_handler)
+print("Loaded %d patches from %s" % (len(patches), PATCH_FOLDER))
+
