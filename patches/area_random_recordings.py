@@ -6,13 +6,16 @@ import troi.patch
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return [(str, "area"), (int, "start year"), (int, "end year")]
 
-    def slug(self):
+    @staticmethod
+    def slug():
         return "area-random-recordings"
 
-    def description(self):
+    @staticmethod
+    def description():
         return "Generate a list of random recordings from a given area."
 
     def create(self, inputs):

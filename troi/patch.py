@@ -8,7 +8,8 @@ class Patch(ABC):
     def __init__(self):
         pass
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         '''
             This function should return a list of tuples of (entity/type, name) it expects as inputs.
             MusicBrainz entities and python base types can all be used.
@@ -16,7 +17,8 @@ class Patch(ABC):
         '''
         return None
 
-    def slug(self):
+    @staticmethod
+    def slug():
         ''' 
             Return the slug for this patch -- this is a URL friendly short identifier
             that can be used to invoke this patch via an HTTP call.
@@ -26,7 +28,8 @@ class Patch(ABC):
 
         return None
 
-    def description(self):
+    @staticmethod
+    def description():
         ''' 
             Return the description for this patch -- this short description (not more than a paragraph)
             should give the user an idea as to what the patch does.

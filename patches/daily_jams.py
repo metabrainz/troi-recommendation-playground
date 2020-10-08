@@ -16,10 +16,10 @@ class DailyJamsElement(Element):
         self.recs = recs
         self.day = day
 
-    def inputs(self):
+    def inputs():
         return [Recording]
 
-    def outputs(self):
+    def outputs():
         return [Recording]
 
     def read(self, inputs = [], debug=False):
@@ -34,13 +34,16 @@ class DailyJamsElement(Element):
 
 class DailyJamsPatch(troi.patch.Patch):
 
+    @staticmethod
     def inputs(self):
         return [(str, "user"), (str, "type"), (int, "day")]
 
-    def slug(self):
+    @staticmethod
+    def slug():
         return "daily-jams"
 
-    def description(self):
+    @staticmethod
+    def description():
         return "Generate a daily playlist from the ListenBrainz recommended recordings"
 
     def create(self, inputs):

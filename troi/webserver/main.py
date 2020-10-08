@@ -11,7 +11,7 @@ from werkzeug.exceptions import NotFound, BadRequest, InternalServerError, \
 import troi.utils
 
 TEMPLATE_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "template")
-PATCH_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "patches")
+PATCH_FOLDER = "/app/patches"
 
 sys.stderr.write(TEMPLATE_FOLDER + "\n")
 
