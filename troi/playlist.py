@@ -12,6 +12,7 @@ class PlaylistElement(troi.Element):
         self.playlist = None
         self.entities = None
 
+    @staticmethod
     def inputs(self):
         return [Recording]
 

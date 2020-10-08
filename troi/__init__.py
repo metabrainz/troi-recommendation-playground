@@ -60,7 +60,8 @@ class Element(ABC):
         self.check()
         return self.generate()
             
-    def inputs(self):
+    @staticmethod
+    def inputs():
         """
             Return a list of Artist, Release or Recording classes that define
             the type and number of input lists to this element. 
@@ -69,7 +70,8 @@ class Element(ABC):
         """
         return None
 
-    def outputs(self):
+    @staticmethod
+    def outputs():
         """
             Return a list of Artist, Release or Recording classes that define
             the type and number of output lists returned by this element. 

@@ -21,10 +21,12 @@ class AreaRandomTracksElement(Element):
         self.start_year = start_year
         self.end_year = end_year
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return [ ]
 
-    def outputs(self):
+    @staticmethod
+    def outputs():
         return [ Recording ]
 
     def read(self, inputs, debug=False):

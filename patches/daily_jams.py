@@ -1,6 +1,6 @@
 import random
 
-from troi import Element
+from troi import Element, Recording
 import troi.listenbrainz.recs
 import troi.filters
 import troi.musicbrainz.recording_lookup
@@ -16,9 +16,11 @@ class DailyJamsElement(Element):
         self.recs = recs
         self.day = day
 
+    @staticmethod
     def inputs():
         return [Recording]
 
+    @staticmethod
     def outputs():
         return [Recording]
 
@@ -35,8 +37,12 @@ class DailyJamsElement(Element):
 class DailyJamsPatch(troi.patch.Patch):
 
     @staticmethod
-    def inputs(self):
+    def inputs():
         return [(str, "user"), (str, "type"), (int, "day")]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
 
     @staticmethod
     def slug():

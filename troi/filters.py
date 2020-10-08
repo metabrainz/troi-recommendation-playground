@@ -17,10 +17,12 @@ class ArtistCreditFilterElement(troi.Element):
         self.artist_credit_ids = artist_credit_ids
         self.include = include
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return [Recording]
 
-    def outputs(self):
+    @staticmethod
+    def outputs():
         return [Recording]
 
     def read(self, inputs, debug=False):

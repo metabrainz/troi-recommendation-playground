@@ -18,13 +18,15 @@ class ArtistCreditIdLookupElement(Element):
     def __init__(self):
         pass
 
+    @staticmethod
     def inputs(self):
         return [Artist]
 
+    @staticmethod
     def outputs(self):
         return [Artist]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         ac_ids = []
         index = {}

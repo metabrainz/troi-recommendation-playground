@@ -110,6 +110,7 @@ def web_patch_handler():
 
     inputs = patch.inputs()
     outputs = patch.outputs()
+    desc = patch.description()
 
     recordings = []
     arg_list, error = convert_http_args_to_json(inputs, request.args)
@@ -134,11 +135,12 @@ def web_patch_handler():
             playlist = troi.playlist.PlaylistElement()
             playlist.set_sources(pipeline)
             playlist.generate()
+            recordings = playlist.recordings
 
 
     return render_template("patch.html",
                            error=error,
-                           recordings=playlist.recordings,
+                           recordings=recordings,
                            count=len(recordings) if recordings else -1,
                            inputs=inputs,
                            columns=outputs,

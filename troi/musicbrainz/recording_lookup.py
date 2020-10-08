@@ -14,10 +14,12 @@ class RecordingLookupElement(Element):
 
     SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return [ Recording ]
 
-    def outputs(self):
+    @staticmethod
+    def outputs():
         return [ Recording ]
 
     def read(self, inputs, debug=False):

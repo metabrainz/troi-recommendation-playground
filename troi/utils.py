@@ -65,7 +65,8 @@ class DumpElement(Element):
     def __init__(self):
         pass
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return []
 
     def read(self, inputs, debug=False):

@@ -20,10 +20,12 @@ class RelatedArtistCreditsElement(Element):
     def __init__(self, threshold=0):
         self.threshold = threshold
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return [Recording]
 
-    def outputs(self):
+    @staticmethod
+    def outputs():
         return [Recording]
 
     def read(self, inputs, debug=False):

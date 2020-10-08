@@ -13,7 +13,7 @@
      <input type="text" 
             id="{{ input[1] }}" 
             name="{{ input[1] }}" 
-            placeholder="{{ input[0] }}"
+            placeholder="{{ input[0].__name__ }}"
             value="{{args[input] | escape }}"><br>
   {% endfor %}
   <input type="submit" value="generate playlist">

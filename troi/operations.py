@@ -43,7 +43,8 @@ class UniqueElement(troi.Element):
     def __init__(self, key = "mbid"):
         self.key = key
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return []
 
     def read(self, entities_arg, debug=False):

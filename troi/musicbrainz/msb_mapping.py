@@ -19,10 +19,12 @@ class MSBMappingLookupElement(Element):
     def __init__(self, remove_unmatched=False):
         self.remove_unmatched = remove_unmatched
 
-    def inputs(self):
+    @staticmethod
+    def inputs():
         return [Recording]
 
-    def outputs(self):
+    @staticmethod
+    def outputs():
         return [Recording]
 
     def read(self, inputs, debug=False):
