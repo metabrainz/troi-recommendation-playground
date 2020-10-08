@@ -23,7 +23,7 @@ class ArtistCreditFilterElement(troi.Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         recordings = inputs[0]
 
@@ -36,6 +36,11 @@ class ArtistCreditFilterElement(troi.Element):
 
         results = []
         for r in recordings:
+            if not r.artist or not r.artist.artist_credit_id:
+                if debug:
+                    print("- debug recording %s has not artist credit id" % (r.mbid))
+                continue
+
             if self.include:
                 if r.artist.artist_credit_id in ac_index:
                     results.append(r)

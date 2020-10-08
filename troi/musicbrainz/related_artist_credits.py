@@ -26,7 +26,7 @@ class RelatedArtistCreditsElement(Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         artists = inputs[0]
         ac_ids = ",".join([ str(a.artist_credit_id) for a in artists ])

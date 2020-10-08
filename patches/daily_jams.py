@@ -22,7 +22,7 @@ class DailyJamsElement(Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs = []):
+    def read(self, inputs = [], debug=False):
         recordings = inputs[0]
         random.seed(self.recs.last_updated)
         random.shuffle(recordings)
@@ -53,7 +53,7 @@ class DailyJamsPatch(troi.patch.Patch):
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
-                                                                          count=200)
+                                                                          count=-1)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(recs)
 

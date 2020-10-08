@@ -19,7 +19,7 @@ class PlaylistElement(troi.Element):
     def recordings(self):
         return self.entities
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         entities = inputs[0]
         if not is_homogeneous(entities):
@@ -44,6 +44,8 @@ class PlaylistElement(troi.Element):
 
         self.entities = entities
         self.playlist = ujson.dumps(listens, indent=4, sort_keys=True)
+
+        return entities
 
 
     def print(self):

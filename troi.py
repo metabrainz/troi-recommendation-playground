@@ -16,7 +16,11 @@ def cli():
 @cli.command()
 @click.argument("patch", nargs=1)
 @click.argument('args', nargs=-1)
-def playlist(patch, args):
+@click.option('--debug', '-d', is_flag=True, default=False)
+def playlist(patch, args, debug):
+
+    if debug:
+        print("- debug mode on")
 
     patches = troi.utils.discover_patches("patches")
     if not patch in patches:
@@ -46,7 +50,7 @@ def playlist(patch, args):
 
     playlist = troi.playlist.PlaylistElement()
     playlist.set_sources(pipeline)
-    playlist.generate()
+    playlist.generate(debug)
     playlist.print()
     print("-- generated playlist with %d recordings. Open playlist by opening playlist.html in your browser." % len(playlist.entities))
     playlist.launch()

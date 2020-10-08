@@ -66,7 +66,7 @@ class DumpElement(Element):
     def inputs(self):
         return []
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         for input in inputs:
             print_entity_list(input)

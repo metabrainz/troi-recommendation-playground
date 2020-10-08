@@ -12,7 +12,7 @@ class RecordingLookupElement(Element):
         Look up a musicbrainz data for a list of recordings, based on MBID. 
     '''
 
-    SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json"
+    SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
 
     def inputs(self):
         return [ Recording ]
@@ -20,7 +20,7 @@ class RecordingLookupElement(Element):
     def outputs(self):
         return [ Recording ]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         recordings = inputs[0]
         if not recordings:
@@ -30,12 +30,18 @@ class RecordingLookupElement(Element):
         r_mbids = ",".join([ r.mbid for r in recordings ])
         for r in recordings:
             data.append({ '[recording_mbid]': r.mbid })
-        r = requests.post(self.SERVER_URL, json=data)
+
+        if debug:
+            print("- debug %d recordings" % len(recordings))
+
+        r = requests.post(self.SERVER_URL % len(recordings), json=data)
         if r.status_code != 200:
             r.raise_for_status()
 
         try:
             rows = ujson.loads(r.text)
+            if debug:
+                print("- debug %d rows in response" % len(rows))
         except Exception as err:
             raise RuntimeError(str(err))
 
@@ -44,7 +50,13 @@ class RecordingLookupElement(Element):
             mbid_index[row['original_recording_mbid']] = row
 
         for r in recordings:
-            row = mbid_index[r.mbid]
+            try:
+                row = mbid_index[r.mbid]
+            except KeyError:
+                if debug:
+                    print("- debug recording MBID %s not found, skipping." % r.mbid)
+                continue
+
             if not r.artist:
                 a = Artist(name=row['artist_credit_name'],
                            mbids=row.get('[artist_credit_mbids]', []),

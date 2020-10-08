@@ -3,14 +3,13 @@ import ujson
 from troi import Element, Artist, Release, Recording
 import pylistenbrainz
 
+MAX_NUM_RECORDINGS_PER_REQUEST = 100
+
 
 class UserRecordingRecommendationsElement(Element):
     '''
         Fetch recommended recording for a user from ListenBrainz
     '''
-
-    MAX_RECORDINGS_PER_REQUEST = 100
-    MAX_RECORDINGS = 200
 
     def __init__(self, user_name, artist_type, count=25, offset=0):
         Element.__init__(self)
@@ -28,14 +27,14 @@ class UserRecordingRecommendationsElement(Element):
     def last_updated(self):
         return self._last_updated
 
-    def read(self, inputs = []):
+    def read(self, inputs = [], debug=False):
         recording_list = []
         recordings = []
 
         while True:
             recordings = self.client.get_user_recommendation_recordings(self.user_name, 
                                                                         self.artist_type, 
-                                                                        count=self.count - len(recording_list),
+                                                                        count=MAX_NUM_RECORDINGS_PER_REQUEST,
                                                                         offset=self.offset+len(recording_list))
 
             if not len(recordings['payload']['mbids']):
@@ -44,7 +43,7 @@ class UserRecordingRecommendationsElement(Element):
             for r in recordings['payload']['mbids']:
                 recording_list.append(Recording(mbid=r['recording_mbid'], listenbrainz={'score':r['score']}))
 
-            if len(recording_list) >= self.count:
+            if self.count > 0 and len(recording_list) >= self.count:
                 break
 
         self._last_updated = recordings['payload']['last_updated']

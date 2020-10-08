@@ -32,7 +32,7 @@ class Element(ABC):
             source.check()
 
 
-    def generate(self):
+    def generate(self, debug=False):
         """
             Generate output from the pipeline. This should be called on
             the last element in the pipeline and no where else. At the root
@@ -43,10 +43,13 @@ class Element(ABC):
         source_lists = []
         if self.sources:
             for source in self.sources:
-                source_lists.append(source.generate())
+                source_lists.append(source.generate(debug))
            
-        ret = self.read(source_lists)
-        return ret
+        recordings = self.read(source_lists, debug)
+        if debug:
+            print("- debug %-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
+
+        return recordings
       
     def run(self):
         """ 
@@ -76,13 +79,14 @@ class Element(ABC):
         return None
 
     @abstractmethod
-    def read(self, source_data_list):
+    def read(self, source_data_list, debug):
         ''' 
             This method is where the action happens -- when the consumer wants to 
             read data from the pipeline, it calls read() on the last element in
             the pipeline and this casues the while pipeline to generate result.
             If the initializers of other objects in the pipeline are updated,
-            calling read() again will generate the set new.
+            calling read() again will generate the set new. Passing True for
+            debug should print helpful debug statements about its progress.
         '''
 
         pass

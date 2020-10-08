@@ -25,7 +25,7 @@ class MSBMappingLookupElement(Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         in_recordings = inputs[0]
         artists = ",".join([ r.artist.name for r in in_recordings ])

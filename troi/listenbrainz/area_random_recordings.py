@@ -27,7 +27,7 @@ class AreaRandomTracksElement(Element):
     def outputs(self):
         return [ Recording ]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
 
         data = [ { 'area_id': self.area_id, 'start_year' : self.start_year, 'end_year' : self.end_year } ]
         r = requests.post(self.SERVER_URL, json=data)

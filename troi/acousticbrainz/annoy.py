@@ -28,7 +28,7 @@ class AnnoyLookupElement(Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs):
+    def read(self, inputs, debug=False):
         print("  annoy: read for %s/%s" % (self.metric, self.mbid))
 
         url = self.SERVER_URL + self.metric + "/" + self.mbid

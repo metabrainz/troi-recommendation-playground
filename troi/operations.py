@@ -46,7 +46,7 @@ class UniqueElement(troi.Element):
     def inputs(self):
         return []
 
-    def read(self, entities_arg):
+    def read(self, entities_arg, debug=False):
         entities = entities_arg[0]
 
         if not entities:
@@ -83,7 +83,7 @@ class UnionElement(troi.Element):
     def inputs(self):
         return []
 
-    def read(self, entities):
+    def read(self, entities, debug=False):
         entities_0 = entities[0]
         entities_1 = entities[1]
 
@@ -112,7 +112,7 @@ class IntersectionElement(troi.Element):
     def inputs(self):
         return []
 
-    def read(self, entities):
+    def read(self, entities, debug=False):
         entities_0 = entities[0]
         entities_1 = entities[1]
 
@@ -159,7 +159,7 @@ class DifferenceElement(troi.Element):
     def inputs(self):
         return []
 
-    def read(self, entities):
+    def read(self, entities, debug=False):
         entities_0 = entities[0]
         entities_1 = entities[1]
 
