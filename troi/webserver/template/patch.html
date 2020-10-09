@@ -14,7 +14,7 @@
             id="{{ input[1] }}" 
             name="{{ input[1] }}" 
             placeholder="{{ input[0].__name__ }}"
-            value="{{args[input] | escape }}"><br>
+            value="{{ args[loop.index0] | escape }}"><br>
   {% endfor %}
   <input type="submit" value="generate playlist">
 </form>
@@ -27,7 +27,13 @@
 {% endif %}
 
 {% if count >= 0 %}
-    <p><b>{{ count }} rows returned</b></p>
+    <p>
+       <b>{{ count }} rows returned</b>.
+       <form action="https://listenbrainz.org/player" method="POST">
+          <textarea name='listens' id='listens' form='postform' style='display: none;'>{{ post_data }} </textarea>
+           <input type="submit" value="Open in BrainzPlayer...">
+       </form>
+    </p>
 {% endif %}
 
 {% if recordings %}
@@ -42,7 +48,15 @@
       {% for rec in recordings %}
         <tr>
           <td><a href="https://musicbrainz.org/recording/{{ rec.mbid }}">{{ rec.name }}</a></td>
-          <td><a href="https://musicbrainz.org/artist/{{ rec.artist.mbid }}">{{ rec.artist.name }}</a></td>
+          <td>
+            {% if rec.artist.mbids | length() > 1 %}
+                {{ rec.artist.name }} 
+                {% for mbid in rec.artist.mbids %}
+                   <a href="https://musicbrainz.org/artist/{{ mbid }}">{{ loop.index }}</a></td>
+                {% endfor %}
+            {% else %}
+                <a href="https://musicbrainz.org/artist/{{ rec.artist.mbids[0] }}">{{ rec.artist.name }}</a></td>
+            {% endif %}
         </tr>
       {% endfor %}
     </tbody>

@@ -9,6 +9,7 @@ from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import NotFound, BadRequest, InternalServerError, \
                                 MethodNotAllowed, ImATeapot, ServiceUnavailable
 import troi.utils
+import troi.playlist
 
 TEMPLATE_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "template")
 PATCH_FOLDER = "/app/patches"
@@ -30,70 +31,16 @@ def page_not_found(e):
     return render_template('error.html', error="Patch not found."), 404
 
 
-def convert_http_args_to_json(inputs, req_args):
-    """
-        THis function converts a series of HTTP arguments into a sane JSON (dict)
-        that mimicks the data that is passed to the POST function. Also does
-        some error checking on the data. Returns a complete dict or parameters 
-        and a blank string or None and an error string.
-    """
+def error_check_arguments(inputs):
 
-    args = {}
-    num_args = 0
-    list_len = -1
-    for arg in req_args:
-        args[arg] = req_args[arg].split(",")
-        num_args = len(args[arg])
-        list_len = max(list_len, len(args[arg]))
+    args = []
+    for input in inputs:
+        arg = request.args.get(input[1], '')
+        if not arg:
+            return "Parameter %s is missing." % input[1], ()
+        args.append(input[0](arg))
 
-    singletons = {}
-    for arg in args:
-        if arg.startswith("[") and len(args[arg]) != list_len:
-            return [], "Lists passed as parameters must all be the same length."
-
-        if len(args[arg]) == 1:
-            singletons[arg] = args[arg][0]
-
-    arg_list = []
-    try:
-        for i in range(list_len):
-            row = copy.deepcopy(singletons)
-            for input in inputs:
-                if input not in args:
-                    return [], "Missing parameter '%s'." % input
-                if input not in singletons:
-                    row[input] = args[input][i]
-            arg_list.append(row)
-    except KeyError as err:
-        return [], "KeyError: " + str(err)
-
-    return arg_list, ""
-
-
-def error_check_arguments(inputs, req_json):
-    """
-        Given the JSON (dict) version of the parameters, ensure that they are sane.
-        Parameters must all be available for each row and parameters cannot be blank.
-        If there are parameters that are lists, make sure all lists contain
-        the same number of elements. Returns error string if error, otherwise empty string
-    """
-
-    if not req_json:
-        return "No parameters supplied. Required: %s" % (",".join(inputs))
-
-    for i, row in enumerate(req_json):
-        for input in inputs:
-            if not input in row:
-                return "Required parameter '%s' missing in row %d." % (input, i)
-            if not row[input]:
-                return "Required parameter '%s' cannot be blank in row %d." % (input, i)
-
-    # Examine one row to ensure that all the parameters are there.
-    for req in req_json[0]:
-        if req not in inputs:
-            return "Too many parameters passed. Extra: '%s'" % req
-
-    return ""
+    return "", args
 
 
 def web_patch_handler():
@@ -113,19 +60,14 @@ def web_patch_handler():
     desc = patch.description()
 
     recordings = []
-    arg_list, error = convert_http_args_to_json(inputs, request.args)
-    if error:
-        return render_template("error.html", error=error)
-
-    if arg_list:
-        error = error_check_arguments(inputs, arg_list)
+    post_data = ""
+    error = ""
+    args = []
+    if len(request.args):
+        error, args = error_check_arguments(inputs)
         if not error:
-            
-            if arg_list:
-                json_post = json.dumps(arg_list, indent=4, sort_keys=True)
-
             try:
-                pipeline = patch.create(checked_args)
+                pipeline = patch.create(args)
             except (BadRequest, InternalServerError, ImATeapot, ServiceUnavailable, NotFound) as err:
                 error = err
             except Exception as err:
@@ -136,7 +78,7 @@ def web_patch_handler():
             playlist.set_sources(pipeline)
             playlist.generate()
             recordings = playlist.recordings
-
+            post_data = playlist.playlist
 
     return render_template("patch.html",
                            error=error,
@@ -144,9 +86,10 @@ def web_patch_handler():
                            count=len(recordings) if recordings else -1,
                            inputs=inputs,
                            columns=outputs,
-                           args=request.args,
+                           args=args,
                            desc=desc,
-                           slug=patch_name)
+                           slug=patch_name,
+                           post_data=post_data)
 
 patches = troi.utils.discover_patches(PATCH_FOLDER)
 for patch in patches:
