@@ -35,10 +35,10 @@ def error_check_arguments(inputs):
 
     args = []
     for input in inputs:
-        arg = request.args.get(input[1], '')
+        arg = request.args.get(input['name'], '')
         if not arg:
-            return "Parameter %s is missing." % input[1], ()
-        args.append(input[0](arg))
+            return "Parameter %s is missing." % input['name'], ()
+        args.append(input['type'](arg))
 
     return "", args
 

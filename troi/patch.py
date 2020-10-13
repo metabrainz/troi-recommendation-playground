@@ -11,9 +11,16 @@ class Patch(ABC):
     @staticmethod
     def inputs():
         '''
-            This function should return a list of tuples of (entity/type, name) it expects as inputs.
-            MusicBrainz entities and python base types can all be used.
-            e.g [(Recording, "seed_recording"), (Album, "seed_album")]
+            This function should return a list of dicts that defined the type, name, description and if the 
+            argument is optional. MusicBrainz entities and python base types can all be used. Example:
+            [
+                {
+                    "type" : int,
+                    "name": "num_recordings",
+                    "optional" : True,
+                    "desc" : "number of recorings"
+                }
+            ]
         '''
         return None
 

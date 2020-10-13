@@ -8,7 +8,9 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
 
     @staticmethod
     def inputs():
-        return [(str, "area"), (int, "start year"), (int, "end year")]
+        return [{ "type": str, "name": "area", "desc": "MusicBrainz area from which to choose tracks.", "optional": False },
+                { "type": int, "name": "start_year", "desc": "Start year", "optional": True },
+                { "type": int, "name": "end_year", "desc": "End year", "optional": True }]
 
     @staticmethod
     def slug():

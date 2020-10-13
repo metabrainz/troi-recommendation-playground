@@ -9,11 +9,11 @@
 
 <form action="/{{ slug }}">
   {% for input in inputs %}
-     <label for="{{ input[1] }}">{{ input[1] }}</label>
+     <label for="{{ input.name }}">{{ input.name }}</label>
      <input type="text" 
-            id="{{ input[1] }}" 
-            name="{{ input[1] }}" 
-            placeholder="{{ input[0].__name__ }}"
+            id="{{ input.name }}" 
+            name="{{ input.name }}" 
+            placeholder="{{ input.desc }} ({{ input.type }})"
             value="{{ args[loop.index0] | escape }}"><br>
   {% endfor %}
   <input type="submit" value="generate playlist">

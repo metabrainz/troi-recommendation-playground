@@ -38,8 +38,10 @@ class DailyJamsPatch(troi.patch.Patch):
 
     @staticmethod
     def inputs():
-        return [(str, "user"), (str, "type"), (int, "day")]
-
+        return [{ "type": str, "name": "user_name", "desc": "MusicBrainz user name", "optional": False },
+                { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False },
+                { "type": int, "name": "day", "desc": "The day of the week to generate jams for (0-6). Leave blank for today.", "optional": True }]
+        
     @staticmethod
     def outputs():
         return [Recording]
