@@ -19,23 +19,27 @@
   <input type="submit" value="generate playlist">
 </form>
 
-{% if error %}
-  <p>An error occurred:</p>
-  <div>
-    <pre>{{ error }} </pre>
-  </div>
-{% endif %}
 
 {% if count >= 0 %}
-    <p>
-       <b>{{ count }} rows returned</b>.
+    <div style="float: right">
        <form action="https://listenbrainz.org/player" method="POST">
-          <textarea name='listens' id='listens' form='postform' style='display: none;'>{{ post_data }} </textarea>
-           <input type="submit" value="Open in BrainzPlayer...">
+          <textarea name="listens" id="listens" style="display: none;">{{ post_data }} </textarea>
+          <input type="submit" value="Open in BrainzPlayer...">
        </form>
-    </p>
+    </div>
+    <div style="float: clear">
+       <b>{{ count }} rows returned</b>.
+    </div>
 {% endif %}
 
+{% if error %}
+  <div>
+    <p>An error occurred:</p>
+    <div>
+      <pre>{{ error }} </pre>
+    </div>
+  </div>
+{% endif %}
 {% if recordings %}
   <table>
     <thead>
