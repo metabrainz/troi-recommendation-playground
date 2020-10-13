@@ -36,9 +36,16 @@ def error_check_arguments(inputs):
     args = []
     for input in inputs:
         arg = request.args.get(input['name'], '')
-        if not arg:
+        if not arg and not input['optional']:
             return "Parameter %s is missing." % input['name'], ()
-        args.append(input['type'](arg))
+        try:
+            args.append(input['type'](arg))
+        except:
+            if input['optional']:
+                args.append(None)
+            else:
+                return "Parameter %s is of incorrect type. Must be %s." % (input['name'], input['type']), ()
+                
 
     return "", args
 
@@ -70,15 +77,18 @@ def web_patch_handler():
                 pipeline = patch.create(args)
             except (BadRequest, InternalServerError, ImATeapot, ServiceUnavailable, NotFound) as err:
                 error = err
+            except RuntimeError as err:
+                error = err
             except Exception as err:
                 error = traceback.format_exc()
                 print(error)
 
-            playlist = troi.playlist.PlaylistElement()
-            playlist.set_sources(pipeline)
-            playlist.generate()
-            recordings = playlist.recordings
-            post_data = playlist.playlist
+            if not error:
+                playlist = troi.playlist.PlaylistElement()
+                playlist.set_sources(pipeline)
+                playlist.generate()
+                recordings = playlist.recordings
+                post_data = playlist.playlist
 
     return render_template("patch.html",
                            error=error,

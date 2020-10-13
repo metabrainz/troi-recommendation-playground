@@ -14,7 +14,7 @@
             id="{{ input.name }}" 
             name="{{ input.name }}" 
             placeholder="{{ input.desc }} ({{ input.type }})"
-            value="{{ args[loop.index0] | escape }}"><br>
+            value="{{ args[loop.index0] or "" | escape }}"><br>
   {% endfor %}
   <input type="submit" value="generate playlist">
 </form>
@@ -28,7 +28,7 @@
        </form>
     </div>
     <div style="float: clear">
-       <b>{{ count }} rows returned</b>.
+       <b>{{ count }} recordings returned</b>.
     </div>
 {% endif %}
 
@@ -56,11 +56,12 @@
             {% if rec.artist.mbids | length() > 1 %}
                 {{ rec.artist.name }} 
                 {% for mbid in rec.artist.mbids %}
-                   <a href="https://musicbrainz.org/artist/{{ mbid }}">{{ loop.index }}</a></td>
+                   <a href="https://musicbrainz.org/artist/{{ mbid }}">{{ loop.index }}</a>
                 {% endfor %}
             {% else %}
-                <a href="https://musicbrainz.org/artist/{{ rec.artist.mbids[0] }}">{{ rec.artist.name }}</a></td>
+                <a href="https://musicbrainz.org/artist/{{ rec.artist.mbids[0] }}">{{ rec.artist.name }}</a>
             {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>

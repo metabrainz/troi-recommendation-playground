@@ -1,3 +1,4 @@
+import datetime
 import random
 
 from troi import Element, Recording
@@ -31,7 +32,7 @@ class DailyJamsElement(Element):
         num_per_day = len(recordings) // 7
         days = [recordings[i:i + num_per_day] for i in range(0, len(recordings), num_per_day)]
 
-        return days[self.day]
+        return days[self.day - 1]
 
 
 class DailyJamsPatch(troi.patch.Patch):
@@ -40,7 +41,7 @@ class DailyJamsPatch(troi.patch.Patch):
     def inputs():
         return [{ "type": str, "name": "user_name", "desc": "MusicBrainz user name", "optional": False },
                 { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False },
-                { "type": int, "name": "day", "desc": "The day of the week to generate jams for (0-6). Leave blank for today.", "optional": True }]
+                { "type": int, "name": "day", "desc": "The day of the week to generate jams for (1-7). Leave blank for today.", "optional": True }]
         
     @staticmethod
     def outputs():
@@ -58,9 +59,14 @@ class DailyJamsPatch(troi.patch.Patch):
         user_name = inputs[0]
         type = inputs[1]
         day = inputs[2]
+        if not day:
+            day = datetime.datetime.today().weekday() + 1
 
         if type not in ("top", "similar"):
             raise RuntimeError("type must be either 'top' or 'similar'")
+
+        if day > 7:
+            raise RuntimeError("day must be between 0-7.")
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
