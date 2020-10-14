@@ -78,7 +78,10 @@ class DailyJamsPatch(troi.patch.Patch):
         artist_filter = troi.filters.ArtistCreditFilterElement([])
         artist_filter.set_sources(r_lookup)
 
+        artist_limiter = troi.filters.ArtistCreditLimiterElement()
+        artist_limiter.set_sources(artist_filter)
+
         jams = DailyJamsElement(recs, day=day)
-        jams.set_sources(artist_filter)
+        jams.set_sources(artist_limiter)
 
         return jams

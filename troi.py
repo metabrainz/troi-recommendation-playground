@@ -39,9 +39,9 @@ def playlist(patch, args, debug):
     checked_args = []
     for input, arg in zip(inputs, args):
         try:
-            value = input[0](arg)
+            value = input['type'](arg)
         except ValueError as err:
-            print("%s: Argument '%s' with type %s is invalid: %s" % (patch.slug(), input[1], input[0], err))
+            print("%s: Argument '%s' with type %s is invalid: %s" % (patch.slug(), input['name'], input['type'], err))
             quit()
 
         checked_args.append(value)

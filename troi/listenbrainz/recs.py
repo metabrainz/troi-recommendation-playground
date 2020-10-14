@@ -41,7 +41,7 @@ class UserRecordingRecommendationsElement(Element):
                 break
 
             for r in recordings['payload']['mbids']:
-                recording_list.append(Recording(mbid=r['recording_mbid'], listenbrainz={'score':r['score']}))
+                recording_list.append(Recording(mbid=r['recording_mbid'], ranking=r['score']))
 
             if self.count > 0 and len(recording_list) >= self.count:
                 break
