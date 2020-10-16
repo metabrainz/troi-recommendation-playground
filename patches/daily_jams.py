@@ -53,21 +53,26 @@ class DailyJamsPatch(troi.patch.Patch):
 
     @staticmethod
     def description():
-        return "Generate a daily playlist from the ListenBrainz recommended recordings"
+        return "Generate a daily playlist from the ListenBrainz recommended recordings. Day 1 = Monday, Day 2  = Tuesday ..."
 
     def create(self, inputs):
         user_name = inputs[0]
         type = inputs[1]
         try:
             day = inputs[2]
+            if day == None:
+                day = 0
         except IndexError:
+            day = 0
+
+        if day > 7:
+            raise RuntimeError("day must be an integer between 0-7.")
+        if day == 0:
             day = datetime.datetime.today().weekday() + 1
 
         if type not in ("top", "similar"):
             raise RuntimeError("type must be either 'top' or 'similar'")
 
-        if day > 7:
-            raise RuntimeError("day must be between 0-7.")
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,

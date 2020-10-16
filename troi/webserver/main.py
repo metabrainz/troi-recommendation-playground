@@ -84,11 +84,14 @@ def web_patch_handler():
                 print(error)
 
             if not error:
-                playlist = troi.playlist.PlaylistElement()
-                playlist.set_sources(pipeline)
-                playlist.generate()
-                recordings = playlist.recordings
-                post_data = playlist.playlist
+                try:
+                    playlist = troi.playlist.PlaylistElement()
+                    playlist.set_sources(pipeline)
+                    playlist.generate()
+                    recordings = playlist.recordings
+                    post_data = playlist.playlist
+                except RuntimeError as err:
+                    error = str(err)
 
     return render_template("patch.html",
                            error=error,

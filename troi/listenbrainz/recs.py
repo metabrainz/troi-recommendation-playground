@@ -2,6 +2,7 @@ import requests
 import ujson
 from troi import Element, Artist, Release, Recording
 import pylistenbrainz
+import pylistenbrainz.errors
 
 MAX_NUM_RECORDINGS_PER_REQUEST = 100
 
@@ -38,6 +39,8 @@ class UserRecordingRecommendationsElement(Element):
                                                                             count=MAX_NUM_RECORDINGS_PER_REQUEST,
                                                                             offset=self.offset+len(recording_list))
             except (requests.exceptions.HTTPError, pylistenbrainz.errors.ListenBrainzAPIException) as err:
+                if not str(err):
+                    err = "Cannot fetch recommendations. Does the user '%s' exist?" % self.user_name
                 raise RuntimeError(err)
 
             if not len(recordings['payload']['mbids']):
