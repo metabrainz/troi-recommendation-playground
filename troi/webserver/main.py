@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import traceback
+import requests.exceptions
 
 from flask import Flask, render_template, request, jsonify
 from werkzeug.exceptions import NotFound, BadRequest, InternalServerError, \
@@ -56,7 +57,6 @@ def web_patch_handler():
     """
   
     patch_name = request.path[1:]
-    print("patch name '%s'" % patch_name)
     try:
         patch = patches[patch_name]()
     except KeyError:
@@ -75,7 +75,7 @@ def web_patch_handler():
         if not error:
             try:
                 pipeline = patch.create(args)
-            except (BadRequest, InternalServerError, ImATeapot, ServiceUnavailable, NotFound) as err:
+            except (BadRequest, InternalServerError, ImATeapot, ServiceUnavailable, NotFound, RuntimeError, requests.exceptions.HTTPError) as err:
                 error = err
             except RuntimeError as err:
                 error = err
@@ -90,7 +90,7 @@ def web_patch_handler():
                     playlist.generate()
                     recordings = playlist.recordings
                     post_data = playlist.playlist
-                except RuntimeError as err:
+                except (RuntimeError, requests.exceptions.HTTPError) as err:
                     error = str(err)
 
     return render_template("patch.html",
@@ -108,5 +108,3 @@ patches = troi.utils.discover_patches(PATCH_FOLDER)
 for patch in patches:
     slug = patches[patch]().slug()
     app.add_url_rule('/%s' % slug, slug, web_patch_handler)
-print("Loaded %d patches from %s" % (len(patches), PATCH_FOLDER))
-

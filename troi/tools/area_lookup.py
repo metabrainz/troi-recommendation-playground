@@ -24,6 +24,6 @@ def area_lookup(area_name):
         raise RuntimeError(str(err))
 
     if len(rows) == 0:
-        return None
+        raise RuntimeError("Cannot find area name. Must be spelled exactly as in MusicBrainz.")
 
     return rows[0]['area_id']

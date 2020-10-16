@@ -1,7 +1,12 @@
+import datetime
+import requests.exceptions
+
+from troi import Recording
 import troi.listenbrainz.area_random_recordings
 import troi.tools.area_lookup
 import troi.musicbrainz.recording_lookup
 import troi.patch
+import troi.filters
 
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
@@ -9,8 +14,12 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
     @staticmethod
     def inputs():
         return [{ "type": str, "name": "area", "desc": "MusicBrainz area from which to choose tracks.", "optional": False },
-                { "type": int, "name": "start_year", "desc": "Start year", "optional": True },
-                { "type": int, "name": "end_year", "desc": "End year", "optional": True }]
+                { "type": int, "name": "start_year", "desc": "Start year", "optional": False },
+                { "type": int, "name": "end_year", "desc": "End year", "optional": False }]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
 
     @staticmethod
     def slug():
@@ -25,14 +34,22 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         start_year = inputs[1]
         end_year = inputs[2]
 
-        try:
-            area_id = troi.tools.area_lookup.area_lookup(area_name)
-        except RuntimeError as err:
-            print("Cannot lookup area: ", str(err))
-            return
+        area_id = troi.tools.area_lookup.area_lookup(area_name)
+
+        if not start_year or start_year < 1800 or start_year > datetime.datetime.today().year:
+            raise RuntimeError("start_year must be given and be an integer between 1800 and the current year.")
+
+        if not end_year or end_year < 1800 or end_year > datetime.datetime.today().year:
+            raise RuntimeError("end_year must be given and be an integer between 1800 and the current year.")
+
+        if end_year < start_year:
+            raise RuntimeError("end_year must be equal to or greater than start_year.")
 
         area = troi.listenbrainz.area_random_recordings.AreaRandomTracksElement(area_id, start_year, end_year)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(area)
 
-        return r_lookup
+        artist_limiter = troi.filters.ArtistCreditLimiterElement()
+        artist_limiter.set_sources(r_lookup)
+
+        return artist_limiter
