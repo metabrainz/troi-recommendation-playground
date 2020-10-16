@@ -37,7 +37,7 @@ class UserRecordingRecommendationsElement(Element):
                                                                             self.artist_type, 
                                                                             count=MAX_NUM_RECORDINGS_PER_REQUEST,
                                                                             offset=self.offset+len(recording_list))
-            except requests.exceptions.HTTPError as err:
+            except (requests.exceptions.HTTPError, pylistenbrainz.errors.ListenBrainzAPIException) as err:
                 raise RuntimeError(err)
 
             if not len(recordings['payload']['mbids']):
