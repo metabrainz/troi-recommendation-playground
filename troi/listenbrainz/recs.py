@@ -32,10 +32,13 @@ class UserRecordingRecommendationsElement(Element):
         recordings = []
 
         while True:
-            recordings = self.client.get_user_recommendation_recordings(self.user_name, 
-                                                                        self.artist_type, 
-                                                                        count=MAX_NUM_RECORDINGS_PER_REQUEST,
-                                                                        offset=self.offset+len(recording_list))
+            try:
+                recordings = self.client.get_user_recommendation_recordings(self.user_name, 
+                                                                            self.artist_type, 
+                                                                            count=MAX_NUM_RECORDINGS_PER_REQUEST,
+                                                                            offset=self.offset+len(recording_list))
+            except requests.exceptions.HTTPError as err:
+                raise RuntimeError(err)
 
             if not len(recordings['payload']['mbids']):
                 break
