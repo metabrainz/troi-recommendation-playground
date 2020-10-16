@@ -27,6 +27,9 @@ class DailyJamsElement(Element):
 
     def read(self, inputs = [], debug=False):
         recordings = inputs[0]
+        if not recordings or len(recordings) == 0:
+            return []
+
         random.seed(self.recs.last_updated)
         random.shuffle(recordings)
         num_per_day = len(recordings) // 7

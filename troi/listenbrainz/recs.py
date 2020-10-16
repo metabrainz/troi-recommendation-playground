@@ -43,7 +43,7 @@ class UserRecordingRecommendationsElement(Element):
                     err = "Cannot fetch recommendations. Does the user '%s' exist?" % self.user_name
                 raise RuntimeError(err)
 
-            if not len(recordings['payload']['mbids']):
+            if not recordings or not len(recordings['payload']['mbids']):
                 break
 
             for r in recordings['payload']['mbids']:
@@ -52,6 +52,7 @@ class UserRecordingRecommendationsElement(Element):
             if self.count > 0 and len(recording_list) >= self.count:
                 break
 
-        self._last_updated = recordings['payload']['last_updated']
+        if recordings:
+            self._last_updated = recordings['payload']['last_updated']
 
         return recording_list
