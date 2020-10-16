@@ -30,16 +30,15 @@ def playlist(patch, args, debug):
     patch = patches[patch]()
     inputs = patch.inputs()
 
-    if len(args) != len(inputs):
-        print("%s: expects %d arguments, got %d:" % (patch.slug(), len(inputs), len(args)))
-        for input in inputs:
-            print("    %s, type %s" % (input[1], input[0]))
-        quit()
-
     checked_args = []
-    for input, arg in zip(inputs, args):
+    for i, input in enumerate(inputs):
+        if not input['optional'] and args[i] == None:
+            print("%s: argument '%s' is required." % (patch.slug(), inputs['name']))
+            quit()
         try:
-            value = input['type'](arg)
+            value = input['type'](args[i])
+        except IndexError:
+            continue
         except ValueError as err:
             print("%s: Argument '%s' with type %s is invalid: %s" % (patch.slug(), input['name'], input['type'], err))
             quit()

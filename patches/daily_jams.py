@@ -58,8 +58,9 @@ class DailyJamsPatch(troi.patch.Patch):
     def create(self, inputs):
         user_name = inputs[0]
         type = inputs[1]
-        day = inputs[2]
-        if not day:
+        try:
+            day = inputs[2]
+        except IndexError:
             day = datetime.datetime.today().weekday() + 1
 
         if type not in ("top", "similar"):
