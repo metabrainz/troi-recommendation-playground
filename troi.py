@@ -19,28 +19,30 @@ def cli():
 def playlist(patch, args, debug):
     """Generate a playlist using a patch"""
     if debug:
-        print("- debug mode on")
+        print("- debug mode on", file=sys.stderr)
 
     patches = troi.utils.discover_patches("patches")
-    if not patch in patches:
-        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
-        quit()
+    if patch not in patches:
+        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
+              file=sys.stderr)
+        sys.exit(1)
 
     patch = patches[patch]()
     inputs = patch.inputs()
 
     checked_args = []
     for i, input in enumerate(inputs):
-        if not input['optional'] and args[i] == None:
-            print("%s: argument '%s' is required." % (patch.slug(), inputs['name']))
-            quit()
+        if not input['optional'] and args[i] is None:
+            print("%s: argument '%s' is required." % (patch.slug(), inputs['name']), file=sys.stderr)
+            sys.exit(1)
         try:
             value = input['type'](args[i])
         except IndexError:
             continue
         except ValueError as err:
-            print("%s: Argument '%s' with type %s is invalid: %s" % (patch.slug(), input['name'], input['type'], err))
-            quit()
+            print("%s: Argument '%s' with type %s is invalid: %s" % (patch.slug(), input['name'], input['type'], err),
+                  file=sys.stderr)
+            sys.exit(1)
 
         checked_args.append(value)
 
@@ -51,7 +53,8 @@ def playlist(patch, args, debug):
         playlist.set_sources(pipeline)
         playlist.generate(debug)
     except RuntimeError as err:
-        print("Failed to generate playlist: %s" % err)
+        print("Failed to generate playlist: %s" % err,
+              file=sys.stderr)
         return
 
     playlist.print()
@@ -74,9 +77,10 @@ def list():
 def info(patch):
     """Get info for a given patch"""
     patches = troi.util.discover_patches("patches")
-    if not patch in patches:
-        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
-        quit()
+    if patch not in patches:
+        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
+              file=sys.stderr)
+        sys.exit(1)
 
     patch = patches[patch]()
     inputs = patch.inputs()
