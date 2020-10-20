@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 import click
 
@@ -18,7 +17,7 @@ def cli():
 @click.argument('args', nargs=-1)
 @click.option('--debug', '-d', is_flag=True, default=False)
 def playlist(patch, args, debug):
-
+    """Generate a playlist using a patch"""
     if debug:
         print("- debug mode on")
 
@@ -62,7 +61,7 @@ def playlist(patch, args, debug):
 
 @cli.command()
 def list():
-
+    """List all available patches"""
     patches = troi.utils.discover_patches("patches")
 
     print("Available patches:")
@@ -73,7 +72,7 @@ def list():
 @cli.command()
 @click.argument("patch", nargs=1)
 def info(patch):
-
+    """Get info for a given patch"""
     patches = troi.util.discover_patches("patches")
     if not patch in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
