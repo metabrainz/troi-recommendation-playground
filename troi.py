@@ -83,7 +83,7 @@ def list():
 @click.argument("patch", nargs=1)
 def info(patch):
     """Get info for a given patch"""
-    patches = troi.util.discover_patches("patches")
+    patches = troi.utils.discover_patches("patches")
     if patch not in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
               file=sys.stderr)
@@ -97,7 +97,7 @@ def info(patch):
     print()
     print("  expected inputs:")
     for input in inputs:
-        print("     %s, type %s" % (input[1], input[0]))
+        print(f"     {input['name']}, type {input['type']}: {input['desc']}")
 
 
 def usage(command):
