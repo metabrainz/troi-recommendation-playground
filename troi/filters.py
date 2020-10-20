@@ -3,6 +3,7 @@ from operator import itemgetter
 from random import shuffle
 
 import troi
+from troi import Recording
 
 
 class ArtistCreditFilterElement(troi.Element):
@@ -111,3 +112,32 @@ class ArtistCreditLimiterElement(troi.Element):
                 results.append(r)
 
         return results
+
+
+class DuplicateRecordingFilterElement(troi.Element):
+    def __init__(self):
+        """This Element takes a list of recordings and removes any duplicate recordings
+        that appear directly after each other (based on recording MBID)
+        If recordings are in the order mbid1, mbid2, mbid1, this will not be considered
+        a duplicate.
+        """
+        super().__init__()
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        output = []
+        last_mbid = None
+        for rec in recordings:
+            if rec.mbid != last_mbid:
+                output.append(rec)
+            last_mbid = rec.mbid
+
+        return output
