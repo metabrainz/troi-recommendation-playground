@@ -30,6 +30,13 @@ def playlist(patch, args, debug):
     patch = patches[patch]()
     inputs = patch.inputs()
 
+    required_inputs = [input for input in inputs if not input['optional']]
+    num_required_inputs = len(required_inputs)
+    if num_required_inputs > len(args):
+        input_list = ', '.join([i['name'] for i in required_inputs])
+        print(f"Patch requires {num_required_inputs} inputs ({input_list}) but {len(args)} provided", file=sys.stderr)
+        sys.exit(1)
+
     checked_args = []
     for i, input in enumerate(inputs):
         if not input['optional'] and args[i] is None:
