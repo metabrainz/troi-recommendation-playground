@@ -9,12 +9,20 @@ import troi.patch
 
 
 def discover_patches():
+    """
+        Attempt to load patches from the installed patches dir as well as any patches directory in the current dir.
+    """
+
     patches = discover_patches_from_dir("troi.patches.", os.path.join(os.path.dirname(__file__), "patches"))
     local_patches = discover_patches_from_dir("patches.", "./patches", True)
     return  {**patches, **local_patches}
 
 
 def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
+    """
+        Load patches given the appropriate python module path and then file system path. 
+        If add_dot = True, add . to the sys.path and then remove it before this function exists.
+    """
 
     if add_dot:
         sys.path.append(".")
@@ -47,6 +55,10 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
 
 
 def print_entity_list(entities, count=0):
+    """
+        Print the given entities in a readble fashion. If count is specified,
+        print only count number of entities.
+    """
 
     if len(entities) == 0:
         print("[ empty entity list ]")
