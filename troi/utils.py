@@ -2,12 +2,22 @@ import importlib
 import inspect
 import os
 import traceback
+import sys
 
 from troi import Element, Artist, Release, Recording
 import troi.patch
 
 
-def discover_patches(patch_dir):
+def discover_patches():
+    patches = discover_patches_from_dir("troi.patches.", os.path.join(os.path.dirname(__file__), "patches"))
+    local_patches = discover_patches_from_dir("patches.", "./patches", True)
+    return  {**patches, **local_patches}
+
+
+def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
+
+    if add_dot:
+        sys.path.append(".")
 
     patch_dict = {}
     for path in os.listdir(patch_dir):
@@ -19,7 +29,7 @@ def discover_patches(patch_dir):
 
         if path.endswith(".py"):
             try:
-                patch = importlib.import_module("troi.patches." + path[:-3])
+                patch = importlib.import_module(module_path + path[:-3])
             except ImportError as err:
                 print("Cannot import %s, skipping:" % (path))
                 traceback.print_exc()
@@ -29,6 +39,9 @@ def discover_patches(patch_dir):
                 if inspect.isclass(member[1]):
                     if issubclass(member[1], troi.patch.Patch):
                         patch_dict[member[1].slug()] = member[1]
+
+    if add_dot:
+        sys.path.pop(-1)
 
     return patch_dict
 
