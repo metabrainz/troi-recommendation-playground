@@ -19,7 +19,7 @@ def discover_patches(patch_dir):
 
         if path.endswith(".py"):
             try:
-                patch = importlib.import_module(os.path.basename(patch_dir) + "." + path[:-3])
+                patch = importlib.import_module("troi.patches." + path[:-3])
             except ImportError as err:
                 print("Cannot import %s, skipping:" % (path))
                 traceback.print_exc()

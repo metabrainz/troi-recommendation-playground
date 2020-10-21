@@ -4,3 +4,6 @@ config.py
 __pycache__
 playlist.html
 docs/_build
+build
+dist
+troi.egg-info
