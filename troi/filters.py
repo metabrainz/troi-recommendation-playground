@@ -115,13 +115,11 @@ class ArtistCreditLimiterElement(troi.Element):
 
 
 class DuplicateRecordingFilterElement(troi.Element):
-    def __init__(self):
-        """This Element takes a list of recordings and removes any duplicate recordings
-        that appear directly after each other (based on recording MBID)
-        If recordings are in the order mbid1, mbid2, mbid1, this will not be considered
-        a duplicate.
-        """
-        super().__init__()
+    """This Element takes a list of recordings and removes any duplicate recordings
+    that appear directly after each other (based on recording MBID)
+    If recordings are in the order mbid1, mbid2, mbid1, this will not be considered
+    a duplicate.
+    """
 
     @staticmethod
     def inputs():
@@ -139,5 +137,31 @@ class DuplicateRecordingFilterElement(troi.Element):
             if rec.mbid != last_mbid:
                 output.append(rec)
             last_mbid = rec.mbid
+
+        return output
+
+
+class EmptyRecordingFilterElement(troi.Element):
+    """This Element takes a list of recordings and removes ones that have an empty name
+    or artist.
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        output = []
+        for rec in recordings:
+            if rec.name is None or (rec.artist and rec.artist.name is None):
+                if debug:
+                    print(f"recording {rec.mbid} has no metadata, filtering")
+            else:
+                output.append(rec)
 
         return output
