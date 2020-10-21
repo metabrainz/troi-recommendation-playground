@@ -3,3 +3,4 @@ config.py
 .ve
 __pycache__
 playlist.html
+docs/_build
