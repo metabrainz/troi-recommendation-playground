@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi import Element, Artist, Recording
+from troi import Element, Artist, Recording, PipelineError
 
 class AreaRandomTracksElement(Element):
     '''
@@ -34,12 +34,12 @@ class AreaRandomTracksElement(Element):
         data = [ { 'area_id': self.area_id, 'start_year' : self.start_year, 'end_year' : self.end_year } ]
         r = requests.post(self.SERVER_URL, json=data)
         if r.status_code != 200:
-            r.raise_for_status()
+            raise PipelineError("Cannot fetch area random recordings from ListenBrainz. HTTP code %s" % r.status_code)
 
         try:
             rows = ujson.loads(r.text)
-        except Exception as err:
-            raise RuntimeError(str(err))
+        except ValueError as err:
+            raise PipelineError("Cannot fetch area random recordings from ListenBrainz. Invalid JSON returned: " + str(err))
 
         recordings = []
         for row in rows:

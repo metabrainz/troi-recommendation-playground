@@ -77,7 +77,7 @@ def web_patch_handler():
                 pipeline = patch.create(args)
             except (BadRequest, InternalServerError, ImATeapot, ServiceUnavailable, NotFound, RuntimeError, requests.exceptions.HTTPError) as err:
                 error = err
-            except RuntimeError as err:
+            except PipelineError as err:
                 error = err
             except Exception as err:
                 error = traceback.format_exc()

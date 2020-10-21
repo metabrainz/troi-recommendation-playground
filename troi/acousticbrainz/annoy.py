@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi import Element, Recording
+from troi import Element, Recording, PipelineError
 
 
 class AnnoyLookupElement(Element):
@@ -34,12 +34,12 @@ class AnnoyLookupElement(Element):
         url = self.SERVER_URL + self.metric + "/" + self.mbid
         r = requests.get(url)
         if r.status_code != 200:
-            r.raise_for_status()
+            raise PipelineError("Cannot fetch annoy similarities from AcousticBrainz: HTTP code %d" % r.status_code)
 
         try:
             results = ujson.loads(r.text)
-        except Exception as err:
-            raise RuntimeError(str(err))
+        except ValueError as err:
+            raise PipelineError("Cannot fetch annoy similarities from AcousticBrainz: Invalid JSON returned: " + str(err))
 
 
         entities = []

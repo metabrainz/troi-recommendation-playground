@@ -9,7 +9,7 @@ from troi import Element, Artist, Recording
 
 class RecordingLookupElement(Element):
     '''
-        Look up a musicbrainz data for a list of recordings, based on MBID. 
+        Look up a musicbrainz data for a list of recordings, based on MBID.
     '''
 
     SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
@@ -38,14 +38,14 @@ class RecordingLookupElement(Element):
 
         r = requests.post(self.SERVER_URL % len(recordings), json=data)
         if r.status_code != 200:
-            r.raise_for_status()
+            raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d" % r.status_code)
 
         try:
             rows = ujson.loads(r.text)
             if debug:
                 print("- debug %d rows in response" % len(rows))
-        except Exception as err:
-            raise RuntimeError(str(err))
+        except ValueError as err:
+            raise PipelineError("Cannot fetch recordings from ListenBrainz: " + str(err))
 
         mbid_index = {}
         for row in rows:

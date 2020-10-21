@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi import Element, Artist
+from troi import Element, Artist, PipelineError
 
 
 class ArtistCreditIdLookupElement(Element):
@@ -38,12 +38,12 @@ class ArtistCreditIdLookupElement(Element):
 
         r = requests.get(url)
         if r.status_code != 200:
-            r.raise_for_status()
+            raise PipelineError("Cannot fetch artist credits from ListenBrainz: HTTP code %d" % r.status_code)
 
         try:
             artists = ujson.loads(r.text)
         except Exception as err:
-            raise RuntimeError(str(err))
+            raise PipelineError("Cannot fetch artist credits from ListenBrainz: Invalid JSON returned: " + str(err))
 
         entities = []
         for row in artists:
