@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi import Element, Artist, Recording
+from troi import Element, Artist, Recording, PipelineError
 
 def area_lookup(area_name):
     '''
@@ -16,12 +16,12 @@ def area_lookup(area_name):
     data = [ { '[area]': area_name } ]
     r = requests.post(SERVER_URL, json=data)
     if r.status_code != 200:
-        raise RuntimeError("Cannot lookup area name. " + str(r.text))
+        raise PipelineError("Cannot lookup area name. " + str(r.text))
 
     try:
         rows = ujson.loads(r.text)
-    except Exception as err:
-        raise RuntimeError(str(err))
+    except ValueError as err:
+        raise PipelineError("Cannot lookup area name, invalid JSON returned: " + str(err))
 
     if len(rows) == 0:
         raise RuntimeError("Cannot find area name. Must be spelled exactly as in MusicBrainz.")

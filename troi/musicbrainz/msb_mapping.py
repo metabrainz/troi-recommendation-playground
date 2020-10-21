@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import ujson
 
-from troi import Element, Release
+from troi import Element, Release, PipelineError
 
 
 class MSBMappingLookupElement(Element):
@@ -38,12 +38,12 @@ class MSBMappingLookupElement(Element):
 
         r = requests.get(url)
         if r.status_code != 200:
-            r.raise_for_status()
+            raise PipelineError("Cannot fetch MSB mapping rows from ListenBrainz: HTTP code %d" % r.status_code)
 
         try:
             mappings = ujson.loads(r.text)
-        except Exception as err:
-            raise RuntimeError(str(err))
+        except ValueError as err:
+            raise PipelineError("Cannot fetch MSB mapping rows from ListenBrainz: Invalid JSON returned: " + str(err))
 
 
         entities = []

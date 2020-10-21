@@ -44,27 +44,27 @@ class Element(ABC):
         if self.sources:
             for source in self.sources:
                 source_lists.append(source.generate(debug))
-           
+
         recordings = self.read(source_lists, debug)
         if debug:
             print("- debug %-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
 
         return recordings
-      
+
     def run(self):
-        """ 
+        """
             This function should be called on the very last element of the
             pipeline to generate output from the timeline. Run will santiy
             check the pipeline first, and then generate output if it can.
         """
         self.check()
         return self.generate()
-            
+
     @staticmethod
     def inputs():
         """
             Return a list of Artist, Release or Recording classes that define
-            the type and number of input lists to this element. 
+            the type and number of input lists to this element.
             e.g. [ Artist, Recording ] means that this element expects
             a list of artists and a list of recordings for inputs.
         """
@@ -74,7 +74,7 @@ class Element(ABC):
     def outputs():
         """
             Return a list of Artist, Release or Recording classes that define
-            the type and number of output lists returned by this element. 
+            the type and number of output lists returned by this element.
             e.g. [ Artist, Recording ] means that this element returns
             a list of artists and a list of recordings.
         """
@@ -82,8 +82,8 @@ class Element(ABC):
 
     @abstractmethod
     def read(self, source_data_list, debug):
-        ''' 
-            This method is where the action happens -- when the consumer wants to 
+        '''
+            This method is where the action happens -- when the consumer wants to
             read data from the pipeline, it calls read() on the last element in
             the pipeline and this casues the while pipeline to generate result.
             If the initializers of other objects in the pipeline are updated,
@@ -99,7 +99,7 @@ class Entity(ABC):
         This is the base class for entity objects in troi. Each object will have
         a name, mbid, msid attributes which are all optional. There will also be
         three dicts named musicbrainz, listenbrainz and acousticbrainz that will
-        contain collected metadata respective of each project. 
+        contain collected metadata respective of each project.
 
         For instance, the musicbrainz dict might have keys that shows the type
         of an artist or the listenbrainz dict might contain the BPM for a track.
@@ -175,7 +175,7 @@ class Release(Entity):
     """
         The class that represents a release.
     """
-    def __init__(self, name=None, ranking=None, mbid=None, msid=None, artist=None, 
+    def __init__(self, name=None, ranking=None, mbid=None, msid=None, artist=None,
                   musicbrainz={}, listenbrainz={}, acousticbrainz={}):
         Entity.__init__(self, ranking, musicbrainz, listenbrainz, acousticbrainz)
         self.artist = artist
@@ -191,7 +191,7 @@ class Recording(Entity):
     """
         The class that represents a recording.
     """
-    def __init__(self, name=None, ranking=None, mbid=None, msid=None, length=None, artist=None, release=None, 
+    def __init__(self, name=None, ranking=None, mbid=None, msid=None, length=None, artist=None, release=None,
                   musicbrainz={}, listenbrainz={}, acousticbrainz={}):
         Entity.__init__(self, ranking, musicbrainz, listenbrainz, acousticbrainz)
         self.length = length # track length in ms
@@ -203,3 +203,11 @@ class Recording(Entity):
 
     def __str__(self):
         return "<Recording('%s', %s, %s)>" % (self.name, self.mbid, self.msid)
+
+
+class PipelineError(RuntimeError):
+    """
+        An exception to be thrown when the pipeline encounters an erorr that is a runtime error and not a
+        programming error. The main loop will catch this exception and print an error, but not a stacktrace.
+    """
+    pass

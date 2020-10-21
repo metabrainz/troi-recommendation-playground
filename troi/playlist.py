@@ -32,7 +32,7 @@ class PlaylistElement(troi.Element):
             listens.append({
                 'listened_at' : 0,
                 'track_metadata' : {
-                    'artist_name' : e.artist.name,
+                    'artist_name' : e.artist.name if e.artist else "",
                     'track_name' : e.name,
                     'release_name' : e.release.name if e.release else "",
                     'additional_info' : {

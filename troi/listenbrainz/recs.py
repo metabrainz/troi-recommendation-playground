@@ -1,6 +1,6 @@
 import requests
 import ujson
-from troi import Element, Artist, Release, Recording
+from troi import Element, Artist, Release, Recording, PipelineError
 import pylistenbrainz
 import pylistenbrainz.errors
 
@@ -40,8 +40,8 @@ class UserRecordingRecommendationsElement(Element):
                                                                             offset=self.offset+len(recording_list))
             except (requests.exceptions.HTTPError, pylistenbrainz.errors.ListenBrainzAPIException) as err:
                 if not str(err):
-                    err = "Cannot fetch recommendations. Does the user '%s' exist?" % self.user_name
-                raise RuntimeError(err)
+                    err = "Does the user '%s' exist?" % self.user_name
+                raise PipelineError("Cannot fetch recommeded tracks from ListenBrainz: " + str(err))
 
             if not recordings or not len(recordings['payload']['mbids']):
                 break
