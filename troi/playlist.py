@@ -56,7 +56,19 @@ class PlaylistElement(troi.Element):
             return
 
         for recording in self.entities:
-            print("%-60s %-50s" % (recording.name[:59], recording.artist.name[:49]))
+            if not recording:
+                print("[invalid Recording]")
+                continue
+
+            if recording.artist is None or recording.artist.name is None:
+                artist = ""
+            else:
+                artist = recording.artist.name
+            if recording.name is None:
+                rec_name = ""
+            else:
+                rec_name = recording.name
+            print("%-60s %-50s" % (rec_name[:59], artist[:49]))
 
 
     def launch(self):
