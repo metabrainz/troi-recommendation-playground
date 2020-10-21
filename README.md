@@ -53,37 +53,6 @@ virtualenv -p python3 .ve
 pip3 install -r requirements.txt
 ```
 
-**Docker**
-
-On non Linux operating systems installing python modules can be a bit of a pain. For that a thin-shell docker
-container can be created. Note that docker is not required, but helpful if you're not on Linux.
-
-To use this container, you first need to build the container and start it:
-
-```
-./run-docker.sh build
-./run-docker.sh up
-```
-
-Now you can run any of the scripts via run-docker.sh:
-
-```
-./run-docker.sh recommend_recordings.py rob similar
-```
-
-When you are done with the container, take it down with:
-
-```
-./run-docker.sh down
-```
-
-To run tests:
-
-```
-./run-docker.sh test
-```
-
-
 ## sample use
 
 **Linux**
@@ -98,8 +67,9 @@ open OpenPost.html
 OpenPost.html
 ```
 
-**Docker**
+## hosting troi on the web with docker
 
+To run a container with the build-in webserver, do:
 
 ```
 docker build -t metabrainz/troi-hoster .
