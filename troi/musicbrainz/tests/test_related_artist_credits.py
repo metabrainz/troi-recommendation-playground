@@ -1,55 +1,68 @@
+import json
 import os
 import unittest
 import unittest.mock
 
 import troi
-import troi.musicbrainz.related_artist_credits
+import troi.musicbrainz.recording_lookup
 
-return_json = """[
+request_json = [
+                    { "[recording_mbid]": "a96bf3b6-651d-49f4-9a89-eee27cecc18e" }, 
+                    { "[recording_mbid]": "ec5b8aa9-7483-4791-a185-1f599a0cdc35" }
+               ]
+
+return_json = [
     {
+        "[artist_credit_mbids]": [
+            "8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11"
+        ],
         "artist_credit_id": 65,
         "artist_credit_name": "Portishead",
-        "count": 64,
-        "related_artist_credit_id": 20660,
-        "related_artist_credit_name": "Oasis"
+        "comment": "",
+        "length": 253000,
+        "recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
+        "recording_name": "Sour Times",
+        "original_recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e"
     },
     {
-        "artist_credit_id": 963,
-        "artist_credit_name": "Morcheeba",
-        "count": 120,
-        "related_artist_credit_id": 359,
-        "related_artist_credit_name": "Moby"
+        "[artist_credit_mbids]": [
+            "31810c40-932a-4f2d-8cfd-17849844e2a6"
+        ],
+        "artist_credit_id": 11,
+        "artist_credit_name": "Squirrel Nut Zippers",
+        "comment": "",
+        "length": 275333,
+        "recording_mbid": "cfa47c9b-f12f-4f9c-a6da-22a9355d6125",
+        "recording_name": "Blue Angel",
+        "original_recording_mbid": "ec5b8aa9-7483-4791-a185-1f599a0cdc35"
     }
-]"""
+]
 
-class TestArtistCreditNameLookup(unittest.TestCase):
+class TestRecordingLookup(unittest.TestCase):
 
-    @unittest.mock.patch('requests.get')
+    @unittest.mock.patch('requests.post')
     def test_read(self, req):
 
         mock = unittest.mock.MagicMock()
         mock.status_code = 200
-        mock.text = return_json
+        mock.text = json.dumps(return_json)
         req.return_value = mock
-        e = troi.musicbrainz.related_artist_credits.RelatedArtistCreditsElement()
+        e = troi.musicbrainz.recording_lookup.RecordingLookupElement()
 
-        inputs = [ troi.Artist(artist_credit_id=65), 
-                   troi.Artist(artist_credit_id=963) ]
+        inputs = [ troi.Recording(mbid="a96bf3b6-651d-49f4-9a89-eee27cecc18e"), 
+                   troi.Recording(mbid="ec5b8aa9-7483-4791-a185-1f599a0cdc35") ]
         entities = e.read([inputs])
-        req.assert_called_with(e.SERVER_URL + "?[artist_credit_id]=65%2C963&threshold=0")
+        req.assert_called_with(e.SERVER_URL % len(inputs), json=request_json)
 
         assert len(entities) == 2
-        assert entities[0].artist_credit_id == 65
-        assert entities[1].artist_credit_id == 963
-        assert len(entities[0].musicbrainz['related_artist_credit_ids']) == 1
+        assert entities[0].name == "Sour Times"
+        assert entities[0].length == 253000
+        assert entities[0].artist.name == "Portishead"
+        assert entities[0].artist.artist_credit_id == 65
+        assert entities[0].mbid == "a96bf3b6-651d-49f4-9a89-eee27cecc18e"
 
-        assert entities[0].musicbrainz['related_artist_credit_ids'][0]['artist_credit_id'] == 65
-        assert entities[0].musicbrainz['related_artist_credit_ids'][0]['artist_credit_name'] == 'Portishead'
-        assert entities[0].musicbrainz['related_artist_credit_ids'][0]['related_artist_credit_id'] == 20660
-        assert entities[0].musicbrainz['related_artist_credit_ids'][0]['related_artist_credit_name'] == 'Oasis'
-
-        assert len(entities[1].musicbrainz['related_artist_credit_ids']) == 1
-        assert entities[1].musicbrainz['related_artist_credit_ids'][0]['artist_credit_id'] == 963
-        assert entities[1].musicbrainz['related_artist_credit_ids'][0]['artist_credit_name'] == 'Morcheeba'
-        assert entities[1].musicbrainz['related_artist_credit_ids'][0]['related_artist_credit_id'] == 359
-        assert entities[1].musicbrainz['related_artist_credit_ids'][0]['related_artist_credit_name'] == 'Moby'
+        assert entities[1].name == "Blue Angel"
+        assert entities[1].length == 275333
+        assert entities[1].artist.name == "Squirrel Nut Zippers"
+        assert entities[1].artist.artist_credit_id == 11
+        assert entities[1].mbid == "cfa47c9b-f12f-4f9c-a6da-22a9355d6125"
