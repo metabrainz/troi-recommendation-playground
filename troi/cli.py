@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 import click
 
@@ -22,7 +21,7 @@ def playlist(patch, args, debug):
     if debug:
         print("- debug mode on", file=sys.stderr)
 
-    patches = troi.utils.discover_patches(os.path.join(os.path.dirname(__file__), "patches"))
+    patches = troi.utils.discover_patches()
     if patch not in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
               file=sys.stderr)
@@ -73,10 +72,10 @@ def playlist(patch, args, debug):
 @cli.command()
 def list():
     """List all available patches"""
-    patches = troi.utils.discover_patches(os.path.join(os.path.dirname(__file__), "patches"))
+    patches = troi.utils.discover_patches()
 
     print("Available patches:")
-    for slug in patches:
+    for slug in patches or []:
         print("  %s: %s" % (slug, patches[slug]().description()))
 
 
@@ -84,7 +83,7 @@ def list():
 @click.argument("patch", nargs=1)
 def info(patch):
     """Get info for a given patch"""
-    patches = troi.utils.discover_patches(os.path.join(os.path.dirname(__file__), "patches"))
+    patches = troi.utils.discover_patches()
     if patch not in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
               file=sys.stderr)
