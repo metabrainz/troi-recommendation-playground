@@ -1,11 +1,8 @@
 language: python
 python:
   - "3.7"
-branches:
-  only:
-    - master
 install:
   - pip3 install -r requirements.txt
   - pip3 install -e .
 script:
-  - ./test.sh
+  - python3 -m troi.cli test

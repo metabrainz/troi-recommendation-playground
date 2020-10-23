@@ -71,5 +71,6 @@ class RecordingLookupElement(Element):
 
             r.name = row['recording_name']
             r.length = row['length']
+            r.mbid = row['recording_mbid']
 
         return recordings

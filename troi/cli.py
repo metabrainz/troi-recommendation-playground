@@ -2,6 +2,7 @@
 
 import sys
 import click
+import pytest
 
 import troi
 import troi.playlist
@@ -98,6 +99,24 @@ def info(patch):
     print("  expected inputs:")
     for input in inputs:
         print(f"     {input['name']}, type {input['type']}: {input['desc']}")
+
+
+@cli.command()
+@click.option('-v', '--verbose', is_flag=True)
+@click.argument('files', nargs=-1)
+def test(verbose, files):
+    """Run unit tests"""
+
+    args = []
+    if verbose:
+        args.append("-v")
+
+    if files:
+        args.extend(files)
+    else:
+        args.append(".")
+
+    pytest.main(args)
 
 
 def usage(command):

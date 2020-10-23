@@ -12,6 +12,8 @@ class UserRecordingRecommendationsElement(Element):
         Fetch recommended recording for a user from ListenBrainz
     '''
 
+    MAX_RECORDINGS_TO_FETCH = 2000
+
     def __init__(self, user_name, artist_type, count=25, offset=0):
         Element.__init__(self)
         self.client = pylistenbrainz.ListenBrainz()
@@ -32,11 +34,13 @@ class UserRecordingRecommendationsElement(Element):
         recording_list = []
         recordings = []
 
+        remaining = self.MAX_RECORDINGS_TO_FETCH if self.count < 0 else self.count
         while True:
             try:
+                print("remaining: %d" % remaining)
                 recordings = self.client.get_user_recommendation_recordings(self.user_name, 
                                                                             self.artist_type, 
-                                                                            count=MAX_NUM_RECORDINGS_PER_REQUEST,
+                                                                            count=min(MAX_NUM_RECORDINGS_PER_REQUEST, remaining),
                                                                             offset=self.offset+len(recording_list))
             except (requests.exceptions.HTTPError, pylistenbrainz.errors.ListenBrainzAPIException) as err:
                 if not str(err):
@@ -49,7 +53,8 @@ class UserRecordingRecommendationsElement(Element):
             for r in recordings['payload']['mbids']:
                 recording_list.append(Recording(mbid=r['recording_mbid'], ranking=r['score']))
 
-            if self.count > 0 and len(recording_list) >= self.count:
+            remaining -= len(recording_list)
+            if remaining <= 0:
                 break
 
         if recordings:
