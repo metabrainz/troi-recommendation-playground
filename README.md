@@ -5,10 +5,6 @@ experiment with music recommendation engines. To accomplish this goal,
 the MetaBrainz Foundation has created and hosted a number of data-sets
 that can be accessed as a part of this project.
 
-You can see some of the data sets that are hosted here:
-
-  http://bono.metabrainz.org:8000
-
 The AcousticBrainz project hosts the Annoy indexes that allows
 you to find recordings that have similar characteristics given an initial recording.
 
@@ -29,20 +25,19 @@ MessyBrainz provides:
    to MusicBrainz MBIDs
 
 
-## Installation
+## Installation for end users
 
+TBC -- waiting for modules to be shipped to pypi.
+
+## Installation for Development
 
 **Linux and Mac**
+
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
 pip3 install -r requirements.txt
-```
-
-If you plan to do local development or run tests, you'll need to:
-
-```
-pip3 install -e .
+python3 -m troi.cli --help
 ```
 
 **Windows**
@@ -51,20 +46,15 @@ pip3 install -e .
 virtualenv -p python3 .ve
 .ve\Scripts\activate.bat
 pip3 install -r requirements.txt
+python3 -m troi.cli --help
 ```
 
-## sample use
+## Running tests
 
-**Linux**
 ```
-./recommended_recordings.py <user name> <artist type [top/similar]>
-open OpenPost.html
-```
-
-**Windows**
-```
-./recommended_recordings.py <user name> <artist type [top/similar]>
-OpenPost.html
+python3 -m troi.cli test
+python3 -m troi.cli test -v
+python3 -m troi.cli test -v <file to test>
 ```
 
 ## hosting troi on the web with docker
