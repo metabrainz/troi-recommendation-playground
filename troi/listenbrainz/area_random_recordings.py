@@ -7,7 +7,7 @@ import ujson
 
 from troi import Element, Artist, Recording, PipelineError
 
-class AreaRandomTracksElement(Element):
+class AreaRandomRecordingsElement(Element):
     '''
         Given an area, find random tracks from releases that were released
         by artists from that given area.
@@ -45,6 +45,7 @@ class AreaRandomTracksElement(Element):
         for row in rows:
             recordings.append(Recording(mbid=row['recording_mbid'], 
                                         name=row['recording_name'], 
+                                        year=row['year'],
                                         artist=Artist(name=row['artist_credit_name'],
                                                       artist_credit_id=row['artist_credit_id'])))
 
