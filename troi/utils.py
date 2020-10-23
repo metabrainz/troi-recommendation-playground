@@ -1,3 +1,4 @@
+from collections import defaultdict
 import importlib
 import inspect
 import os
@@ -73,3 +74,36 @@ class DumpElement(Element):
 
         for input in inputs:
             print_entity_list(input)
+
+
+class ArtistHistogramElement(Element):
+    """
+        Calculate and print out an artist histogram based on the tracks read. Makes no changes to the 
+        recordings and simply returns what it received.
+    """
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+
+        artists = defaultdict(int)
+        artist_names = {}
+        for rec in inputs[0]:
+            artists[rec.artist.artist_credit_id] += 1
+            artist_names[rec.artist.artist_credit_id] = rec.artist.name
+
+        print("Artist histogram:")
+        for a in sorted(artists.items(), key=lambda artist: artist[1], reverse=True):
+            print("%-40s %d" % (artist_names[a[0]][:39], a[1]))
+        print()
+
+        return inputs[0]
