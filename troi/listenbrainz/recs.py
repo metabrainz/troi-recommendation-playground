@@ -37,7 +37,6 @@ class UserRecordingRecommendationsElement(Element):
         remaining = self.MAX_RECORDINGS_TO_FETCH if self.count < 0 else self.count
         while True:
             try:
-                print("remaining: %d" % remaining)
                 recordings = self.client.get_user_recommendation_recordings(self.user_name, 
                                                                             self.artist_type, 
                                                                             count=min(MAX_NUM_RECORDINGS_PER_REQUEST, remaining),
