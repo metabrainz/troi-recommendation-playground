@@ -45,7 +45,7 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         if end_year < start_year:
             raise RuntimeError("end_year must be equal to or greater than start_year.")
 
-        area = troi.listenbrainz.area_random_recordings.AreaRandomTracksElement(area_id, start_year, end_year)
+        area = troi.listenbrainz.area_random_recordings.AreaRandomRecordingsElement(area_id, start_year, end_year)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(area)
 
