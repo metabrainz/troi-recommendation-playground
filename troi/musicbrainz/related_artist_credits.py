@@ -40,7 +40,7 @@ class RelatedArtistCreditsElement(Element):
             raise PipelineError("Cannot fetch related artist credits from ListenBrainz: HTTP code %d" % r.status_code)
 
         try:
-            relations = ujson.loads(r.text)
+            relations = r.text
         except ValueError as err:
             raise PipelineError("Cannot fetch related artist credits from ListenBrainz: Invalid JSON returned: " + str(err))
 

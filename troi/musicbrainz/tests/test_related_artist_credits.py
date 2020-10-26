@@ -5,7 +5,7 @@ import unittest.mock
 import troi
 import troi.musicbrainz.related_artist_credits
 
-return_json = """[
+return_json = [
     {
         "artist_credit_id": 65,
         "artist_credit_name": "Portishead",
@@ -20,7 +20,7 @@ return_json = """[
         "related_artist_credit_id": 359,
         "related_artist_credit_name": "Moby"
     }
-]"""
+]
 
 class TestArtistCreditNameLookup(unittest.TestCase):
 
