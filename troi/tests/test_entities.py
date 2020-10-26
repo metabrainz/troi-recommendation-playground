@@ -66,11 +66,13 @@ class TestEntities(unittest.TestCase):
         assert r.msid == None
         assert r.name == None
 
-        r = Recording("Strangers", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "97b01626-65fc-4c32-b30c-c4d7eab1b339", ranking=.1)
+        r = Recording("Strangers", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", 
+                      "97b01626-65fc-4c32-b30c-c4d7eab1b339", ranking=.1, year=1995)
         assert r.name == "Strangers"
         assert r.mbid == "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3"
         assert r.msid == "97b01626-65fc-4c32-b30c-c4d7eab1b339"
         assert r.ranking == .1
+        assert r.year == 1995
 
         r = Recording(listenbrainz={ 1 : 2}, musicbrainz={ 3 : 4}, acousticbrainz={ 5 : 6})
         assert r.lb[1] == 2
