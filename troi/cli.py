@@ -70,8 +70,8 @@ def playlist(patch, args, debug):
     playlist.launch()
 
 
-@cli.command()
-def list():
+@cli.command(name="list")
+def list_patches():
     """List all available patches"""
     patches = troi.utils.discover_patches()
 
@@ -101,22 +101,13 @@ def info(patch):
         print(f"     {input['name']}, type {input['type']}: {input['desc']}")
 
 
-@cli.command()
-@click.option('-v', '--verbose', is_flag=True)
-@click.argument('files', nargs=-1)
-def test(verbose, files):
+@cli.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
+@click.argument('args', nargs=-1, type=click.UNPROCESSED)
+def test(args):
     """Run unit tests"""
-
-    args = []
-    if verbose:
-        args.append("-v")
-
-    if files:
-        args.extend(files)
-    else:
-        args.append(".")
-
-    pytest.main(args)
+    pytest.main(list(args))
 
 
 def usage(command):
