@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 
 
 class Element(ABC):
@@ -6,8 +7,29 @@ class Element(ABC):
         Base class for elements
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         self.sources = []
+        if debug:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+        logging.basicConfig(level=level)
+        self.logger = logging.getLogger(type(self).__name__)
+
+
+    def log(self, msg):
+        '''
+            Log a message with the info log level, which is the default for troi.
+        '''
+        self.logger.info(msg)
+
+
+    def debug(self, msg):
+        '''
+            Log a message with debug log level. These messages will only be shown when debugging is enabled.
+        '''
+        self.logger.debug(msg)
+
 
     def set_sources(self, sources):
         """
