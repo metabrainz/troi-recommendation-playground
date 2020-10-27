@@ -81,7 +81,7 @@ def web_patch_handler():
                 error = err
             except Exception as err:
                 error = traceback.format_exc()
-                print(error)
+                print(error, file=sys.stderr)
 
             if not error:
                 try:

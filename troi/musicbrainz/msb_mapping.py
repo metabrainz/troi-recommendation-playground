@@ -17,6 +17,7 @@ class MSBMappingLookupElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/msid-mapping/json"
 
     def __init__(self, remove_unmatched=False):
+        Element.__init__(self)
         self.remove_unmatched = remove_unmatched
 
     @staticmethod

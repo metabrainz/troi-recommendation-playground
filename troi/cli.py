@@ -19,8 +19,6 @@ def cli():
 @click.option('--debug', '-d', is_flag=True, default=False)
 def playlist(patch, args, debug):
     """Generate a playlist using a patch"""
-    if debug:
-        print("- debug mode on", file=sys.stderr)
 
     patches = troi.utils.discover_patches()
     if patch not in patches:
@@ -28,7 +26,7 @@ def playlist(patch, args, debug):
               file=sys.stderr)
         sys.exit(1)
 
-    patch = patches[patch]()
+    patch = patches[patch](debug)
     inputs = patch.inputs()
 
     required_inputs = [input for input in inputs if not input['optional']]

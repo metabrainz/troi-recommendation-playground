@@ -16,7 +16,7 @@ class ArtistCreditIdLookupElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-id-lookup/json"
 
     def __init__(self):
-        pass
+        Element.__init__(self)
 
     @staticmethod
     def inputs(self):

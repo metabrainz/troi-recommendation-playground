@@ -9,6 +9,7 @@ import troi
 class PlaylistElement(troi.Element):
 
     def __init__(self):
+        troi.Element.__init__(self)
         self.playlist = None
         self.entities = None
 

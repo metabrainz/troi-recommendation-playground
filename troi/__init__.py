@@ -7,13 +7,8 @@ class Element(ABC):
         Base class for elements
     """
 
-    def __init__(self, debug=False):
+    def __init__(self):
         self.sources = []
-        if debug:
-            level = logging.DEBUG
-        else:
-            level = logging.INFO
-        logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
 
@@ -68,8 +63,7 @@ class Element(ABC):
                 source_lists.append(source.generate(debug))
 
         recordings = self.read(source_lists, debug)
-        if debug:
-            print("- debug %-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
+        self.debug("%-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
 
         return recordings
 

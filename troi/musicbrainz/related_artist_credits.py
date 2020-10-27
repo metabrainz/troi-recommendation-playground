@@ -18,6 +18,7 @@ class RelatedArtistCreditsElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-similarity/json"
 
     def __init__(self, threshold=0):
+        Element.__init__(self)
         self.threshold = threshold
 
     @staticmethod

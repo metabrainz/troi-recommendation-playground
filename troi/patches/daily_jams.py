@@ -26,8 +26,6 @@ class DailyJamsElement(Element):
         return [Recording]
 
     def read(self, inputs = [], debug=False):
-        self.log("element log message")
-
         recordings = inputs[0]
         if not recordings or len(recordings) == 0:
             return []
@@ -41,6 +39,9 @@ class DailyJamsElement(Element):
 
 
 class DailyJamsPatch(troi.patch.Patch):
+
+    def __init__(self, debug=False):
+        troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
     def inputs():
@@ -61,11 +62,6 @@ class DailyJamsPatch(troi.patch.Patch):
         return "Generate a daily playlist from the ListenBrainz recommended recordings. Day 1 = Monday, Day 2  = Tuesday ..."
 
     def create(self, inputs):
-
-
-        self.log("this is a log message")
-        self.debug("this is a debug message")
-
         user_name = inputs[0]
         type = inputs[1]
         try:

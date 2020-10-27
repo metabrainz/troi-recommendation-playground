@@ -18,6 +18,7 @@ class ArtistCreditFilterElement(troi.Element):
             the filter. Throws RuntimeError is not all recordings have
             artist_credit_ids set.
         '''
+        troi.Element.__init__(self)
         self.artist_credit_ids = artist_credit_ids
         self.include = include
 
@@ -43,8 +44,7 @@ class ArtistCreditFilterElement(troi.Element):
         results = []
         for r in recordings:
             if not r.artist or not r.artist.artist_credit_id:
-                if debug:
-                    print("- debug recording %s has not artist credit id" % (r.mbid))
+                self.debug("- debug recording %s has not artist credit id" % (r.mbid))
                 continue
 
             if self.include:
@@ -68,6 +68,7 @@ class ArtistCreditLimiterElement(troi.Element):
             are removed. Throws RuntimeError is not all recordings have
             artist_credit_ids set.
         '''
+        troi.Element.__init__(self)
         self.count = count
         self.exclude_lower_ranked = exclude_lower_ranked
 

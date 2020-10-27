@@ -41,6 +41,7 @@ class UniqueElement(troi.Element):
     '''
 
     def __init__(self, key = "mbid"):
+        troi.Element.__init__(self)
         self.key = key
 
     @staticmethod
@@ -79,7 +80,7 @@ class UnionElement(troi.Element):
     '''
 
     def __init__(self):
-        pass
+        troi.Element.__init__(self)
 
     def inputs(self):
         return []
@@ -108,6 +109,7 @@ class IntersectionElement(troi.Element):
     """
 
     def __init__(self, key = "mbid"):
+        troi.Element.__init__(self)
         self.key = key
 
     def inputs(self):
@@ -155,6 +157,7 @@ class DifferenceElement(troi.Element):
     '''
 
     def __init__(self, key = "mbid"):
+        troi.Element.__init__(self)
         self.key = key
 
     def inputs(self):
