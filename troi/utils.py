@@ -92,7 +92,7 @@ class DumpElement(Element):
     """
 
     def __init__(self):
-        Element.__init__(self)
+        super().__init__()
 
     @staticmethod
     def inputs():

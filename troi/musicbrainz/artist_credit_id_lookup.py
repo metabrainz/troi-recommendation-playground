@@ -16,7 +16,7 @@ class ArtistCreditIdLookupElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-id-lookup/json"
 
     def __init__(self):
-        Element.__init__(self)
+        super().__init__()
 
     @staticmethod
     def inputs(self):
@@ -26,7 +26,7 @@ class ArtistCreditIdLookupElement(Element):
     def outputs(self):
         return [Artist]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         ac_ids = []
         index = {}

@@ -11,7 +11,7 @@ class UserArtistsElement(Element):
     '''
 
     def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
-        Element.__init__(self)
+        super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
         self.count = count
@@ -37,7 +37,7 @@ class UserReleasesElement(Element):
     '''
 
     def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
-        Element.__init__(self)
+        super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
         self.count = count
@@ -65,7 +65,7 @@ class UserRecordingElement(Element):
     '''
 
     def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
-        Element.__init__(self)
+        super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
         self.count = count

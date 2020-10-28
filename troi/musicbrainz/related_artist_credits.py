@@ -18,7 +18,7 @@ class RelatedArtistCreditsElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-similarity/json"
 
     def __init__(self, threshold=0):
-        Element.__init__(self)
+        super().__init__()
         self.threshold = threshold
 
     @staticmethod
@@ -29,7 +29,7 @@ class RelatedArtistCreditsElement(Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         artists = inputs[0]
         ac_ids = ",".join([ str(a.artist_credit_id) for a in artists ])

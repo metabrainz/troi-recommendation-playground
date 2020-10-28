@@ -9,7 +9,7 @@ import troi
 class PlaylistElement(troi.Element):
 
     def __init__(self):
-        troi.Element.__init__(self)
+        super().__init__()
         self.playlist = None
         self.entities = None
 
@@ -21,7 +21,7 @@ class PlaylistElement(troi.Element):
     def recordings(self):
         return self.entities
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         entities = inputs[0]
         if not is_homogeneous(entities):

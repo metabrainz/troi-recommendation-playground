@@ -15,7 +15,7 @@ class RecordingLookupElement(Element):
     SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
 
     def __init__(self):
-        Element.__init__(self)
+        super().__init__()
 
     @staticmethod
     def inputs():
@@ -25,7 +25,7 @@ class RecordingLookupElement(Element):
     def outputs():
         return [ Recording ]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
         if not recordings:

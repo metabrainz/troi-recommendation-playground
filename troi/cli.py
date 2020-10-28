@@ -57,7 +57,7 @@ def playlist(patch, args, debug):
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
-        playlist.generate(debug)
+        playlist.generate()
     except troi.PipelineError as err:
         print("Failed to generate playlist: %s" % err,
               file=sys.stderr)

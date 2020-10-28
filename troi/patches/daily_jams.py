@@ -25,7 +25,7 @@ class DailyJamsElement(Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs = [], debug=False):
+    def read(self, inputs = []):
         recordings = inputs[0]
         if not recordings or len(recordings) == 0:
             return []
@@ -41,7 +41,7 @@ class DailyJamsElement(Element):
 class DailyJamsPatch(troi.patch.Patch):
 
     def __init__(self, debug=False):
-        troi.patch.Patch.__init__(self, debug)
+        super().__init__(debug)
 
     @staticmethod
     def inputs():

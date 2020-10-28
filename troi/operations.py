@@ -157,13 +157,13 @@ class DifferenceElement(troi.Element):
     '''
 
     def __init__(self, key = "mbid"):
-        troi.Element.__init__(self)
+        super().__init__()
         self.key = key
 
     def inputs(self):
         return []
 
-    def read(self, entities, debug=False):
+    def read(self, entities):
         entities_0 = entities[0]
         entities_1 = entities[1]
 

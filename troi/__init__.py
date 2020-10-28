@@ -49,7 +49,7 @@ class Element(ABC):
             source.check()
 
 
-    def generate(self, debug=False):
+    def generate(self):
         """
             Generate output from the pipeline. This should be called on
             the last element in the pipeline and no where else. At the root
@@ -60,9 +60,9 @@ class Element(ABC):
         source_lists = []
         if self.sources:
             for source in self.sources:
-                source_lists.append(source.generate(debug))
+                source_lists.append(source.generate())
 
-        recordings = self.read(source_lists, debug)
+        recordings = self.read(source_lists)
         self.debug("%-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
 
         return recordings

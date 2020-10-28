@@ -12,7 +12,7 @@ import troi.filters
 class AreaRandomRecordingsPatch(troi.patch.Patch):
 
     def __init__(self, debug=False):
-        troi.patch.Patch.__init__(self, debug)
+        super().__init__(debug)
 
     @staticmethod
     def inputs():
