@@ -36,7 +36,7 @@ class TestArtistCreditNameLookup(unittest.TestCase):
         inputs = [ troi.Artist(artist_credit_id=65), 
                    troi.Artist(artist_credit_id=963) ]
         entities = e.read([inputs])
-        req.assert_called_with(e.SERVER_URL + "?[artist_credit_id]=65%2C963&threshold=0")
+        req.assert_called_with(e.SERVER_URL, params={'[artist_credit_id]': '65,963', 'threshold': 0})
 
         assert len(entities) == 2
         assert entities[0].artist_credit_id == 65
