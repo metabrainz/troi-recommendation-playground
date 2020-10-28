@@ -1,7 +1,3 @@
-import sys
-import urllib
-from urllib.parse import quote
-
 import requests
 import ujson
 
@@ -33,10 +29,9 @@ class MSBMappingLookupElement(Element):
         artists = ",".join([ r.artist.name for r in in_recordings ])
         recordings = ",".join([ r.name for r in in_recordings ])
 
-        url = self.SERVER_URL + "?[msb_artist_credit_name]=" + quote(artists) + \
-            "&[msb_recording_name]=" + quote(recordings)
-
-        r = requests.get(url)
+        params = {"[msb_artist_credit_name]": artists,
+                  "[msb_recording_name]": recordings}
+        r = requests.get(self.SERVER_URL, params=params)
         if r.status_code != 200:
             raise PipelineError("Cannot fetch MSB mapping rows from ListenBrainz: HTTP code %d" % r.status_code)
 

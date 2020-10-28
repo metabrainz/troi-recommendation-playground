@@ -1,8 +1,5 @@
-import sys
-import urllib
 import copy
 from collections import defaultdict
-from urllib.parse import quote
 
 import requests
 import ujson
@@ -32,10 +29,9 @@ class RelatedArtistCreditsElement(Element):
 
         artists = inputs[0]
         ac_ids = ",".join([ str(a.artist_credit_id) for a in artists ])
-        url = self.SERVER_URL + "?[artist_credit_id]=" + quote(ac_ids) + \
-            "&threshold=%d" % self.threshold
-
-        r = requests.get(url)
+        params = {"[artist_credit_id]": ac_ids,
+                  "threshold": self.threshold}
+        r = requests.get(self.SERVER_URL, params=params)
         if r.status_code != 200:
             raise PipelineError("Cannot fetch related artist credits from ListenBrainz: HTTP code %d" % r.status_code)
 

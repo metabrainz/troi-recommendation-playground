@@ -1,7 +1,3 @@
-import sys
-import urllib
-from urllib.parse import quote
-
 import requests
 import ujson
 
@@ -34,9 +30,8 @@ class ArtistCreditIdLookupElement(Element):
             ac_ids.append(str(a.artist_credit_id))
             index[a.artist_credit_id] = a
 
-        url = self.SERVER_URL + "?[artist_credit_id]=" + quote(",".join(ac_ids))
-
-        r = requests.get(url)
+        params = {"[artist_credit_id]": ",".join(ac_ids)}
+        r = requests.get(self.SERVER_URL, params=params)
         if r.status_code != 200:
             raise PipelineError("Cannot fetch artist credits from ListenBrainz: HTTP code %d" % r.status_code)
 
