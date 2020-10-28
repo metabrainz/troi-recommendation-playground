@@ -34,8 +34,7 @@ class TestMSBMapping(unittest.TestCase):
 
         r = [ troi.Recording("trigger hippie", artist=troi.Artist("morcheeba")) ]
         entities = e.read([r])
-        req.assert_called_with(e.SERVER_URL +
-            "?[msb_artist_credit_name]=morcheeba&[msb_recording_name]=trigger%20hippie")
+        req.assert_called_with(e.SERVER_URL, params={'[msb_artist_credit_name]': 'morcheeba', '[msb_recording_name]': 'trigger hippie'})
 
         assert len(entities) == 1
         assert entities[0].artist.artist_credit_id == 963
