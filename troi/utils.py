@@ -18,6 +18,17 @@ def discover_patches():
     return  {**patches, **local_patches}
 
 
+def load_element(element_name):
+    parts = element_name.split(".")
+    module = ".".join(parts[:-1])
+    classname = parts[-1]
+    loaded_module = importlib.import_module(module)
+    class_ = getattr(loaded_module, classname)
+    if not class_:
+        raise ImportError(f"No such module {element_name}")
+    return class_
+
+
 def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
     """
         Load patches given the appropriate python module path and then file system path. 

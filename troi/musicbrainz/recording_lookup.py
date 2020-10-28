@@ -22,6 +22,15 @@ class RecordingLookupElement(Element):
     def outputs():
         return [ Recording ]
 
+    @staticmethod
+    def generate_debug_input(inputs):
+        return [Recording(mbid=inputs[0])]
+
+    @staticmethod
+    def debug_print_response(data):
+        for recording in data:
+            print(recording, recording.mbid, recording.musicbrainz)
+
     def read(self, inputs, debug=False):
 
         recordings = inputs[0]

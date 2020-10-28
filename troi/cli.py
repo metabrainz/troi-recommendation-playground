@@ -80,6 +80,19 @@ def list_patches():
         print("  %s: %s" % (slug, patches[slug]().description()))
 
 
+@cli.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
+@click.argument('element_name',)
+@click.argument('args', nargs=-1, type=click.UNPROCESSED)
+def debug(element_name, args):
+    """Debug an element"""
+    element = troi.utils.load_element(element_name)
+    input = element.generate_debug_input(list(args))
+    data = element().read([input], debug=True)
+    element.debug_print_response(data)
+
+
 @cli.command()
 @click.argument("patch", nargs=1)
 def info(patch):
