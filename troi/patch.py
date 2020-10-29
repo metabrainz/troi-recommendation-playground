@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 
 import troi
@@ -5,8 +6,28 @@ import troi
 
 class Patch(ABC):
 
-    def __init__(self):
-        pass
+    def __init__(self, debug=False):
+        if debug:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+        logging.basicConfig(level=level)
+        self.logger = logging.getLogger(type(self).__name__)
+
+
+    def log(self, msg):
+        '''
+            Log a message with the info log level, which is the default for troi.
+        '''
+        self.logger.info(msg)
+
+
+    def debug(self, msg):
+        '''
+            Log a message with debug log level. These messages will only be shown when debugging is enabled.
+        '''
+        self.logger.debug(msg)
+
 
     @staticmethod
     def inputs():

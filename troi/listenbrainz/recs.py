@@ -15,7 +15,7 @@ class UserRecordingRecommendationsElement(Element):
     MAX_RECORDINGS_TO_FETCH = 2000
 
     def __init__(self, user_name, artist_type, count=25, offset=0):
-        Element.__init__(self)
+        super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
         self.user_name = user_name
         self.count = count
@@ -30,7 +30,7 @@ class UserRecordingRecommendationsElement(Element):
     def last_updated(self):
         return self._last_updated
 
-    def read(self, inputs = [], debug=False):
+    def read(self, inputs = []):
         recording_list = []
         recordings = []
 

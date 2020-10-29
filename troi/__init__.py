@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 
 
 class Element(ABC):
@@ -8,6 +9,22 @@ class Element(ABC):
 
     def __init__(self):
         self.sources = []
+        self.logger = logging.getLogger(type(self).__name__)
+
+
+    def log(self, msg):
+        '''
+            Log a message with the info log level, which is the default for troi.
+        '''
+        self.logger.info(msg)
+
+
+    def debug(self, msg):
+        '''
+            Log a message with debug log level. These messages will only be shown when debugging is enabled.
+        '''
+        self.logger.debug(msg)
+
 
     def set_sources(self, sources):
         """
@@ -32,7 +49,7 @@ class Element(ABC):
             source.check()
 
 
-    def generate(self, debug=False):
+    def generate(self):
         """
             Generate output from the pipeline. This should be called on
             the last element in the pipeline and no where else. At the root
@@ -43,11 +60,10 @@ class Element(ABC):
         source_lists = []
         if self.sources:
             for source in self.sources:
-                source_lists.append(source.generate(debug))
+                source_lists.append(source.generate())
 
-        recordings = self.read(source_lists, debug)
-        if debug:
-            print("- debug %-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
+        recordings = self.read(source_lists)
+        self.debug("%-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
 
         return recordings
 

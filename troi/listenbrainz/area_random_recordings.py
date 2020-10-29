@@ -16,7 +16,7 @@ class AreaRandomRecordingsElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/area-random-recordings/json"
 
     def __init__(self, area_id, start_year=0, end_year=3000):
-        Element.__init__(self)
+        super().__init__()
         self.area_id = area_id
         self.start_year = start_year
         self.end_year = end_year
@@ -29,7 +29,7 @@ class AreaRandomRecordingsElement(Element):
     def outputs():
         return [ Recording ]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         data = [ { 'area_id': self.area_id, 'start_year' : self.start_year, 'end_year' : self.end_year } ]
         r = requests.post(self.SERVER_URL, json=data)

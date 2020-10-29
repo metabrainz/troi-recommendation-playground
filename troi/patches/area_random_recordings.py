@@ -11,6 +11,9 @@ import troi.filters
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
 
+    def __init__(self, debug=False):
+        super().__init__(debug)
+
     @staticmethod
     def inputs():
         return [{ "type": str, "name": "area", "desc": "MusicBrainz area from which to choose tracks.", "optional": False },

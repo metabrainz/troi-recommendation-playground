@@ -14,7 +14,11 @@ def discover_patches():
     """
 
     patches = discover_patches_from_dir("troi.patches.", os.path.join(os.path.dirname(__file__), "patches"))
-    local_patches = discover_patches_from_dir("patches.", "./patches", True)
+    try:
+        local_patches = discover_patches_from_dir("patches.", "./patches", True)
+    except FileNotFoundError:
+        local_patches = {}
+
     return  {**patches, **local_patches}
 
 
@@ -39,7 +43,7 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
             try:
                 patch = importlib.import_module(module_path + path[:-3])
             except ImportError as err:
-                print("Cannot import %s, skipping:" % (path))
+                print("Cannot import %s, skipping:" % (path), file=sys.stderr)
                 traceback.print_exc()
                 continue
 
@@ -88,7 +92,7 @@ class DumpElement(Element):
     """
 
     def __init__(self):
-        pass
+        super().__init__()
 
     @staticmethod
     def inputs():

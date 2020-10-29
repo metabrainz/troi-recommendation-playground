@@ -13,6 +13,7 @@ class MSBMappingLookupElement(Element):
     SERVER_URL = "http://bono.metabrainz.org:8000/msid-mapping/json"
 
     def __init__(self, remove_unmatched=False):
+        super().__init__()
         self.remove_unmatched = remove_unmatched
 
     @staticmethod
@@ -23,7 +24,7 @@ class MSBMappingLookupElement(Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         in_recordings = inputs[0]
         artists = ",".join([ r.artist.name for r in in_recordings ])

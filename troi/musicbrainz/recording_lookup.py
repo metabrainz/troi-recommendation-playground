@@ -14,6 +14,9 @@ class RecordingLookupElement(Element):
 
     SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
 
+    def __init__(self):
+        super().__init__()
+
     @staticmethod
     def inputs():
         return [ Recording ]
@@ -22,7 +25,7 @@ class RecordingLookupElement(Element):
     def outputs():
         return [ Recording ]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
         if not recordings:
@@ -33,8 +36,7 @@ class RecordingLookupElement(Element):
         for r in recordings:
             data.append({ '[recording_mbid]': r.mbid })
 
-        if debug:
-            print("- debug %d recordings" % len(recordings))
+        self.debug("- debug %d recordings" % len(recordings))
 
         r = requests.post(self.SERVER_URL % len(recordings), json=data)
         if r.status_code != 200:
@@ -42,8 +44,7 @@ class RecordingLookupElement(Element):
 
         try:
             rows = ujson.loads(r.text)
-            if debug:
-                print("- debug %d rows in response" % len(rows))
+            self.debug("- debug %d rows in response" % len(rows))
         except ValueError as err:
             raise PipelineError("Cannot fetch recordings from ListenBrainz: " + str(err))
 
@@ -55,8 +56,7 @@ class RecordingLookupElement(Element):
             try:
                 row = mbid_index[r.mbid]
             except KeyError:
-                if debug:
-                    print("- debug recording MBID %s not found, skipping." % r.mbid)
+                self.debug("- debug recording MBID %s not found, skipping." % r.mbid)
                 continue
 
             if not r.artist:
