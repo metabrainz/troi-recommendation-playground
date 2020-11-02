@@ -66,7 +66,7 @@ class DailyJamsPatch(troi.patch.Patch):
         type = inputs[1]
         try:
             day = inputs[2]
-            if day == None:
+            if day is None:
                 day = 0
         except IndexError:
             day = 0

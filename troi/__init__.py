@@ -11,20 +11,17 @@ class Element(ABC):
         self.sources = []
         self.logger = logging.getLogger(type(self).__name__)
 
-
     def log(self, msg):
         '''
             Log a message with the info log level, which is the default for troi.
         '''
         self.logger.info(msg)
 
-
     def debug(self, msg):
         '''
             Log a message with debug log level. These messages will only be shown when debugging is enabled.
         '''
         self.logger.debug(msg)
-
 
     def set_sources(self, sources):
         """
@@ -121,13 +118,13 @@ class Entity(ABC):
         of an artist or the listenbrainz dict might contain the BPM for a track.
         How exactly these dicts will be organized is TDB.
     """
-    def __init__(self, ranking=None, musicbrainz={}, listenbrainz={}, acousticbrainz={}):
+    def __init__(self, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         self.name = None
         self.mbid = None
         self.msid = None
-        self.musicbrainz = musicbrainz
-        self.listenbrainz = listenbrainz
-        self.acousticbrainz = acousticbrainz
+        self.musicbrainz = musicbrainz or {}
+        self.listenbrainz = listenbrainz or {}
+        self.acousticbrainz = acousticbrainz or {}
         self.notes = []
         self.ranking = ranking
 
@@ -171,7 +168,7 @@ class Artist(Entity):
         The class that represents an artist.
     """
     def __init__(self, name=None, mbids=None, msid=None, artist_credit_id=None,
-                 ranking=None, musicbrainz={}, listenbrainz={}, acousticbrainz={}):
+                 ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.artist_credit_id = artist_credit_id
@@ -192,7 +189,7 @@ class Release(Entity):
         The class that represents a release.
     """
     def __init__(self, name=None, mbid=None, msid=None, artist=None,
-                  ranking=None, musicbrainz={}, listenbrainz={}, acousticbrainz={}):
+                 ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.artist = artist
         self.name = name
@@ -208,7 +205,7 @@ class Recording(Entity):
         The class that represents a recording.
     """
     def __init__(self, name=None, mbid=None, msid=None, length=None, artist=None, release=None,
-                 ranking=None, year=None, musicbrainz={}, listenbrainz={}, acousticbrainz={}):
+                 ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.length = length # track length in ms
         self.artist = artist

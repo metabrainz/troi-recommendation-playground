@@ -89,7 +89,7 @@ class ArtistCreditLimiterElement(troi.Element):
         for rec in recordings:
             try:
                 ac_index[rec.artist.artist_credit_id].append((rec.mbid, rec.ranking))
-                if rec.ranking == None:
+                if rec.ranking is None:
                     all_have_rankings = False
             except KeyError:
                 raise RuntimeError(self.__name__ + " needs to have all input recordings to have artist.artist_credit_id defined!")
