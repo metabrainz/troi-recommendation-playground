@@ -32,10 +32,10 @@ class AnnoyLookupElement(Element):
         return [Recording]
 
     def read(self, inputs):
-        self.debug("  annoy: read for %s/%s" % (self.metric, self.mbid))
+        self.debug("read for %s/%s" % (self.metric, self.mbid))
 
         url = self.SERVER_URL + self.metric + "/" + self.mbid
-        self.debug(f"  annoy: url: {url}")
+        self.debug(f"url: {url}")
         r = requests.get(url, params={'remove_dups': 'true'})
         if r.status_code != 200:
             raise PipelineError("Cannot fetch annoy similarities from AcousticBrainz: HTTP code %d" % r.status_code)
@@ -56,6 +56,6 @@ class AnnoyLookupElement(Element):
             r.add_note("Related to %s" % self.mbid)
             entities.append(r)
 
-        self.debug("  annoy: read %d recordings" % len(entities))
+        self.debug("read %d recordings" % len(entities))
 
         return entities
