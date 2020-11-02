@@ -9,7 +9,7 @@ class TestPatches(unittest.TestCase):
     def test_discover_patches(self):
         patches = discover_patches()
 
-        assert len(patches) == 2
+        assert len(patches) == 3
         assert "daily-jams" in patches
         assert "area-random-recordings" in patches
 

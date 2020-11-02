@@ -49,6 +49,7 @@ class AnnoyLookupElement(Element):
         for row in results:
             r = Recording(mbid=row['recording_mbid'], 
                           acousticbrainz={
+                              'similarity_from': self.mbid,
                               'similarity': row['distance'], 
                               'offset': row['offset']
                           }
