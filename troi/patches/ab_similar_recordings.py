@@ -4,6 +4,10 @@ import troi.musicbrainz.recording_lookup
 from troi.acousticbrainz.annoy import AnnoyLookupElement
 
 
+VALID_METRICS = ['mfccs', 'mfccsw', 'gfccs', 'gfccsw', 'key', 'bpm', 'onsetrate', 'moods',
+                 'instruments', 'dortmund', 'rosamerica', 'tzanetakis']
+
+
 class ABSimilarRecordingsPatch(troi.patch.Patch):
 
     @staticmethod
@@ -24,8 +28,8 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         recording_id = inputs[0]
         similarity_type = inputs[1]
 
-        if similarity_type not in ("mfccs", "bpm"):
-            raise RuntimeError("type must be either 'mfccs' or 'bpm'")
+        if similarity_type not in VALID_METRICS:
+            raise RuntimeError(f"similarity_type must be one of {'.'.join(VALID_METRICS)}")
 
         annoy = AnnoyLookupElement(similarity_type, recording_id)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
