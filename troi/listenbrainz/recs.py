@@ -31,7 +31,6 @@ class UserRecordingRecommendationsElement(Element):
 
     def read(self, inputs = []):
         recording_list = []
-        recordings = []
 
         remaining = self.MAX_RECORDINGS_TO_FETCH if self.count < 0 else self.count
         while True:

@@ -102,7 +102,8 @@ def web_patch_handler():
                            slug=patch_name,
                            post_data=post_data)
 
-patches = troi.utils.discover_patches(PATCH_FOLDER)
+
+patches = troi.utils.discover_patches()
 for patch in patches:
     slug = patches[patch]().slug()
     app.add_url_rule('/%s' % slug, slug, web_patch_handler)

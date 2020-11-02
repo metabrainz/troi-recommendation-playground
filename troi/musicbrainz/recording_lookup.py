@@ -29,7 +29,6 @@ class RecordingLookupElement(Element):
             return []
 
         data = []
-        r_mbids = ",".join([ r.mbid for r in recordings ])
         for r in recordings:
             data.append({ '[recording_mbid]': r.mbid })
 

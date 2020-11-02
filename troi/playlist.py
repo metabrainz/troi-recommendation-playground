@@ -14,7 +14,7 @@ class PlaylistElement(troi.Element):
         self.entities = None
 
     @staticmethod
-    def inputs(self):
+    def inputs():
         return [Recording]
 
     @property
@@ -43,12 +43,10 @@ class PlaylistElement(troi.Element):
                 }
             })
 
-
         self.entities = entities
         self.playlist = ujson.dumps(listens, indent=4, sort_keys=True)
 
         return entities
-
 
     def print(self):
 
@@ -70,7 +68,6 @@ class PlaylistElement(troi.Element):
             else:
                 rec_name = recording.name
             print("%-60s %-50s" % (rec_name[:59], artist[:49]))
-
 
     def launch(self):
 

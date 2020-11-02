@@ -66,7 +66,7 @@ class Patch(ABC):
         return None
 
     @abstractmethod
-    def create(input_args):
+    def create(self, input_args):
         '''
             The function creates the data pipeline and then returns it.
         '''
