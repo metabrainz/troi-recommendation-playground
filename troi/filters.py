@@ -3,6 +3,7 @@ from operator import itemgetter
 from random import shuffle
 
 import troi
+from troi import Recording
 
 
 class ArtistCreditFilterElement(troi.Element):

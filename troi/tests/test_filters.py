@@ -1,7 +1,6 @@
-import os
 import unittest
 
-from troi import Artist, Release, Recording
+from troi import Artist, Recording
 import troi.filters 
 
 

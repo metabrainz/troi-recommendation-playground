@@ -4,7 +4,7 @@ import os
 import traceback
 import sys
 
-from troi import Element, Artist, Release, Recording
+from troi import Element, Artist, Recording
 import troi.patch
 
 

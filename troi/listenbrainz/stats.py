@@ -1,6 +1,3 @@
-
-import requests
-import ujson
 from troi import Element, Artist, Release, Recording
 import pylistenbrainz
 

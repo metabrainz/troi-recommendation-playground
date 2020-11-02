@@ -1,11 +1,8 @@
-import sys
-import uuid
-from urllib.parse import quote
-
 import requests
 import ujson
 
-from troi import Element, Artist, Recording
+from troi import Element, Artist, PipelineError, Recording
+
 
 class RecordingLookupElement(Element):
     '''

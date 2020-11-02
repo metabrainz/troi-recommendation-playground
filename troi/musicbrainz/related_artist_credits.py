@@ -2,9 +2,8 @@ import copy
 from collections import defaultdict
 
 import requests
-import ujson
 
-from troi import Element, Release, PipelineError
+from troi import Element, Recording, PipelineError
 
 
 class RelatedArtistCreditsElement(Element):

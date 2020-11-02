@@ -1,5 +1,4 @@
 import datetime
-import requests.exceptions
 
 from troi import Recording
 import troi.listenbrainz.area_random_recordings

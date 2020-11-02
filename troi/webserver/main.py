@@ -1,16 +1,14 @@
-from collections import defaultdict
-import copy
-import json
 import os
 import sys
 import traceback
 import requests.exceptions
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 from werkzeug.exceptions import NotFound, BadRequest, InternalServerError, \
-                                MethodNotAllowed, ImATeapot, ServiceUnavailable
+                                ImATeapot, ServiceUnavailable
 import troi.utils
 import troi.playlist
+from troi import PipelineError
 
 TEMPLATE_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "template")
 PATCH_FOLDER = "/app/patches"

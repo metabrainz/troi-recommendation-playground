@@ -1,8 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 
-import troi
-
 
 class Patch(ABC):
 

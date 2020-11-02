@@ -1,8 +1,6 @@
-import os
 import unittest
 from unittest.mock import patch
 
-import ujson
 from troi import Artist, Release, Recording
 import troi.listenbrainz.stats
 

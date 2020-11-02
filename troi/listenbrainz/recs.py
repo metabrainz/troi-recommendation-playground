@@ -1,6 +1,5 @@
 import requests
-import ujson
-from troi import Element, Artist, Release, Recording, PipelineError
+from troi import Element, Recording, PipelineError
 import pylistenbrainz
 import pylistenbrainz.errors
 
