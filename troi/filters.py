@@ -81,7 +81,7 @@ class ArtistCreditLimiterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
         ac_index = defaultdict(list)

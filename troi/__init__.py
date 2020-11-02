@@ -97,7 +97,7 @@ class Element(ABC):
         return None
 
     @abstractmethod
-    def read(self, source_data_list, debug):
+    def read(self, source_data_list):
         '''
             This method is where the action happens -- when the consumer wants to
             read data from the pipeline, it calls read() on the last element in
