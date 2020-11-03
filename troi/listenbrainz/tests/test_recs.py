@@ -1,10 +1,7 @@
-import os
-import sys
 import unittest
 from unittest.mock import patch
 
-import ujson
-from troi import Artist, Release, Recording
+from troi import Recording
 import troi.listenbrainz.recs
 
 recording_ret = {

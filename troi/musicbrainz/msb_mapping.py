@@ -1,7 +1,7 @@
 import requests
 import ujson
 
-from troi import Element, Release, PipelineError
+from troi import Element, Recording, Release, PipelineError
 
 
 class MSBMappingLookupElement(Element):

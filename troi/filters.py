@@ -3,6 +3,7 @@ from operator import itemgetter
 from random import shuffle
 
 import troi
+from troi import Recording
 
 
 class ArtistCreditFilterElement(troi.Element):
@@ -80,7 +81,7 @@ class ArtistCreditLimiterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
         ac_index = defaultdict(list)
@@ -88,7 +89,7 @@ class ArtistCreditLimiterElement(troi.Element):
         for rec in recordings:
             try:
                 ac_index[rec.artist.artist_credit_id].append((rec.mbid, rec.ranking))
-                if rec.ranking == None:
+                if rec.ranking is None:
                     all_have_rankings = False
             except KeyError:
                 raise RuntimeError(self.__name__ + " needs to have all input recordings to have artist.artist_credit_id defined!")

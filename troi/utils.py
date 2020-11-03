@@ -4,7 +4,7 @@ import os
 import traceback
 import sys
 
-from troi import Element, Artist, Release, Recording
+from troi import Element, Artist, Recording
 import troi.patch
 
 
@@ -98,7 +98,7 @@ class DumpElement(Element):
     def inputs():
         return []
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         for input in inputs:
             print_entity_list(input)

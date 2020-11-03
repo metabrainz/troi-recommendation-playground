@@ -15,11 +15,11 @@ class ArtistCreditIdLookupElement(Element):
         super().__init__()
 
     @staticmethod
-    def inputs(self):
+    def inputs():
         return [Artist]
 
     @staticmethod
-    def outputs(self):
+    def outputs():
         return [Artist]
 
     def read(self, inputs):

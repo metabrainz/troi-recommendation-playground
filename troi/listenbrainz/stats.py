@@ -1,6 +1,3 @@
-
-import requests
-import ujson
 from troi import Element, Artist, Release, Recording
 import pylistenbrainz
 
@@ -21,7 +18,7 @@ class UserArtistsElement(Element):
     def outputs(self):
         return [Artist]
 
-    def read(self, inputs = [], debug=False):
+    def read(self, inputs = []):
 
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
@@ -47,7 +44,7 @@ class UserReleasesElement(Element):
     def outputs(self):
         return [Release]
 
-    def read(self, inputs = [], debug=False):
+    def read(self, inputs = []):
 
         release_list = []
         releases = self.client.get_user_releases(self.user_name, self.count, self.offset, self.time_range)
@@ -75,7 +72,7 @@ class UserRecordingElement(Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs = [], debug=False):
+    def read(self, inputs = []):
         recording_list = []
         recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
         for r in recordings['payload']['recordings']:

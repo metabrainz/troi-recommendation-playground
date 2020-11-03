@@ -1,11 +1,7 @@
-import sys
-import uuid
-from urllib.parse import quote
-
 import requests
 import ujson
 
-from troi import Element, Artist, Recording, PipelineError
+from troi import PipelineError
 
 AREA_LOOKUP_SERVER_URL = "http://bono.metabrainz.org:8000/area-lookup/json"
 def area_lookup(area_name):

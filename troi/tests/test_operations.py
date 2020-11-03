@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from troi import Artist, Release, Recording

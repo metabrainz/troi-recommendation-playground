@@ -1,11 +1,8 @@
-import sys
-import uuid
-from urllib.parse import quote
-
 import requests
 import ujson
 
-from troi import Element, Artist, Recording
+from troi import Element, Artist, PipelineError, Recording
+
 
 class RecordingLookupElement(Element):
     '''
@@ -32,7 +29,6 @@ class RecordingLookupElement(Element):
             return []
 
         data = []
-        r_mbids = ",".join([ r.mbid for r in recordings ])
         for r in recordings:
             data.append({ '[recording_mbid]': r.mbid })
 

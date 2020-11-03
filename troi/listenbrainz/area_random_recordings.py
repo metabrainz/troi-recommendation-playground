@@ -1,7 +1,3 @@
-import sys
-import uuid
-from urllib.parse import quote
-
 import requests
 import ujson
 

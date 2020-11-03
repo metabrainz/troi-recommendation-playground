@@ -1,16 +1,14 @@
-from collections import defaultdict
-import copy
-import json
 import os
 import sys
 import traceback
 import requests.exceptions
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 from werkzeug.exceptions import NotFound, BadRequest, InternalServerError, \
-                                MethodNotAllowed, ImATeapot, ServiceUnavailable
+                                ImATeapot, ServiceUnavailable
 import troi.utils
 import troi.playlist
+from troi import PipelineError
 
 TEMPLATE_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "template")
 PATCH_FOLDER = "/app/patches"
@@ -104,7 +102,8 @@ def web_patch_handler():
                            slug=patch_name,
                            post_data=post_data)
 
-patches = troi.utils.discover_patches(PATCH_FOLDER)
+
+patches = troi.utils.discover_patches()
 for patch in patches:
     slug = patches[patch]().slug()
     app.add_url_rule('/%s' % slug, slug, web_patch_handler)

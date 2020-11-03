@@ -1,8 +1,6 @@
-import os
 import unittest
 from unittest.mock import patch
 
-import ujson
 from troi import Artist, Release, Recording
 import troi.listenbrainz.stats
 
@@ -75,7 +73,7 @@ class TestStats(unittest.TestCase):
         stats_mock.assert_called_with("rob", 1, 1, "week")
         assert len(entities) == 1
         assert isinstance(entities[0], Artist)
-        assert entities[0].mbids == None
+        assert entities[0].mbids is None
         assert entities[0].msid == '7f65aec5-e7a7-4cfa-a6e5-e93e66a04990'
         assert entities[0].name == 'Pretty Lights'
 
