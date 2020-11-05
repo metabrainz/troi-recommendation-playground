@@ -10,6 +10,9 @@ from troi import Element, Recording, PipelineError
 -> recordings from a given year/range
 """
 
+VALID_METRICS = ['mfccs', 'mfccsw', 'gfccs', 'gfccsw', 'key', 'bpm', 'onsetrate', 'moods',
+                 'instruments', 'dortmund', 'rosamerica', 'tzanetakis']
+
 
 class AnnoyLookupElement(Element):
     """
@@ -26,6 +29,9 @@ class AnnoyLookupElement(Element):
         """
         super().__init__()
         self.mbid = mbid
+
+        if metric.lower() not in VALID_METRICS:
+            raise PipelineError("%s is not a valid metric" % metric)
         self.metric = metric
 
     def outputs(self):

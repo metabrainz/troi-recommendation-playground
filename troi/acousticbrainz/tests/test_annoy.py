@@ -4,6 +4,7 @@ import unittest.mock
 
 import troi
 import troi.acousticbrainz.annoy
+from troi import PipelineError
 
 return_json = [
   {
@@ -39,7 +40,7 @@ return_json = [
 ]
 
 
-class TestAreaRandomRecording(unittest.TestCase):
+class TestAnnoyLookupElement(unittest.TestCase):
 
     @unittest.mock.patch('requests.get')
     def test_read(self, req):
@@ -61,3 +62,7 @@ class TestAreaRandomRecording(unittest.TestCase):
             "offset": 0
         }
         assert entities[0].mbid == "7b3ecb51-919b-494d-8085-47e3390dd212"
+
+    def test_invalid_metric(self):
+        with self.assertRaises(PipelineError):
+            troi.acousticbrainz.annoy.AnnoyLookupElement("foo", "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf")

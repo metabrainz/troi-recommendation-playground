@@ -1,6 +1,8 @@
+import troi.patch
 import troi.filters
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
+from troi import PipelineError
 from troi.acousticbrainz.annoy import AnnoyLookupElement
 
 
@@ -28,10 +30,11 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         recording_id = inputs[0]
         similarity_type = inputs[1]
 
-        if similarity_type not in VALID_METRICS:
+        try:
+            annoy = AnnoyLookupElement(similarity_type, recording_id)
+        except PipelineError:
             raise RuntimeError(f"similarity_type must be one of {'.'.join(VALID_METRICS)}")
 
-        annoy = AnnoyLookupElement(similarity_type, recording_id)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(annoy)
         remove_none = troi.filters.EmptyRecordingFilterElement()
