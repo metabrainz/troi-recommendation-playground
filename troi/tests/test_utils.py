@@ -12,6 +12,7 @@ class TestPatches(unittest.TestCase):
         assert len(patches) == 3
         assert "daily-jams" in patches
         assert "area-random-recordings" in patches
+        assert "ab-similar-recordings" in patches
 
         assert issubclass(patches['daily-jams'], Patch)
         assert issubclass(patches['area-random-recordings'], Patch)

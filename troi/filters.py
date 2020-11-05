@@ -116,9 +116,34 @@ class ArtistCreditLimiterElement(troi.Element):
 
 class DuplicateRecordingFilterElement(troi.Element):
     """This Element takes a list of recordings and removes any duplicate recordings
-    that appear directly after each other (based on recording MBID)
-    If recordings are in the order mbid1, mbid2, mbid1, this will not be considered
-    a duplicate.
+    based on the recording's MBID, preserving the input order.
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        output = []
+        seen = set()
+        for rec in recordings:
+            if rec.mbid not in seen:
+                seen.add(rec.mbid)
+                output.append(rec)
+
+        return output
+
+
+class ConsecutiveRecordingFilterElement(troi.Element):
+    """This Element takes a list of recordings and removes consecutive duplicate recordings
+    based on the recording's MBID
+
+    For example, a sequence A, A, A, B, B, A, C will be reduced to A, B, A, C
     """
 
     @staticmethod
