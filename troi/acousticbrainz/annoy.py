@@ -31,7 +31,7 @@ class AnnoyLookupElement(Element):
         self.mbid = mbid
 
         if metric.lower() not in VALID_METRICS:
-            raise PipelineError("%s is not a valid metric" % metric)
+            raise PipelineError("metric %s is not valid. Must be one of %s" % (metric, '.'.join(VALID_METRICS)))
         self.metric = metric
 
     def outputs(self):
@@ -55,12 +55,13 @@ class AnnoyLookupElement(Element):
         for row in results:
             r = Recording(mbid=row['recording_mbid'], 
                           acousticbrainz={
+                              'metric': self.metric,
                               'similarity_from': self.mbid,
                               'similarity': row['distance'], 
                               'offset': row['offset']
                           }
                           )
-            r.add_note("Related to %s" % self.mbid)
+            r.add_note("Related to %s with metric %s" % (self.mbid, self.metric))
             entities.append(r)
 
         self.debug("read %d recordings" % len(entities))
