@@ -112,3 +112,81 @@ class ArtistCreditLimiterElement(troi.Element):
                 results.append(r)
 
         return results
+
+
+class DuplicateRecordingFilterElement(troi.Element):
+    """This Element takes a list of recordings and removes any duplicate recordings
+    based on the recording's MBID, preserving the input order.
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        output = []
+        seen = set()
+        for rec in recordings:
+            if rec.mbid not in seen:
+                seen.add(rec.mbid)
+                output.append(rec)
+
+        return output
+
+
+class ConsecutiveRecordingFilterElement(troi.Element):
+    """This Element takes a list of recordings and removes consecutive duplicate recordings
+    based on the recording's MBID
+
+    For example, a sequence A, A, A, B, B, A, C will be reduced to A, B, A, C
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        output = []
+        last_mbid = None
+        for rec in recordings:
+            if rec.mbid != last_mbid:
+                output.append(rec)
+            last_mbid = rec.mbid
+
+        return output
+
+
+class EmptyRecordingFilterElement(troi.Element):
+    """This Element takes a list of recordings and removes ones that have an empty name
+    or artist.
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        output = []
+        for rec in recordings:
+            if rec.name is None or (rec.artist and rec.artist.name is None):
+                if debug:
+                    print(f"recording {rec.mbid} has no metadata, filtering")
+            else:
+                output.append(rec)
+
+        return output
