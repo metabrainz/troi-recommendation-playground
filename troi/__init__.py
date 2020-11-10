@@ -40,7 +40,7 @@ class Element(ABC):
         """
 
         if not self.sources:
-            raise RuntimeError("element %s has no sources defined." % str(type(self)))
+            raise PipelineError("element %s has no sources defined." % str(type(self)))
 
         for source in self.sources:
             source.check()

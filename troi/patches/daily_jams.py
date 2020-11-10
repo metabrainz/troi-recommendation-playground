@@ -1,7 +1,7 @@
 import datetime
 import random
 
-from troi import Element, Recording
+from troi import Element, PipelineError, Recording
 import troi.listenbrainz.recs
 import troi.filters
 import troi.musicbrainz.recording_lookup
@@ -72,12 +72,12 @@ class DailyJamsPatch(troi.patch.Patch):
             day = 0
 
         if day > 7:
-            raise RuntimeError("day must be an integer between 0-7.")
+            raise PipelineError("day must be an integer between 0-7.")
         if day == 0:
             day = datetime.datetime.today().weekday() + 1
 
         if type not in ("top", "similar"):
-            raise RuntimeError("type must be either 'top' or 'similar'")
+            raise PipelineError("type must be either 'top' or 'similar'")
 
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,

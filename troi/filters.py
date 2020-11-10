@@ -3,7 +3,7 @@ from operator import itemgetter
 from random import shuffle
 
 import troi
-from troi import Recording
+from troi import PipelineError, Recording
 
 
 class ArtistCreditFilterElement(troi.Element):
@@ -16,7 +16,7 @@ class ArtistCreditFilterElement(troi.Element):
             Filter a list of Recordings based on their artist_credit_id.
             The default behaviour is to exclude the artists given, but if
             include=True then only the artists in the given list pass
-            the filter. Throws RuntimeError is not all recordings have
+            the filter. Throws PipelineError is not all recordings have
             artist_credit_ids set.
         '''
         super().__init__()
@@ -40,7 +40,7 @@ class ArtistCreditFilterElement(troi.Element):
             try:
                 ac_index[ac] = 1
             except KeyError:
-                raise RuntimeError(self.__name__ + " needs to have all input recordings to have artist.artist_credit_id defined!")
+                raise PipelineError(self.__name__ + " needs to have all input recordings to have artist.artist_credit_id defined!")
 
         results = []
         for r in recordings:
@@ -66,7 +66,7 @@ class ArtistCreditLimiterElement(troi.Element):
             recordings by any one artists exceeds the given limit, excessive recordigns
             are removed. If the flag exclude_lower_ranked is True, then the lowest
             ranked recordings are removed, otherwise the highest ranked recordings
-            are removed. Throws RuntimeError is not all recordings have
+            are removed. Throws PipelineError is not all recordings have
             artist_credit_ids set.
         '''
         troi.Element.__init__(self)
@@ -92,7 +92,7 @@ class ArtistCreditLimiterElement(troi.Element):
                 if rec.ranking is None:
                     all_have_rankings = False
             except KeyError:
-                raise RuntimeError(self.__name__ + " needs to have all input recordings to have artist.artist_credit_id defined!")
+                raise PipelineError(self.__name__ + " needs to have all input recordings to have artist.artist_credit_id defined!")
 
         for key in ac_index:
             if all_have_rankings:

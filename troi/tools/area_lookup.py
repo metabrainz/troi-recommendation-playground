@@ -20,6 +20,6 @@ def area_lookup(area_name):
         raise PipelineError("Cannot lookup area name, invalid JSON returned: " + str(err))
 
     if len(rows) == 0:
-        raise RuntimeError("Cannot find area name. Must be spelled exactly as in MusicBrainz.")
+        raise PipelineError("Cannot find area name. Must be spelled exactly as in MusicBrainz.")
 
     return rows[0]['area_id']

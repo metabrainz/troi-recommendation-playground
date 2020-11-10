@@ -1,6 +1,6 @@
 import datetime
 
-from troi import Recording
+from troi import PipelineError, Recording
 import troi.listenbrainz.area_random_recordings
 import troi.tools.area_lookup
 import troi.musicbrainz.recording_lookup
@@ -39,13 +39,13 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         area_id = troi.tools.area_lookup.area_lookup(area_name)
 
         if not start_year or start_year < 1800 or start_year > datetime.datetime.today().year:
-            raise RuntimeError("start_year must be given and be an integer between 1800 and the current year.")
+            raise PipelineError("start_year must be given and be an integer between 1800 and the current year.")
 
         if not end_year or end_year < 1800 or end_year > datetime.datetime.today().year:
-            raise RuntimeError("end_year must be given and be an integer between 1800 and the current year.")
+            raise PipelineError("end_year must be given and be an integer between 1800 and the current year.")
 
         if end_year < start_year:
-            raise RuntimeError("end_year must be equal to or greater than start_year.")
+            raise PipelineError("end_year must be equal to or greater than start_year.")
 
         area = troi.listenbrainz.area_random_recordings.AreaRandomRecordingsElement(area_id, start_year, end_year)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
