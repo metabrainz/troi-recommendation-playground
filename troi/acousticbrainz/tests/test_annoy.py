@@ -57,9 +57,10 @@ class TestAnnoyLookupElement(unittest.TestCase):
 
         assert len(entities) == 6
         assert entities[0].acousticbrainz == {
+            "metric": "mfccs",
             "similarity_from": "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf",
             "similarity": 0.00010826535435626283,
-            "offset": 0
+            "offset": 0,
         }
         assert entities[0].mbid == "7b3ecb51-919b-494d-8085-47e3390dd212"
 
