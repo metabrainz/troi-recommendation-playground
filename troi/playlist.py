@@ -72,7 +72,7 @@ class PlaylistElement(troi.Element):
     def launch(self):
 
         if not self.playlist:
-            raise RuntimeError("Playlist has not been generated yet.")
+            raise PipelineError("Playlist has not been generated yet.")
 
         op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True, file_name="playlist.html")
         op.add_key('listens', self.playlist)

@@ -26,11 +26,7 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         recording_id = inputs[0]
         similarity_type = inputs[1]
 
-        try:
-            annoy_element = annoy.AnnoyLookupElement(similarity_type, recording_id)
-        except troi.PipelineError as e:
-            raise RuntimeError(str(e))
-
+        annoy_element = annoy.AnnoyLookupElement(similarity_type, recording_id)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(annoy_element)
         remove_none = troi.filters.EmptyRecordingFilterElement()
