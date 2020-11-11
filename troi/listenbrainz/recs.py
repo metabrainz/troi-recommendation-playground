@@ -50,7 +50,7 @@ class UserRecordingRecommendationsElement(Element):
             for r in recordings['payload']['mbids']:
                 recording_list.append(Recording(mbid=r['recording_mbid'], ranking=r['score']))
 
-            remaining -= len(recording_list)
+            remaining -= len(recordings['payload']['mbids'])
             if remaining <= 0:
                 break
 
