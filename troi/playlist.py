@@ -67,7 +67,7 @@ class PlaylistElement(troi.Element):
                 rec_name = ""
             else:
                 rec_name = recording.name
-            print("%-60s %-50s" % (rec_name[:59], artist[:49]))
+            print("%-60s %-50s %s" % (rec_name[:59], artist[:49], str(recording.year or "")))
 
     def launch(self):
 
