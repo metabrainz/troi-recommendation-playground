@@ -190,3 +190,47 @@ class EmptyRecordingFilterElement(troi.Element):
                 output.append(rec)
 
         return output
+
+
+class YearRangeFilterElement(troi.Element):
+    '''
+        Remove/keep recordings if they do or do not belong in a range of years
+    '''
+
+    def __init__(self, start_year, end_year, inverse=False):
+        '''
+            Filter a list of Recordings based on their year -- the year must be between
+            start_year and end_year, otherwise the recording will be filtered out.
+            If inverse=True, then keep all Recordings that do no fit into the given year
+            range.
+        '''
+        troi.Element.__init__(self)
+        self.start_year = start_year
+        self.end_year = end_year
+        self.inverse = inverse
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+
+        recordings = inputs[0]
+
+        results = []
+        for r in recordings:
+            if not r.year:
+                continue
+
+            if self.inverse:
+                if r.year < self.start_year or r.year > self.end_year:
+                    results.append(r)
+            else:
+                if r.year >= self.start_year and r.year <= self.end_year:
+                    results.append(r)
+
+        return results
