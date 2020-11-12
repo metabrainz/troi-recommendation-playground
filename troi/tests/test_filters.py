@@ -118,3 +118,16 @@ class TestYearRangeFilterElement(unittest.TestCase):
 
         assert flist[0].mbid == '8756f690-18ca-488d-a456-680fdaf234bd'
         assert flist[1].mbid == '139654ae-2c02-4e0f-aee0-c47da6e59ff1'
+
+        e = troi.filters.YearRangeFilterElement(1985)
+        flist = e.read([rlist])
+        assert len(flist) == 2
+
+        assert flist[0].mbid == '73a9d0db-0ec7-490e-9a85-0525a5ccef8e'
+        assert flist[1].mbid == '139654ae-2c02-4e0f-aee0-c47da6e59ff1'
+
+        e = troi.filters.YearRangeFilterElement(1985, inverse=True)
+        flist = e.read([rlist])
+        assert len(flist) == 1
+
+        assert flist[0].mbid == '8756f690-18ca-488d-a456-680fdaf234bd'

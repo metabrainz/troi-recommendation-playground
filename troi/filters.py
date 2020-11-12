@@ -197,12 +197,13 @@ class YearRangeFilterElement(troi.Element):
         Remove/keep recordings if they do or do not belong in a range of years
     '''
 
-    def __init__(self, start_year, end_year, inverse=False):
+    def __init__(self, start_year, end_year=None, inverse=False):
         '''
             Filter a list of Recordings based on their year -- the year must be between
-            start_year and end_year, otherwise the recording will be filtered out.
-            If inverse=True, then keep all Recordings that do no fit into the given year
-            range.
+            start_year and end_year, otherwise the recording will be filtered out. If no
+            end_year is given, keep (or reject in case of inverse) tracks greater or equal
+            to start_year. If inverse=True, then keep all Recordings that do no fit into the
+            given year range.
         '''
         troi.Element.__init__(self)
         self.start_year = start_year
@@ -227,10 +228,15 @@ class YearRangeFilterElement(troi.Element):
                 continue
 
             if self.inverse:
-                if r.year < self.start_year or r.year > self.end_year:
+                if r.year < self.start_year:
+                    results.append(r)
+                elif self.end_year and r.year > self.end_year:
                     results.append(r)
             else:
-                if r.year >= self.start_year and r.year <= self.end_year:
-                    results.append(r)
+                if r.year >= self.start_year:
+                    if not self.end_year:
+                        results.append(r)
+                    elif r.year <= self.end_year:
+                        results.append(r)
 
         return results
