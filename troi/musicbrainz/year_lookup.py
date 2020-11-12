@@ -26,7 +26,7 @@ class YearLookupElement(Element):
     def outputs():
         return [ Recording ]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
         if not recordings:
