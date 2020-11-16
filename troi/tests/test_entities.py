@@ -1,6 +1,6 @@
 import unittest
 
-from troi import Artist, Release, Recording
+from troi import Artist, Release, Recording, Playlist
 
 
 class TestEntities(unittest.TestCase):
@@ -80,3 +80,17 @@ class TestEntities(unittest.TestCase):
         assert r.name is None
         assert r.mbid is None
         assert r.msid is None
+
+
+    def test_playlist(self):
+
+        r = Playlist()
+        assert r.mbid is None
+        assert r.desc is None
+        assert r.name is None
+        assert r.recordings == []
+
+        p = Playlist("cooking playlist", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "Playlist for cooking, but not eating.")
+        assert p.name == "cooking playlist"
+        assert p.mbid == "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3"
+        assert p.desc == "Playlist for cooking, but not eating."
