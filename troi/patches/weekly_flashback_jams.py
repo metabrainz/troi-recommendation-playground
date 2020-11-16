@@ -1,12 +1,60 @@
+from collections import defaultdict
 import datetime
 import random
 
-from troi import Element, Recording, PipelineError
+from troi import Element, Recording, Playlist, PipelineError
 import troi.listenbrainz.recs
 import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.year_lookup
+
+
+class DecadePlaylistSplitterElement(Element):
+    '''
+        Split a list of recordings that have their year attribute filled out
+        and output N playlists broken down by decade of the Recordings. Recordings
+        with no year set will be ignored and playlists will only be generated
+        for decades that have at least minimum_count recordings.
+    '''
+
+    def __init__(self, minimum_count=20):
+        Element.__init__(self)
+        self.minimum_count = minimum_count
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs = []):
+        """
+            Sort the recordings into decades and return playlists for decades that have the minimum number of tracks.
+        """
+        recordings = inputs[0]
+        if not recordings or len(recordings) == 0:
+            return []
+
+        decades = defaultdict([])
+        for r in recordings:
+            if not r.year:
+                continue
+
+            decade = (r.year // 10) * 10
+            decades[decade].append(r)
+
+        playlists = []
+        for decade in decades:
+            if len(decade) < self.minmum_count:
+                continue
+
+            playlists.append(Playlist("%ss flashback jams", desc="ListenBrainz Weekly flashback jams for the %ss.", filename="%ss_flashback_jams.jspf"),
+                             recordings=random.shuffle(decade))
+
+        return playlists
 
 
 class WeeklyFlashbackJams(troi.patch.Patch):
@@ -55,7 +103,10 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         artist_filter = troi.filters.ArtistCreditFilterElement([])
         artist_filter.set_sources(year_sort)
 
+        decade_splitter = DecadePlaylistSplitterElement()
+        decade_splitter.set_sources(artist_filter)
+        
         artist_limiter = troi.filters.ArtistCreditLimiterElement(3)
-        artist_limiter.set_sources(artist_filter)
+        artist_limiter.set_sources(decade_splitter)
 
         return artist_limiter

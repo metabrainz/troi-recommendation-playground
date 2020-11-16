@@ -3,7 +3,7 @@ from operator import itemgetter
 from random import shuffle
 
 import troi
-from troi import PipelineError, Recording
+from troi import PipelineError, Recording, Playlist
 
 
 class ArtistCreditFilterElement(troi.Element):
@@ -25,16 +25,15 @@ class ArtistCreditFilterElement(troi.Element):
 
     @staticmethod
     def inputs():
-        return [Recording]
+        return [Recording, Playlist]
 
     @staticmethod
     def outputs():
-        return [Recording]
+        return [Recording, Playlist]
 
     def read(self, inputs):
 
         recordings = inputs[0]
-
         ac_index = {}
         for ac in self.artist_credit_ids:
             try:
@@ -81,9 +80,11 @@ class ArtistCreditLimiterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs):
+    def _filter(self, recordings):
+        """
+            Carry out the actual artist limiting.
+        """
 
-        recordings = inputs[0]
         ac_index = defaultdict(list)
         all_have_rankings = True
         for rec in recordings:
@@ -112,6 +113,26 @@ class ArtistCreditLimiterElement(troi.Element):
                 results.append(r)
 
         return results
+
+
+    def read(self, inputs):
+        """
+            Determine if recordings or playlists are passed in and call the internal _filter
+            function accordingly.
+        """
+
+        outputs = []
+        for input in inputs:
+            if isinstance(input[0], Recording):
+                return self._filter(input)
+            elif isinstance(input[0], Playlist):
+                for playlist in input:
+                    playlist.recordings = self._filter(playlist.recordings)
+                    outputs.append(playlist)
+            else:
+                raise PipelineError("ArtistCreditLimiter passed incorrect input types.")
+
+        return outputs
 
 
 class DuplicateRecordingFilterElement(troi.Element):

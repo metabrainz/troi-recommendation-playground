@@ -15,7 +15,7 @@ class PlaylistElement(troi.Element):
 
     @staticmethod
     def inputs():
-        return [Recording]
+        return [Recording, Playlist]
 
     @property
     def recordings(self):
