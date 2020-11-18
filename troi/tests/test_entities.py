@@ -86,13 +86,19 @@ class TestEntities(unittest.TestCase):
 
         r = Playlist()
         assert r.mbid is None
-        assert r.desc is None
         assert r.name is None
         assert r.filename is None
         assert r.recordings == []
 
-        p = Playlist("cooking playlist", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "Playlist for cooking, but not eating.", "omnomnom.jspf")
+        p = Playlist("cooking playlist", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "mk_noms.jspf")
         assert p.name == "cooking playlist"
         assert p.mbid == "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3"
-        assert p.desc == "Playlist for cooking, but not eating."
+        assert p.filename == "mk_noms.jspf"
+        assert p.recordings == []
+
+        r = Recording("Strangers", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "97b01626-65fc-4c32-b30c-c4d7eab1b339")
+        p = Playlist("eating playlist", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "omnomnom.jspf", [r])
+        assert p.name == "eating playlist"
+        assert p.mbid == "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3"
         assert p.filename == "omnomnom.jspf"
+        assert p.recordings == [r]

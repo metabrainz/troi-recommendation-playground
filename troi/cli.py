@@ -64,8 +64,7 @@ def playlist(patch, args, debug):
         return
 
     playlist.print()
-    print("-- generated playlist with %d recordings. Open playlist by opening playlist.html in your browser." % len(playlist.entities))
-    playlist.launch()
+    playlist.save()
 
 
 @cli.command(name="list")

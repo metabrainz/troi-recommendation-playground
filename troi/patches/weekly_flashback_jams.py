@@ -38,7 +38,7 @@ class DecadePlaylistSplitterElement(Element):
         if not recordings or len(recordings) == 0:
             return []
 
-        decades = defaultdict([])
+        decades = defaultdict(list)
         for r in recordings:
             if not r.year:
                 continue
@@ -48,11 +48,12 @@ class DecadePlaylistSplitterElement(Element):
 
         playlists = []
         for decade in decades:
-            if len(decade) < self.minmum_count:
+            if len(decades[decade]) < self.minimum_count:
                 continue
 
-            playlists.append(Playlist("%ss flashback jams", desc="ListenBrainz Weekly flashback jams for the %ss.", filename="%ss_flashback_jams.jspf"),
-                             recordings=random.shuffle(decade))
+            random.shuffle(decades[decade])
+            playlists.append(Playlist("%ss flashback jams" % str(decade), filename="%ss_flashback_jams.jspf" % str(decade),
+                             recordings=decades[decade]))
 
         return playlists
 

@@ -223,14 +223,13 @@ class Playlist(Entity):
     """
         The class that represents a playlist, which is nothing more than a [Recording] with metadata.
     """
-    def __init__(self, name=None, mbid=None, desc=None, filename=None,
+    def __init__(self, name=None, mbid=None, filename=None, recordings=[],
                  ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
-        self.desc = desc
         self.filename = filename
         self.mbid = mbid
-        self.recordings = []
+        self.recordings = recordings
 
     def __str__(self):
         return "<Recording('%s', %s, %s)>" % (self.name, self.desc, self.mbid)
