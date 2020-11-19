@@ -1,10 +1,17 @@
 import datetime
 import random
 
+import click
+
 from troi import Element, PipelineError, Recording
 import troi.listenbrainz.recs
 import troi.filters
 import troi.musicbrainz.recording_lookup
+
+
+@click.group()
+def cli():
+    pass
 
 
 class DailyJamsElement(Element):
@@ -44,11 +51,22 @@ class DailyJamsPatch(troi.patch.Patch):
         super().__init__(debug)
 
     @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "MusicBrainz user name", "optional": False },
-                { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False },
-                { "type": int, "name": "day", "desc": "The day of the week to generate jams for (1-7). Leave blank for today.", "optional": True }]
-        
+    @cli.command(no_args_is_help=True)
+    @click.argument('user_name')
+    @click.argument('type')
+    @click.argument('day', required=False, type=int)
+    def parse_args(**kwargs):
+        """
+        Generate a daily playlist from the ListenBrainz recommended recordings.
+
+        \b
+        USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
+        TYPE is The type of daily jam. Must be 'top' or 'similar'.
+        DAY is The day of the week to generate jams for (1 = Monday, 2 = Tuesday, 7 = Sunday). Leave blank for today.
+        """
+
+        return kwargs
+
     @staticmethod
     def outputs():
         return [Recording]
@@ -62,13 +80,10 @@ class DailyJamsPatch(troi.patch.Patch):
         return "Generate a daily playlist from the ListenBrainz recommended recordings. Day 1 = Monday, Day 2  = Tuesday ..."
 
     def create(self, inputs):
-        user_name = inputs[0]
-        type = inputs[1]
-        try:
-            day = inputs[2]
-            if day is None:
-                day = 0
-        except IndexError:
+        user_name = inputs['user_name']
+        type = inputs['type']
+        day = inputs['day']
+        if day is None:
             day = 0
 
         if day > 7:
