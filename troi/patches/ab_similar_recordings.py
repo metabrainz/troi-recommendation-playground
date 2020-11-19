@@ -1,3 +1,5 @@
+import click
+
 import troi
 import troi.patch
 import troi.filters
@@ -6,13 +8,26 @@ import troi.musicbrainz.recording_lookup
 from troi.acousticbrainz import annoy
 
 
+@click.group()
+def cli():
+    pass
+
+
 class ABSimilarRecordingsPatch(troi.patch.Patch):
 
     @staticmethod
-    def inputs():
-        return [
-            {"type": str, "name": "recording_id", "desc": "MusicBrainz recording id", "optional": False},
-            {"type": str, "name": "similarity_type", "desc": "Type of acousticbrainz similarity", "optional": False}]
+    @cli.command(no_args_is_help=True)
+    @click.argument('recording_id')
+    @click.argument('similarity_type')
+    def parse_args(**kwargs):
+        """
+        Find acoustically similar recordings from AcousticBrainz.
+
+        \b
+        RECORDING_ID: A musicbrainz recording ID to find similar recordings to
+        SIMILARITY_TYPE: an annoy similarity type to use when finding similar recordings
+        """
+        return kwargs
 
     @staticmethod
     def slug():
