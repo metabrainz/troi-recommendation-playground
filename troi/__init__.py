@@ -59,10 +59,10 @@ class Element(ABC):
             for source in self.sources:
                 source_lists.append(source.generate())
 
-        recordings = self.read(source_lists)
-        self.debug("%-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
+        items = self.read(source_lists)
+        self.debug("%-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
-        return recordings
+        return items
 
     def run(self):
         """

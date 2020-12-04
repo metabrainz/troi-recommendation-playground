@@ -1,9 +1,9 @@
-import datetime
+from datetime import datetime, timedelta
 import random
 
 import click
 
-from troi import Element, PipelineError, Recording
+from troi import Element, PipelineError, Recording, Playlist
 import troi.listenbrainz.recs
 import troi.filters
 import troi.musicbrainz.recording_lookup
@@ -19,10 +19,11 @@ class DailyJamsElement(Element):
         Split weekly recommended recordings into 7 sets, one for each day of the week.
     '''
 
-    def __init__(self, recs, day):
+    def __init__(self, recs, user, day):
         Element.__init__(self)
         self.recs = recs
         self.day = day
+        self.user = user
 
     @staticmethod
     def inputs():
@@ -30,7 +31,7 @@ class DailyJamsElement(Element):
 
     @staticmethod
     def outputs():
-        return [Recording]
+        return [Playlist]
 
     def read(self, inputs = []):
         recordings = inputs[0]
@@ -42,7 +43,11 @@ class DailyJamsElement(Element):
         num_per_day = len(recordings) // 7
         days = [recordings[i:i + num_per_day] for i in range(0, len(recordings), num_per_day)]
 
-        return days[self.day - 1]
+        jam_date = datetime.utcnow() - timedelta(days=datetime.utcnow().isoweekday() % 7)
+        jam_date += timedelta(days=self.day)
+        jam_date = jam_date.strftime("%Y-%m-%d %a")
+
+        return [ Playlist(name="Daily Jams for %s, %s" % (self.user, jam_date), recordings=days[self.day - 1]) ]
 
 
 class DailyJamsPatch(troi.patch.Patch):
@@ -69,7 +74,7 @@ class DailyJamsPatch(troi.patch.Patch):
 
     @staticmethod
     def outputs():
-        return [Recording]
+        return [Playlist]
 
     @staticmethod
     def slug():
@@ -89,7 +94,7 @@ class DailyJamsPatch(troi.patch.Patch):
         if day > 7:
             raise PipelineError("day must be an integer between 0-7.")
         if day == 0:
-            day = datetime.datetime.today().weekday() + 1
+            day = datetime.today().weekday() + 1
 
         if type not in ("top", "similar"):
             raise PipelineError("type must be either 'top' or 'similar'")
@@ -108,7 +113,7 @@ class DailyJamsPatch(troi.patch.Patch):
         artist_limiter = troi.filters.ArtistCreditLimiterElement()
         artist_limiter.set_sources(artist_filter)
 
-        jams = DailyJamsElement(recs, day=day)
+        jams = DailyJamsElement(recs, user=user_name, day=day)
         jams.set_sources(artist_limiter)
 
         return jams

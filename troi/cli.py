@@ -20,8 +20,11 @@ def cli():
 ))
 @click.argument('patch', type=str)
 @click.option('--debug/--no-debug')
+@click.option('--print', '-p', 'echo', required=False, is_flag=True)
+@click.option('--save', '-s', required=False, is_flag=True)
+@click.option('--token', '-t', required=False, type=click.UUID)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, args):
+def playlist(patch, debug, echo, save, token, args):
     """Generate a playlist using a patch"""
 
     patchname = patch
@@ -46,8 +49,29 @@ def playlist(patch, debug, args):
               file=sys.stderr)
         return
 
-    playlist.print()
-    playlist.save()
+    if token:
+        mbids = playlist.submit(token)
+        if len(mbids) == 1:
+            print("Submitted playlist: %s" % mbids[0])
+        else:
+            print("Submitted playlists:", mbid)
+
+    if save:
+        playlist.save()
+        print("playlist saved.")
+
+    if echo:
+        playlist.print()
+
+    if not echo and not save and not token:
+        if len(playlist.playlists) == 0:
+            print("No playlists where generated. :(")
+        elif len(playlist.playlists) == 1:
+            print("A playlist with %d tracks was generated." % len(playlist.playlists[0].recordings))
+        else:
+            print("%d playlists were generated." % len(playlist.playlists))
+
+        print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --submit or --print)")
 
 
 @cli.command(name="list")

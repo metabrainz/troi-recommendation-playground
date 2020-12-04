@@ -1,12 +1,14 @@
 import ujson
 import openpost
+import requests
 
-from troi import Recording, Playlist
+from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
-import troi
+
+LISTENBRAINZ_PLAYLIST_CREATE_URL = "https://test.listenbrainz.org/1/playlist/create"
 
 
-class PlaylistElement(troi.Element):
+class PlaylistElement(Element):
 
     def __init__(self):
         super().__init__()
@@ -44,7 +46,7 @@ class PlaylistElement(troi.Element):
             tracks.append(track)
 
         data['track'] = tracks
-        return ujson.dumps({ "playlist" : data })
+        return { "playlist" : data }
 
     def read(self, inputs):
 
@@ -95,18 +97,46 @@ class PlaylistElement(troi.Element):
     def save(self):
 
         if not self.playlists:
-            raise PipelineError("Playlist has not been generated yet.")
+            raise PipelineError("Playlists have not been generated yet.")
 
         for i, playlist in enumerate(self.playlists):
             filename = playlist.filename or "playlist %03d.jspf" % i
             with open(filename, "w") as f:
-                f.write(self._serialize_to_jspf(playlist))
+                f.write(ujson.dumps(self._serialize_to_jspf(playlist)))
 
     def launch(self):
 
-        if not self.playlist:
-            raise PipelineError("Playlist has not been generated yet.")
+        if not self.playlists:
+            raise PipelineError("Playlists have not been generated yet.")
 
         op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True, file_name="playlist.html")
-        op.add_key('listens', self._serialize_to_jspf(self.playlist))
+        op.add_key('listens', ujson.dumps(self._serialize_to_jspf(self.playlist)))
         op.send_post()
+
+    def submit(self, token):
+        """
+            Submit the playlist to ListenBrainz. The token argument is the user token, found here:
+
+               https://listenbrainz.org/profile/
+        """
+
+        if not self.playlists:
+            raise PipelineError("Playlists have not been generated yet.")
+
+        playlist_mbids = []
+        for playlist in self.playlists:
+            r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
+                              json=self._serialize_to_jspf(playlist),
+                              headers={"Authorization": "Token " + str(token)})
+            if r.status_code != 200:
+                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %
+                                    (r.status_code, r.json()["error"]))
+
+            try:
+                result = ujson.loads(r.text)
+            except ValueError as err:
+                raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
+
+            playlist_mbids.append(result["playlist_mbid"])
+
+        return playlist_mbids

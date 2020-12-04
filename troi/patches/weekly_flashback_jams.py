@@ -2,6 +2,8 @@ from collections import defaultdict
 import datetime
 import random
 
+import click
+
 from troi import Element, Recording, Playlist, PipelineError
 import troi.listenbrainz.recs
 import troi.filters
@@ -9,6 +11,10 @@ import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.year_lookup
 
+
+@click.group()
+def cli():
+    pass
 
 class DecadePlaylistSplitterElement(Element):
     '''
@@ -64,6 +70,22 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
+    @cli.command(no_args_is_help=True)
+    @click.argument('user_name')
+    @click.argument('type')
+    def parse_args(**kwargs):
+        """
+        Generate weekly flashback playlists from the ListenBrainz recommended recordings.
+
+        \b
+        USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
+        TYPE is The type of daily jam. Must be 'top' or 'similar'.
+        TOKEN is the user token from the LB user into whose account you wish to post this playlist
+        """
+
+        return kwargs
+
+    @staticmethod
     def inputs():
         return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False },
                 { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False }]
@@ -81,8 +103,9 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         return "Generate a weekly playlist from the ListenBrainz recommended recordings based on decades."
 
     def create(self, inputs):
-        user_name = inputs[0]
-        type = inputs[1]
+        print(inputs)
+        user_name = inputs['user_name']
+        type = inputs['type']
 
         if type not in ("top", "similar"):
             raise PipelineError("type must be either 'top' or 'similar'")
