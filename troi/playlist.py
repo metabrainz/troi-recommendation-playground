@@ -7,8 +7,36 @@ from troi.operations import is_homogeneous
 
 LISTENBRAINZ_PLAYLIST_CREATE_URL = "https://test.listenbrainz.org/1/playlist/create"
 
+def _serialize_to_jspf(playlist):
+
+    data = { "creator": "ListenBrainz Troi" }
+
+    if playlist.name:
+        data["title"] = playlist.name
+
+    tracks = []
+    for e in playlist.recordings:
+        track = {}
+        artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
+        track["creator"] = e.artist.name if e.artist else ""
+        track["album"] = e.release.name if e.release else ""
+        track["title"] = e.name
+        track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
+        if artist_mbids:
+            track["extension"] = {
+                "https://musicbrainz.org#jspf": {
+                    "artist_mbids" : artist_mbids,
+                }
+            }
+        tracks.append(track)
+
+    data['track'] = tracks
+    return { "playlist" : data }
 
 class PlaylistElement(Element):
+    """
+        Take a list of Recordings or Playlists and save, print or submit them.
+    """
 
     def __init__(self):
         super().__init__()
@@ -17,36 +45,6 @@ class PlaylistElement(Element):
     @staticmethod
     def inputs():
         return [Recording, Playlist]
-
-    @property
-    def recordings(self):
-        return self.entities
-
-    def _serialize_to_jspf(self, playlist):
-
-        data = { "creator": "ListenBrainz Troi" }
-
-        if playlist.name:
-            data["title"] = playlist.name
-
-        tracks = []
-        for e in playlist.recordings:
-            track = {}
-            artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
-            track["creator"] = e.artist.name if e.artist else ""
-            track["album"] = e.release.name if e.release else ""
-            track["title"] = e.name
-            track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
-            if artist_mbids:
-                track["extension"] = {
-                    "https://musicbrainz.org#jspf": { 
-                        "artist_mbids" : artist_mbids,
-                    }
-                }
-            tracks.append(track)
-
-        data['track'] = tracks
-        return { "playlist" : data }
 
     def read(self, inputs):
 
@@ -63,7 +61,7 @@ class PlaylistElement(Element):
             else:
                 raise PipelineError("Playlist passed incorrect input types.")
 
-        return []
+        return outputs
 
     def print(self):
 
@@ -75,7 +73,7 @@ class PlaylistElement(Element):
             if playlist.name:
                 print("playlist: '%s'" % playlist.name)
             else:
-                print("playlist: %d" % i) 
+                print("playlist: %d" % i)
 
             for recording in playlist.recordings:
                 if not recording:
@@ -91,7 +89,7 @@ class PlaylistElement(Element):
                 else:
                     rec_name = recording.name
                 print("%-60s %-50s %s" % (rec_name[:59], artist[:49], str(recording.year or "")))
-            print
+            print()
 
 
     def save(self):
@@ -102,7 +100,7 @@ class PlaylistElement(Element):
         for i, playlist in enumerate(self.playlists):
             filename = playlist.filename or "playlist %03d.jspf" % i
             with open(filename, "w") as f:
-                f.write(ujson.dumps(self._serialize_to_jspf(playlist)))
+                f.write(ujson.dumps(_serialize_to_jspf(playlist)))
 
     def launch(self):
 
@@ -110,7 +108,7 @@ class PlaylistElement(Element):
             raise PipelineError("Playlists have not been generated yet.")
 
         op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True, file_name="playlist.html")
-        op.add_key('listens', ujson.dumps(self._serialize_to_jspf(self.playlist)))
+        op.add_key('listens', ujson.dumps(_serialize_to_jspf(self.playlist)))
         op.send_post()
 
     def submit(self, token):
@@ -126,7 +124,7 @@ class PlaylistElement(Element):
         playlist_mbids = []
         for playlist in self.playlists:
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                              json=self._serialize_to_jspf(playlist),
+                              json=_serialize_to_jspf(playlist),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
                 raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %

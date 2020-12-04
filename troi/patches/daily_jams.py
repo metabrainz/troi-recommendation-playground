@@ -33,7 +33,7 @@ class DailyJamsElement(Element):
     def outputs():
         return [Playlist]
 
-    def read(self, inputs = []):
+    def read(self, inputs):
         recordings = inputs[0]
         if not recordings or len(recordings) == 0:
             return []
@@ -51,9 +51,10 @@ class DailyJamsElement(Element):
 
 
 class DailyJamsPatch(troi.patch.Patch):
-
-    def __init__(self, debug=False):
-        super().__init__(debug)
+    """
+        Taken a list of Recordings, break them into 7 roughly equal chunks and return
+        the chunk for the given day of the week.
+    """
 
     @staticmethod
     @cli.command(no_args_is_help=True)

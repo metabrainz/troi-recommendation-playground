@@ -1,5 +1,4 @@
 from collections import defaultdict
-import datetime
 import random
 
 import click
@@ -36,7 +35,7 @@ class DecadePlaylistSplitterElement(Element):
     def outputs():
         return [Playlist]
 
-    def read(self, inputs = []):
+    def read(self, inputs):
         """
             Sort the recordings into decades and return playlists for decades that have the minimum number of tracks.
         """
@@ -65,6 +64,9 @@ class DecadePlaylistSplitterElement(Element):
 
 
 class WeeklyFlashbackJams(troi.patch.Patch):
+    """
+        See below for description
+    """
 
     def __init__(self, debug=False):
         troi.patch.Patch.__init__(self, debug)
@@ -89,7 +91,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
     def inputs():
         return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False },
                 { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False }]
-        
+
     @staticmethod
     def outputs():
         return [Recording]
@@ -129,7 +131,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
 
         decade_splitter = DecadePlaylistSplitterElement()
         decade_splitter.set_sources(artist_filter)
-        
+
         artist_limiter = troi.filters.ArtistCreditLimiterElement(3)
         artist_limiter.set_sources(decade_splitter)
 
