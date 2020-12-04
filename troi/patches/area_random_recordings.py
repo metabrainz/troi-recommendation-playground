@@ -1,5 +1,7 @@
 import datetime
 
+import click
+
 from troi import PipelineError, Recording
 import troi.listenbrainz.area_random_recordings
 import troi.tools.area_lookup
@@ -8,16 +10,32 @@ import troi.patch
 import troi.filters
 
 
+@click.group()
+def cli():
+    pass
+
+
 class AreaRandomRecordingsPatch(troi.patch.Patch):
 
     def __init__(self, debug=False):
         super().__init__(debug)
 
     @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "area", "desc": "MusicBrainz area from which to choose tracks.", "optional": False },
-                { "type": int, "name": "start_year", "desc": "Start year", "optional": False },
-                { "type": int, "name": "end_year", "desc": "End year", "optional": False }]
+    @cli.command(no_args_is_help=True)
+    @click.argument('area')
+    @click.argument('start_year', type=int)
+    @click.argument('end_year', type=int)
+    def parse_args(**kwargs):
+        """
+        Generate a list of random recordings from a given area.
+
+        \b
+        AREA is a MusicBrainz area from which to choose tracks.
+        START_YEAR is the start year.
+        END_YEAR is the end year.
+        """
+
+        return kwargs
 
     @staticmethod
     def outputs():
@@ -32,9 +50,9 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         return "Generate a list of random recordings from a given area."
 
     def create(self, inputs):
-        area_name = inputs[0]
-        start_year = inputs[1]
-        end_year = inputs[2]
+        area_name = inputs['area']
+        start_year = inputs['start_year']
+        end_year = inputs['end_year']
 
         area_id = troi.tools.area_lookup.area_lookup(area_name)
 

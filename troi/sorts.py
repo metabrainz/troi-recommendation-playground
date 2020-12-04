@@ -1,3 +1,4 @@
+from sys import maxsize
 from operator import attrgetter
 
 import troi
@@ -11,7 +12,11 @@ class YearSortElement(troi.Element):
 
     def __init__(self, reverse=False):
         '''
-            Sort recordings by year ascending. If reverse=True, sort descending.
+            Sort recordings by year ascending -- recordings that have the same
+            year will be returned in an undefined order. Recordings
+            that have no year set will be returned at the end of the list.
+            If reverse=True, sort descending and return tracks with no year
+            first.
         '''
         super().__init__()
         self.reverse = reverse
@@ -28,7 +33,7 @@ class YearSortElement(troi.Element):
 
         def year_sorter(r):
             if not r.year:
-                return 0
+                return maxsize
             return r.year
 
         return sorted(inputs[0], key=year_sorter, reverse=self.reverse)
