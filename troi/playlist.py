@@ -7,12 +7,15 @@ from troi.operations import is_homogeneous
 
 LISTENBRAINZ_PLAYLIST_CREATE_URL = "https://test.listenbrainz.org/1/playlist/create"
 
-def _serialize_to_jspf(playlist):
+def _serialize_to_jspf(playlist, created_for=None):
 
     data = { "creator": "ListenBrainz Troi" }
 
     if playlist.name:
         data["title"] = playlist.name
+
+    if created_for:
+        data["created_for"] = created_for
 
     tracks = []
     for e in playlist.recordings:
@@ -31,6 +34,7 @@ def _serialize_to_jspf(playlist):
         tracks.append(track)
 
     data['track'] = tracks
+
     return { "playlist" : data }
 
 class PlaylistElement(Element):
@@ -111,11 +115,14 @@ class PlaylistElement(Element):
         op.add_key('listens', ujson.dumps(_serialize_to_jspf(self.playlist)))
         op.send_post()
 
-    def submit(self, token):
+    def submit(self, token, created_for):
         """
-            Submit the playlist to ListenBrainz. The token argument is the user token, found here:
+            Submit the playlist to ListenBrainz.
 
-               https://listenbrainz.org/profile/
+            token - the ListenBrainz user token to use to submit this playlist.
+            created_for - the ListenBrainz user name for whom this playlist was created.
+                          the token above must be an Approved Playlist Bot in the ListenBrainz
+                          server, otherwise the subission will fail.
         """
 
         if not self.playlists:
@@ -123,8 +130,9 @@ class PlaylistElement(Element):
 
         playlist_mbids = []
         for playlist in self.playlists:
+            print(token)
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                              json=_serialize_to_jspf(playlist),
+                              json=_serialize_to_jspf(playlist, created_for),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
                 raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %

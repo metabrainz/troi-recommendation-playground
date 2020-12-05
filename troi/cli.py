@@ -23,8 +23,9 @@ def cli():
 @click.option('--print', '-p', 'echo', required=False, is_flag=True)
 @click.option('--save', '-s', required=False, is_flag=True)
 @click.option('--token', '-t', required=False, type=click.UUID)
+@click.option('--created-for', '-c', required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, args):
+def playlist(patch, debug, echo, save, token, args, created_for):
     """Generate a playlist using a patch"""
 
     patchname = patch
@@ -50,7 +51,7 @@ def playlist(patch, debug, echo, save, token, args):
         return
 
     if token:
-        mbids = playlist.submit(token)
+        mbids = playlist.submit(token, created_for)
         if len(mbids) == 1:
             print("Submitted playlist: %s" % mbids[0])
         else:
