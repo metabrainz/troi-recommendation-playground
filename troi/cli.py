@@ -26,7 +26,18 @@ def cli():
 @click.option('--created-for', '-c', required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def playlist(patch, debug, echo, save, token, args, created_for):
-    """Generate a playlist using a patch"""
+    """
+    Generate a playlist using a patch
+
+    \b
+    PRINT: This option causes the generated playlist to be printed to stdout.
+    SAVE: The save option causes the generated playlist to be saved to disk.
+    TOKEN: For submitting playlists to ListenBrainz, this must be the token of
+           the user whose account the playlist is being submitted to.
+    CREATED-FOR: If this option is specified, it must give a valid user name and the
+                 TOKEN argument must specify a user who is whitelisted as a playlist bot at
+                 listenbrainz.org .
+    """
 
     patchname = patch
     patches = troi.utils.discover_patches()
@@ -66,7 +77,7 @@ def playlist(patch, debug, echo, save, token, args, created_for):
 
     if not echo and not save and not token:
         if len(playlist.playlists) == 0:
-            print("No playlists where generated. :(")
+            print("No playlists were generated. :(")
         elif len(playlist.playlists) == 1:
             print("A playlist with %d tracks was generated." % len(playlist.playlists[0].recordings))
         else:

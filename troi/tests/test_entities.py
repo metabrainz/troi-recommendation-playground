@@ -88,13 +88,13 @@ class TestEntities(unittest.TestCase):
         assert r.mbid is None
         assert r.name is None
         assert r.filename is None
-        assert r.recordings == []
+        assert r.recordings == None
 
         p = Playlist("cooking playlist", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "mk_noms.jspf")
         assert p.name == "cooking playlist"
         assert p.mbid == "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3"
         assert p.filename == "mk_noms.jspf"
-        assert p.recordings == []
+        assert p.recordings == None
 
         r = Recording("Strangers", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "97b01626-65fc-4c32-b30c-c4d7eab1b339")
         p = Playlist("eating playlist", "8fe3f1d4-b6d5-4726-89ad-926e3420b9e3", "omnomnom.jspf", [r])

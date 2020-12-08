@@ -222,8 +222,12 @@ class Recording(Entity):
 class Playlist(Entity):
     """
         The class that represents a playlist, which is nothing more than a [Recording] with metadata.
+
+        The arguments are the same as the other entities, except that mbid in this case refers to a playlist_mbid
+        and that filename is the suggested filename that this playlist should be saved as, if the user asked to 
+        do that and didn't provide a different filename.
     """
-    def __init__(self, name=None, mbid=None, filename=None, recordings=[],
+    def __init__(self, name=None, mbid=None, filename=None, recordings=None,
                  ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
@@ -232,7 +236,7 @@ class Playlist(Entity):
         self.recordings = recordings
 
     def __str__(self):
-        return "<Recording('%s', %s, %s)>" % (self.name, self.desc, self.mbid)
+        return "<Playlist('%s', %s, %s)>" % (self.name, self.desc, self.mbid)
 
 
 
