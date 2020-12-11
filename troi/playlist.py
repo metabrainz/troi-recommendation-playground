@@ -1,5 +1,4 @@
 import ujson
-import openpost
 import requests
 
 from troi import Recording, Playlist, PipelineError, Element 
@@ -43,6 +42,10 @@ class PlaylistElement(Element):
         Take a list of Recordings or Playlists and save, print or submit them. The playlist element takes
         lists of recordings or lists of playlists and saves them to disk or submits them to ListenBrainz.
 
+        This element can receive a list of recordings in which case that will be treated as a single
+        playlist. This element can also recevied a list of playlists, in which case each playlist will
+        be saved/submitted individually.
+
         Note that the Playlist entity object is distinct from this class -- the Playlist object tracks
         the core components of a playlist for passing through troi piplines, whereas this class
         is designed to be the end of the pipeline for saving results.
@@ -74,6 +77,7 @@ class PlaylistElement(Element):
         return outputs
 
     def print(self):
+        """Prints the resultant playlists, one after another."""
 
         if not self.playlists:
             print("[no playlist(s) generated yet]")
@@ -103,23 +107,15 @@ class PlaylistElement(Element):
 
 
     def save(self):
+        """Save each playlist to disk, giving each playlist a unique name if none was provided."""
 
         if not self.playlists:
             raise PipelineError("Playlists have not been generated yet.")
 
         for i, playlist in enumerate(self.playlists):
-            filename = playlist.filename or "playlist %03d.jspf" % i
+            filename = playlist.filename or "playlist_%03d.jspf" % i
             with open(filename, "w") as f:
                 f.write(ujson.dumps(_serialize_to_jspf(playlist)))
-
-    def launch(self):
-
-        if not self.playlists:
-            raise PipelineError("Playlists have not been generated yet.")
-
-        op = openpost.OpenPost('https://listenbrainz.org/player', keep_file=True, file_name="playlist.html")
-        op.add_key('listens', ujson.dumps(_serialize_to_jspf(self.playlist)))
-        op.send_post()
 
     def submit(self, token, created_for):
         """

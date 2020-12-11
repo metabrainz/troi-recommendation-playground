@@ -17,7 +17,7 @@ def cli():
 
 class DecadePlaylistSplitterElement(Element):
     '''
-        Split a list of recordings that have their year attribute filled out
+        Take a list of recordings that have their year attribute filled out
         and output N playlists broken down by decade of the Recordings. Recordings
         with no year set will be ignored and playlists will only be generated
         for decades that have at least minimum_count recordings.

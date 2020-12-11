@@ -22,8 +22,8 @@ class DailyJamsElement(Element):
     def __init__(self, recs, user, day):
         Element.__init__(self)
         self.recs = recs
-        self.day = day
         self.user = user
+        self.day = day
 
     @staticmethod
     def inputs():
