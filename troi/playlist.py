@@ -2,10 +2,11 @@ import ujson
 import openpost
 import requests
 
-from troi import Recording, Playlist, PipelineError, Element
+from troi import Recording, Playlist, PipelineError, Element 
 from troi.operations import is_homogeneous
 
-LISTENBRAINZ_PLAYLIST_CREATE_URL = "https://test.listenbrainz.org/1/playlist/create"
+LISTENBRAINZ_SERVER_URL = "https://test.listenbrainz.org"
+LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_SERVER_URL + "/1/playlist/create"
 
 def _serialize_to_jspf(playlist, created_for=None):
 
@@ -39,7 +40,12 @@ def _serialize_to_jspf(playlist, created_for=None):
 
 class PlaylistElement(Element):
     """
-        Take a list of Recordings or Playlists and save, print or submit them.
+        Take a list of Recordings or Playlists and save, print or submit them. The playlist element takes
+        lists of recordings or lists of playlists and saves them to disk or submits them to ListenBrainz.
+
+        Note that the Playlist entity object is distinct from this class -- the Playlist object tracks
+        the core components of a playlist for passing through troi piplines, whereas this class
+        is designed to be the end of the pipeline for saving results.
     """
 
     def __init__(self):
@@ -143,6 +149,6 @@ class PlaylistElement(Element):
             except ValueError as err:
                 raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
 
-            playlist_mbids.append(result["playlist_mbid"])
+            playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
         return playlist_mbids

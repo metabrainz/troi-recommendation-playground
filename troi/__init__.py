@@ -221,7 +221,9 @@ class Recording(Entity):
 
 class Playlist(Entity):
     """
-        The class that represents a playlist, which is nothing more than a [Recording] with metadata.
+        The class that represents a playlist, which is nothing more than a [Recording] with metadata. This is
+        different from the PlaylistElement, which is normally uses to terminate a pipeline for submitting or
+        saving result playlists to disk.
 
         The arguments are the same as the other entities, except that mbid in this case refers to a playlist_mbid
         and that filename is the suggested filename that this playlist should be saved as, if the user asked to 

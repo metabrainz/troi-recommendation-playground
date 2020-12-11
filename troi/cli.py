@@ -62,11 +62,8 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         return
 
     if token:
-        mbids = playlist.submit(token, created_for)
-        if len(mbids) == 1:
-            print("Submitted playlist: %s" % mbids[0])
-        else:
-            print("Submitted playlists:", mbid)
+        for url, _ in playlist.submit(token, created_for):
+            print("Submitted playlist: %s" % url)
 
     if save:
         playlist.save()
