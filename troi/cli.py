@@ -20,9 +20,25 @@ def cli():
 ))
 @click.argument('patch', type=str)
 @click.option('--debug/--no-debug')
+@click.option('--print', '-p', 'echo', required=False, is_flag=True)
+@click.option('--save', '-s', required=False, is_flag=True)
+@click.option('--token', '-t', required=False, type=click.UUID)
+@click.option('--created-for', '-c', required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, args):
-    """Generate a playlist using a patch"""
+def playlist(patch, debug, echo, save, token, args, created_for):
+    """
+    Generate a playlist using a patch
+
+    \b
+    PRINT: This option causes the generated playlist to be printed to stdout.
+    SAVE: The save option causes the generated playlist to be saved to disk.
+    TOKEN: Specifying a token submits the playlists to ListenBrainz. This must be the token of
+           the user whose account the playlist is being submitted to. See https://listenbrainz.org/profile to
+           get your user token.
+    CREATED-FOR: If this option is specified, it must give a valid user name and the
+                 TOKEN argument must specify a user who is whitelisted as a playlist bot at
+                 listenbrainz.org .
+    """
 
     patchname = patch
     patches = troi.utils.discover_patches()
@@ -46,9 +62,26 @@ def playlist(patch, debug, args):
               file=sys.stderr)
         return
 
-    playlist.print()
-    print("-- generated playlist with %d recordings. Open playlist by opening playlist.html in your browser." % len(playlist.entities))
-    playlist.launch()
+    if token:
+        for url, _ in playlist.submit(token, created_for):
+            print("Submitted playlist: %s" % url)
+
+    if save:
+        playlist.save()
+        print("playlist saved.")
+
+    if echo:
+        playlist.print()
+
+    if not echo and not save and not token:
+        if len(playlist.playlists) == 0:
+            print("No playlists were generated. :(")
+        elif len(playlist.playlists) == 1:
+            print("A playlist with %d tracks was generated." % len(playlist.playlists[0].recordings))
+        else:
+            print("%d playlists were generated." % len(playlist.playlists))
+
+        print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --token or --print)")
 
 
 @cli.command(name="list")

@@ -59,10 +59,10 @@ class Element(ABC):
             for source in self.sources:
                 source_lists.append(source.generate())
 
-        recordings = self.read(source_lists)
-        self.debug("%-50s %d items" % (type(self).__name__[:49], len(recordings or [])))
+        items = self.read(source_lists)
+        self.debug("%-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
-        return recordings
+        return items
 
     def run(self):
         """
@@ -217,6 +217,29 @@ class Recording(Entity):
 
     def __str__(self):
         return "<Recording('%s', %s, %s)>" % (self.name, self.mbid, self.msid)
+
+
+class Playlist(Entity):
+    """
+        The class that represents a playlist, which is nothing more than a [Recording] with metadata. This is
+        different from the PlaylistElement, which is normally uses to terminate a pipeline for submitting or
+        saving result playlists to disk.
+
+        The arguments are the same as the other entities, except that mbid in this case refers to a playlist_mbid
+        and that filename is the suggested filename that this playlist should be saved as, if the user asked to 
+        do that and didn't provide a different filename.
+    """
+    def __init__(self, name=None, mbid=None, filename=None, recordings=None,
+                 ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+        Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
+        self.name = name
+        self.filename = filename
+        self.mbid = mbid
+        self.recordings = recordings
+
+    def __str__(self):
+        return "<Playlist('%s', %s, %s)>" % (self.name, self.desc, self.mbid)
+
 
 
 class PipelineError(RuntimeError):

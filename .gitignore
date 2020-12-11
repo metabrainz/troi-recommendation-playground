@@ -7,4 +7,3 @@ docs/_build
 build
 dist
 troi.egg-info
-patches
