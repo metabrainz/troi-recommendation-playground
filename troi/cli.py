@@ -32,8 +32,9 @@ def playlist(patch, debug, echo, save, token, args, created_for):
     \b
     PRINT: This option causes the generated playlist to be printed to stdout.
     SAVE: The save option causes the generated playlist to be saved to disk.
-    TOKEN: For submitting playlists to ListenBrainz, this must be the token of
-           the user whose account the playlist is being submitted to.
+    TOKEN: Specifying a token submits the playlists to ListenBrainz. This must be the token of
+           the user whose account the playlist is being submitted to. See https://listenbrainz.org/profile to
+           get your user token.
     CREATED-FOR: If this option is specified, it must give a valid user name and the
                  TOKEN argument must specify a user who is whitelisted as a playlist bot at
                  listenbrainz.org .
@@ -80,7 +81,7 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         else:
             print("%d playlists were generated." % len(playlist.playlists))
 
-        print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --submit or --print)")
+        print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --token or --print)")
 
 
 @cli.command(name="list")
