@@ -57,9 +57,10 @@ class YearReviewShaperElement(Element):
     '''
     '''
 
-    def __init__(self, artist_count=15):
+    def __init__(self, artist_count=15, max_num_recordings=30):
         super().__init__()
         self.artist_count = artist_count
+        self.max_num_recordings = max_num_recordings
 
     @staticmethod
     def inputs():
@@ -86,11 +87,11 @@ class YearReviewShaperElement(Element):
                     filtered.append(r)
                     artists[r.artist.artist_credit_id] += 1
 
-            return filtered
+            return filtered[:self.max_num_recordings]
         else:
             self.debug("returned full year review list")
 
-        return recordings
+        return recordings[:self.max_num_recordings]
 
 
 class YearReview(troi.patch.Patch):
