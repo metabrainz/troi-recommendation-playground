@@ -137,11 +137,8 @@ class YearReview(troi.patch.Patch):
 
         recs = YearReviewFetcherElement(user_name=user_name)
 
-        y_lookup = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)
-        y_lookup.set_sources(recs)
-
         shaper = YearReviewShaperElement()
-        shaper.set_sources(y_lookup)
+        shaper.set_sources(recs)
 
         pl_maker = troi.patches.top_tracks_for_year.PlaylistMakerElement("Top discoveries of 2020",
                                                                          "Top tracks you started listening to in 2020.")
