@@ -229,16 +229,17 @@ class Playlist(Entity):
         and that filename is the suggested filename that this playlist should be saved as, if the user asked to 
         do that and didn't provide a different filename.
     """
-    def __init__(self, name=None, mbid=None, filename=None, recordings=None,
+    def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None,
                  ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.filename = filename
         self.mbid = mbid
         self.recordings = recordings
+        self.description = description
 
     def __str__(self):
-        return "<Playlist('%s', %s, %s)>" % (self.name, self.desc, self.mbid)
+        return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)
 
 
 

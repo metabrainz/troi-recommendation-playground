@@ -9,6 +9,7 @@ import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.year_lookup
+import troi.patches.top_tracks_for_year
 
 
 @click.group()
@@ -142,4 +143,8 @@ class YearReview(troi.patch.Patch):
         shaper = YearReviewShaperElement()
         shaper.set_sources(y_lookup)
 
-        return shaper
+        pl_maker = troi.patches.top_tracks_for_year.PlaylistMakerElement("Top discoveries of 2020",
+                                                                         "Top tracks you started listening to in 2020.")
+        pl_maker.set_sources(shaper)
+
+        return pl_maker
