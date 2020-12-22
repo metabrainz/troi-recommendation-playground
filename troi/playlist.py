@@ -63,6 +63,9 @@ class PlaylistElement(Element):
 
         outputs = []
         for input in inputs:
+            if len(input) == 0:
+                continue
+
             if isinstance(input[0], Recording):
                 if not is_homogeneous(input):
                     raise TypeError("entity list not homogeneous")
