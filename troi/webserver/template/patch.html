@@ -53,7 +53,7 @@
         <tr>
           <td><a href="https://musicbrainz.org/recording/{{ rec.mbid }}">{{ rec.name }}</a></td>
           <td>
-            {% if rec.artist.mbids | length() > 1 %}
+            {% if rec.artist.mbids and rec.artist.mbids | length() > 1 %}
                 {{ rec.artist.name }} 
                 {% for mbid in rec.artist.mbids %}
                    <a href="https://musicbrainz.org/artist/{{ mbid }}">{{ loop.index }}</a>
