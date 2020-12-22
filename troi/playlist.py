@@ -155,8 +155,13 @@ class PlaylistElement(Element):
                               json=_serialize_to_jspf(playlist, created_for),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
+                try:
+                    err = r.json()["error"]
+                except json.decoder.JSONDecodeError:
+                    err = r.text
+
                 raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %
-                                    (r.status_code, r.json()["error"]))
+                                    (r.status_code, err))
 
             try:
                 result = ujson.loads(r.text)
