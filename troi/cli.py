@@ -60,7 +60,7 @@ def playlist(patch, debug, echo, save, token, args, created_for):
     except troi.PipelineError as err:
         print("Failed to generate playlist: %s" % err,
               file=sys.stderr)
-        return
+        sys.exit(2)
 
     if token:
         for url, _ in playlist.submit(token, created_for):
@@ -82,6 +82,8 @@ def playlist(patch, debug, echo, save, token, args, created_for):
             print("%d playlists were generated." % len(playlist.playlists))
 
         print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --token or --print)")
+
+    sys.exit(0)
 
 
 @cli.command(name="list")
