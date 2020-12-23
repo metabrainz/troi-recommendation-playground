@@ -112,12 +112,12 @@ class YearReview(troi.patch.Patch):
               </p>
               <p>
               Double click on any recording to start playing it -- we'll do our best to find a matching recording
-              to play -- if you have Spotify we recommend connecting your account for a better playback experience.
+              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
               </p>
               <p>
               Please keep in mind that this is our first attempt at making playlists for our users. Our processes
               are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
-              very accurate, we apoligize -- we'll continue to make them better. (e.g. Some recordings may be missing
+              very accurate, we apologize -- we'll continue to make them better. (e.g. some recordings may be missing
               from this list because we were not able to find a match for it in MusicBrainz.)
               </p>
               <p>

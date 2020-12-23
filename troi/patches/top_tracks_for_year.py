@@ -47,15 +47,17 @@ class TopTracksYearPatch(troi.patch.Patch):
     NAME = "Top recordings of 2020 for %s"
     DESC = """<p>
               This playlist is made from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
-              top recordings for 2020 statistics</a>. Double click on any recording to start playing it -- we'll do
-              our best to find a matching recording to play -- if you have Spotify we recommend connecting
-              your account for a better playback experience.
+              top recordings for 2020 statistics</a>.
+              </p>
+              <p>
+              Double click on any recording to start playing it -- we'll do our best to find a matching recording
+              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
               </p>
               <p>
               Please keep in mind that this is our first attempt at making playlists for our users. Our processes
               are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
-              very accurate, we apoligize -- we'll continue to make them better. (e.g. Some recordings may be missing
-              from your top recordings list because we were not able to find a match for it in MusicBrainz.)
+              very accurate, we apologize -- we'll continue to make them better. (e.g. some recordings may be missing
+              from this list because we were not able to find a match for it in MusicBrainz.)
               </p>
               <p>
               Happy holidays from everyone at MetaBrainz!
