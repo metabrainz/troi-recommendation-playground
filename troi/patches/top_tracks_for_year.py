@@ -1,4 +1,5 @@
 from collections import defaultdict
+from urllib.parse import quote
 import requests
 
 import click
@@ -43,6 +44,24 @@ class TopTracksYearPatch(troi.patch.Patch):
         See below for description
     """
 
+    NAME = "Top recordings of 2020 for %s"
+    DESC = """<p>
+              This playlist is made from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
+              top recordings for 2020 statistics</a>. Double click on any recording to start playing it -- we'll do
+              our best to find a matching recording to play -- if you have Spotify we recommend connecting
+              your account for a better playback experience.
+              </p>
+              <p>
+              Please keep in mind that this is our first attempt at making playlists for our users. Our processes
+              are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
+              very accurate, we apoligize -- we'll continue to make them better. (e.g. Some recordings may be missing
+              from your top recordings list because we were not able to find a match for it in MusicBrainz.)
+              </p>
+              <p>
+              Happy holidays from everyone at MetaBrainz!
+              </p>
+           """
+
     def __init__(self, debug=False, max_num_recordings=30):
         troi.patch.Patch.__init__(self, debug)
         self.max_num_recordings = max_num_recordings
@@ -84,7 +103,7 @@ class TopTracksYearPatch(troi.patch.Patch):
         mbid_lookup = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement()
         mbid_lookup.set_sources(stats)
 
-        pl_maker = PlaylistMakerElement("Top Recordings of 2020", "These are your top most listened to recordings of 2020.")
+        pl_maker = PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
         pl_maker.set_sources(mbid_lookup)
 
         return pl_maker

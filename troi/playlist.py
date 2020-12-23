@@ -150,7 +150,6 @@ class PlaylistElement(Element):
 
         playlist_mbids = []
         for playlist in self.playlists:
-            print(_serialize_to_jspf(playlist, created_for))
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for),
                               headers={"Authorization": "Token " + str(token)})
