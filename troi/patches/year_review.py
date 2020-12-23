@@ -1,4 +1,5 @@
 from collections import defaultdict
+from urllib.parse import quote
 import requests
 
 import click
@@ -9,6 +10,7 @@ import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.year_lookup
+import troi.patches.top_tracks_for_year
 
 
 @click.group()
@@ -99,6 +101,30 @@ class YearReview(troi.patch.Patch):
         See below for description
     """
 
+    NAME = "Top discoveries of 2020 for %s"
+    DESC = """<p>
+              We generated this playlist from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
+              listening statistics for 2020</a>. We started with all the recordings that you first listened to in
+              2020 and then selected the recordings that you listened to more than once. If we found recordings 
+              from more than 15 artists, we selected at most 2 recordings from each artist to make this playlist.
+              If we found 15 or fewer artists, we picked all the recordings. Finally, we returned at most 30 
+              recordings and ordered them by how many times you listened to them in 2020.
+              </p>
+              <p>
+              Double click on any recording to start playing it -- we'll do our best to find a matching recording
+              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
+              </p>
+              <p>
+              Please keep in mind that this is our first attempt at making playlists for our users. Our processes
+              are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
+              very accurate, we apologize -- we'll continue to make them better. (e.g. some recordings may be missing
+              from this list because we were not able to find a match for it in MusicBrainz.)
+              </p>
+              <p>
+              Happy holidays from everyone at MetaBrainz!
+              </p>
+           """
+
     def __init__(self, debug=False):
         troi.patch.Patch.__init__(self, debug)
 
@@ -136,10 +162,10 @@ class YearReview(troi.patch.Patch):
 
         recs = YearReviewFetcherElement(user_name=user_name)
 
-        y_lookup = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)
-        y_lookup.set_sources(recs)
-
         shaper = YearReviewShaperElement()
-        shaper.set_sources(y_lookup)
+        shaper.set_sources(recs)
 
-        return shaper
+        pl_maker = troi.patches.top_tracks_for_year.PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
+        pl_maker.set_sources(shaper)
+
+        return pl_maker
