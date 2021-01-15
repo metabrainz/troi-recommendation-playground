@@ -1,5 +1,5 @@
 import requests
-import ujson
+import json
 
 from troi import Element, Recording, Release, PipelineError
 
@@ -36,8 +36,9 @@ class MBIDMappingLookupElement(Element):
             raise PipelineError("Cannot fetch MBID mapping rows from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
 
         entities = []
-        for row in r.json():
+        for row in json.loads(r.text):
             r = inputs[0][int(row['index'])]
+            print(r)
 
             if not row['artist_credit_name']:
                 if not self.remove_unmatched:
@@ -45,18 +46,18 @@ class MBIDMappingLookupElement(Element):
                 continue
 
             if r.mbid:
-                r.add_note("recording mbid %s overwritten by msb_lookup" % (r.mbid))
+                r.add_note("recording mbid %s overwritten by mbid_lookup" % (r.mbid))
             r.mbid = row['recording_mbid']
             r.name = row['recording_name']
 
             if r.artist.artist_credit_id:
-                r.artist.add_note("artist_credit_id %d overwritten by msb_lookup" % (r.artist.artist_credit_id))
+                r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id))
             r.artist.artist_credit_id = row['artist_credit_id']
             r.artist.name = row['artist_credit_name']
 
             if r.release:
                 if r.release.mbid:
-                    r.release.add_note("mbid %d overwritten by msb_lookup" % (r.release.mbid))
+                    r.release.add_note("mbid %d overwritten by mbid_lookup" % (r.release.mbid))
                 r.release.mbid = row['release_mbid']
                 r.release.name = row['release_name']
             else:
