@@ -1,18 +1,32 @@
-import ujson
+import json
 import requests
 
 from troi import Recording, Playlist, PipelineError, Element 
 from troi.operations import is_homogeneous
 
-LISTENBRAINZ_SERVER_URL = "https://test.listenbrainz.org"
+LISTENBRAINZ_SERVER_URL = "https://api.listenbrainz.org"
 LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_SERVER_URL + "/1/playlist/create"
+PLAYLIST_TRACK_URI_PREFIX = "https://musicbrainz.org/recording/"
+PLAYLIST_ARTIST_URI_PREFIX = "https://musicbrainz.org/artist/"
+PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
+PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
+PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 
 def _serialize_to_jspf(playlist, created_for=None):
 
-    data = { "creator": "ListenBrainz Troi" }
+    data = { "creator": "ListenBrainz Troi",
+             "extension": {
+                 PLAYLIST_EXTENSION_URI: {
+                     "public": True 
+                 }
+           }
+    }
 
     if playlist.name:
         data["title"] = playlist.name
+
+    if playlist.description:
+        data["annotation"] = playlist.description
 
     if created_for:
         data["created_for"] = created_for
@@ -27,7 +41,7 @@ def _serialize_to_jspf(playlist, created_for=None):
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
         if artist_mbids:
             track["extension"] = {
-                "https://musicbrainz.org#jspf": {
+                PLAYLIST_TRACK_URI_PREFIX: {
                     "artist_mbids" : artist_mbids,
                 }
             }
@@ -36,6 +50,7 @@ def _serialize_to_jspf(playlist, created_for=None):
     data['track'] = tracks
 
     return { "playlist" : data }
+
 
 class PlaylistElement(Element):
     """
@@ -63,6 +78,10 @@ class PlaylistElement(Element):
 
         outputs = []
         for input in inputs:
+            if len(input) == 0:
+                print("No recordings or playlists generated to save.")
+                continue
+
             if isinstance(input[0], Recording):
                 if not is_homogeneous(input):
                     raise TypeError("entity list not homogeneous")
@@ -115,7 +134,7 @@ class PlaylistElement(Element):
         for i, playlist in enumerate(self.playlists):
             filename = playlist.filename or "playlist_%03d.jspf" % i
             with open(filename, "w") as f:
-                f.write(ujson.dumps(_serialize_to_jspf(playlist)))
+                f.write(json.dumps(_serialize_to_jspf(playlist)))
 
     def submit(self, token, created_for):
         """
@@ -132,16 +151,25 @@ class PlaylistElement(Element):
 
         playlist_mbids = []
         for playlist in self.playlists:
-            print(token)
+            print("submit %d tracks" % len(playlist.recordings))
+            if len(playlist.recordings) == 0:
+                print("skip playlist of length 0")
+                continue
+
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
+                try:
+                    err = r.json()["error"]
+                except json.decoder.JSONDecodeError:
+                    err = r.text
+
                 raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %
-                                    (r.status_code, r.json()["error"]))
+                                    (r.status_code, err))
 
             try:
-                result = ujson.loads(r.text)
+                result = json.loads(r.text)
             except ValueError as err:
                 raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
 
