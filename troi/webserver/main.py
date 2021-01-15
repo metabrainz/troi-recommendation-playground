@@ -45,7 +45,7 @@ def error_check_arguments(inputs):
                 args.append(None)
             else:
                 return "Parameter %s is of incorrect type. Must be %s." % (input['name'], input['type']), ()
-               
+
     return "", args
 
 
@@ -53,7 +53,7 @@ def web_patch_handler():
     """
         This is the view handler for the web page.
     """
-  
+
     patch_name = request.path[1:]
     try:
         patch = patches[patch_name]()

@@ -64,7 +64,6 @@ class YearLookupElement(Element):
                     self.debug("recording (%s %s) not found, skipping." % (r.artist.name, r.name))
                 else:
                     output.append(r)
-                    
                 continue
 
             output.append(r)

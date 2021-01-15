@@ -1,7 +1,7 @@
 import json
 import requests
 
-from troi import Recording, Playlist, PipelineError, Element 
+from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
 
 LISTENBRAINZ_SERVER_URL = "https://api.listenbrainz.org"
@@ -17,7 +17,7 @@ def _serialize_to_jspf(playlist, created_for=None):
     data = { "creator": "ListenBrainz Troi",
              "extension": {
                  PLAYLIST_EXTENSION_URI: {
-                     "public": True 
+                     "public": True
                  }
            }
     }
