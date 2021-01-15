@@ -13,6 +13,13 @@ return_json = [
     }
 ]
 
+return_json_keep_unmatched = [
+    {
+        "artist_credit_name": "morcheeba",
+        "recording_name": "trigger hippie"
+    }
+]
+
 class TestYearLookup(unittest.TestCase):
 
     @unittest.mock.patch('requests.post')
@@ -34,7 +41,7 @@ class TestYearLookup(unittest.TestCase):
         assert entities[0].year == 1997
 
 
-    @unittest.mock.patch('requests.get')
+    @unittest.mock.patch('requests.post')
     def test_read_remove_unmatched(self, req):
 
         mock = unittest.mock.MagicMock()
@@ -46,3 +53,19 @@ class TestYearLookup(unittest.TestCase):
         r = [ troi.Recording("track not found", artist=troi.Artist("artist not found")) ]
         entities = e.read([r])
         assert len(entities) == 0
+
+    @unittest.mock.patch('requests.post')
+    def test_read_keep_unmatched(self, req):
+
+        mock = unittest.mock.MagicMock()
+        mock.status_code = 200
+        mock.text = json.dumps(return_json_keep_unmatched)
+        req.return_value = mock
+        e = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)
+
+        r = [ troi.Recording("track not found", artist=troi.Artist("artist not found")) ]
+        entities = e.read([r])
+        assert len(entities) == 1
+        assert entities[0].artist.name == "morcheeba"
+        assert entities[0].name == "trigger hippie"
+        assert entities[0].year == 1997
