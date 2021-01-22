@@ -13,12 +13,8 @@ return_json = [
     }
 ]
 
-return_json_keep_unmatched = [
-    {
-        "artist_credit_name": "morcheeba",
-        "recording_name": "trigger hippie"
-    }
-]
+# intentionally empty
+return_json_keep_unmatched = [ ]
 
 class TestYearLookup(unittest.TestCase):
 
@@ -63,9 +59,9 @@ class TestYearLookup(unittest.TestCase):
         req.return_value = mock
         e = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)
 
-        r = [ troi.Recording("track not found", artist=troi.Artist("artist not found")) ]
+        r = [ troi.Recording("trigger hippie", artist=troi.Artist("morcheeba")) ]
         entities = e.read([r])
         assert len(entities) == 1
         assert entities[0].artist.name == "morcheeba"
         assert entities[0].name == "trigger hippie"
-        assert entities[0].year == 1997
+        assert entities[0].year is None
