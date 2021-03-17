@@ -1,39 +1,38 @@
+import json
 import unittest
 import unittest.mock
 
 import troi
-import troi.musicbrainz.msb_mapping
+import troi.musicbrainz.mbid_mapping
 
-return_json = """[
-
+return_data = [
     {
-        "artist_arg": "morcheeba",
+        "artist_credit_arg": "morcheeba",
+        "artist_credit_id": 963,
+        "artist_credit_name": "Morcheeba",
         "index": 0,
-        "mb_artist_credit_id": 963,
-        "mb_artist_name": "Morcheeba",
-        "mb_recording_mbid": "97e69767-5d34-4c97-b36a-f3b2b1ef9dae",
-        "mb_recording_name": "Trigger Hippie",
-        "mb_release_mbid": "9db51cd6-38f6-3b42-8ad5-559963d68f35",
-        "mb_release_name": "Who Can You Trust?",
-        "recording_arg": "triggerhippie"
+        "recording_arg": "trigger hippie",
+        "recording_mbid": "97e69767-5d34-4c97-b36a-f3b2b1ef9dae",
+        "recording_name": "Trigger Hippie",
+        "release_mbid": "9db51cd6-38f6-3b42-8ad5-559963d68f35",
+        "release_name": "Who Can You Trust?"
     }
+]
 
-]"""
+class TestMBIDMapping(unittest.TestCase):
 
-class TestMSBMapping(unittest.TestCase):
-
-    @unittest.mock.patch('requests.get')
+    @unittest.mock.patch('requests.post')
     def test_read(self, req):
 
         mock = unittest.mock.MagicMock()
         mock.status_code = 200
-        mock.text = return_json
+        mock.text = json.dumps(return_data)
         req.return_value = mock
-        e = troi.musicbrainz.msb_mapping.MSBMappingLookupElement()
+        e = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement()
 
         r = [ troi.Recording("trigger hippie", artist=troi.Artist("morcheeba")) ]
         entities = e.read([r])
-        req.assert_called_with(e.SERVER_URL, params={'[msb_artist_credit_name]': 'morcheeba', '[msb_recording_name]': 'trigger hippie'})
+        req.assert_called_with(e.SERVER_URL, json=[{'[artist_credit_name]': 'morcheeba', '[recording_name]': 'trigger hippie'}])
 
         assert len(entities) == 1
         assert entities[0].artist.artist_credit_id == 963
@@ -51,7 +50,7 @@ class TestMSBMapping(unittest.TestCase):
         mock.status_code = 200
         mock.text = "{}"
         req.return_value = mock
-        e = troi.musicbrainz.msb_mapping.MSBMappingLookupElement(True)
+        e = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement(True)
 
         r = [ troi.Recording("track not found", artist=troi.Artist("artist not found")) ]
         entities = e.read([r])
