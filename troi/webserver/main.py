@@ -42,7 +42,7 @@ def error_check_arguments(inputs):
             args[input['name']] = input['type'](arg)
         except:
             if input['optional']:
-                args.append(None)
+                args[input['name']] = None
             else:
                 return "Parameter %s is of incorrect type. Must be %s." % (input['name'], input['type']), ()
 
