@@ -38,8 +38,8 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         return "Find acoustically similar recordings from AcousticBrainz"
 
     def create(self, inputs):
-        recording_id = inputs[0]
-        similarity_type = inputs[1]
+        recording_id = inputs['recording_id']
+        similarity_type = inputs['similarity_type']
 
         annoy_element = annoy.AnnoyLookupElement(similarity_type, recording_id)
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
