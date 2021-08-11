@@ -56,8 +56,8 @@ class TestAnnoyLookupElement(unittest.TestCase):
         e = troi.acousticbrainz.annoy.AnnoyLookupElement("mfccs", "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf")
 
         entities = e.read([[]])
-        req.assert_called_with(e.SERVER_URL + "mfccs", params={
-            "remove_dups": "true", "recording_ids": "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf:0;"
+        req.assert_called_with(e.SERVER_URL + "mfccs/", params={
+            "remove_dups": "true", "recording_ids": "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf:0"
         })
 
         assert len(entities) == 6
