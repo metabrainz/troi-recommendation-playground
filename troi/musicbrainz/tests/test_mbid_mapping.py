@@ -43,7 +43,7 @@ class TestMBIDMapping(unittest.TestCase):
         assert entities[0].name == "Trigger Hippie"
 
 
-    @unittest.mock.patch('requests.get')
+    @unittest.mock.patch('requests.post')
     def test_read_remove_unmatched(self, req):
 
         mock = unittest.mock.MagicMock()
