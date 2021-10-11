@@ -43,11 +43,35 @@ python3 -m troi.cli --help
 **Windows**
 
 ```
-virtualenv -p python3 .ve
+virtualenv -p python .ve
 .ve\Scripts\activate.bat
-pip3 install -r requirements.txt
-python3 -m troi.cli --help
+pip install -r requirements.txt
+python -m troi.cli --help
 ```
+
+## Basic commands
+
+List available patches:
+
+    python -m troi.cli list
+
+Generate a playlist using a patch:
+
+    python -m troi.cli playlist --print [patch-name]
+
+If the patch requires arguments, running it with no arguments will print a usage statement, e.g.
+
+    $ python -m troi.cli playlist --print area-random-recordings
+    Usage: area-random-recordings [OPTIONS] AREA START_YEAR END_YEAR
+   
+      Generate a list of random recordings from a given area.
+   
+      AREA is a MusicBrainz area from which to choose tracks.
+      START_YEAR is the start year.
+      END_YEAR is the end year.
+   
+    Options:
+      --help  Show this message and exit.
 
 ## Running tests
 
