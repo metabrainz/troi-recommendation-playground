@@ -17,7 +17,7 @@ class YearLookupElement(Element):
 
     '''
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/acrp-year-lookup/json"
+    SERVER_URL = "https://labs.api.listenbrainz.org/year-artist-recording-year-lookup/json"
 
     def __init__(self, skip_not_found=True):
         Element.__init__(self)
