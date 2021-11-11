@@ -1,10 +1,10 @@
-import ujson
+import json
 import requests
 
-from troi import Recording, Playlist, PipelineError, Element 
+from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
 
-LISTENBRAINZ_SERVER_URL = "https://test.listenbrainz.org"
+LISTENBRAINZ_SERVER_URL = "https://api.listenbrainz.org"
 LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_SERVER_URL + "/1/playlist/create"
 PLAYLIST_TRACK_URI_PREFIX = "https://musicbrainz.org/recording/"
 PLAYLIST_ARTIST_URI_PREFIX = "https://musicbrainz.org/artist/"
@@ -17,7 +17,7 @@ def _serialize_to_jspf(playlist, created_for=None):
     data = { "creator": "ListenBrainz Troi",
              "extension": {
                  PLAYLIST_EXTENSION_URI: {
-                     "public": True 
+                     "public": True
                  }
            }
     }
@@ -79,6 +79,7 @@ class PlaylistElement(Element):
         outputs = []
         for input in inputs:
             if len(input) == 0:
+                print("No recordings or playlists generated to save.")
                 continue
 
             if isinstance(input[0], Recording):
@@ -133,7 +134,7 @@ class PlaylistElement(Element):
         for i, playlist in enumerate(self.playlists):
             filename = playlist.filename or "playlist_%03d.jspf" % i
             with open(filename, "w") as f:
-                f.write(ujson.dumps(_serialize_to_jspf(playlist)))
+                f.write(json.dumps(_serialize_to_jspf(playlist)))
 
     def submit(self, token, created_for):
         """
@@ -150,7 +151,11 @@ class PlaylistElement(Element):
 
         playlist_mbids = []
         for playlist in self.playlists:
-            print(_serialize_to_jspf(playlist, created_for))
+            print("submit %d tracks" % len(playlist.recordings))
+            if len(playlist.recordings) == 0:
+                print("skip playlist of length 0")
+                continue
+
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for),
                               headers={"Authorization": "Token " + str(token)})
@@ -164,7 +169,7 @@ class PlaylistElement(Element):
                                     (r.status_code, err))
 
             try:
-                result = ujson.loads(r.text)
+                result = json.loads(r.text)
             except ValueError as err:
                 raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
 

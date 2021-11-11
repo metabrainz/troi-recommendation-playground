@@ -39,7 +39,9 @@ class UserRecordingRecommendationsElement(Element):
                                                                             self.artist_type, 
                                                                             count=min(MAX_NUM_RECORDINGS_PER_REQUEST, remaining),
                                                                             offset=self.offset+len(recording_list))
-            except (requests.exceptions.HTTPError, pylistenbrainz.errors.ListenBrainzAPIException) as err:
+            except (requests.exceptions.HTTPError,
+                    pylistenbrainz.errors.ListenBrainzAPIException,
+                    requests.exceptions.ConnectionError) as err:
                 if not str(err):
                     err = "Does the user '%s' exist?" % self.user_name
                 raise PipelineError("Cannot fetch recommeded tracks from ListenBrainz: " + str(err))

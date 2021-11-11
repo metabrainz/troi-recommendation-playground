@@ -20,7 +20,7 @@ class AnnoyLookupElement(Element):
         criteria (e.g. mfccs, gfccs, etc).
     """
 
-    SERVER_URL = "http://similarity.acousticbrainz.org/api/v1/similarity/"
+    SERVER_URL = "https://acousticbrainz.org/api/v1/similarity/"
 
     def __init__(self, metric, mbid):
         """
@@ -40,9 +40,10 @@ class AnnoyLookupElement(Element):
     def read(self, inputs):
         self.debug("read for %s/%s" % (self.metric, self.mbid))
 
-        url = self.SERVER_URL + self.metric + "/" + self.mbid
+        url = self.SERVER_URL + self.metric + "/"
         self.debug(f"url: {url}")
-        r = requests.get(url, params={'remove_dups': 'true'})
+        # recording_ids format is mbid:offset;mbid:offset
+        r = requests.get(url, params={'remove_dups': 'true', 'recording_ids': self.mbid + ":0"})
         if r.status_code != 200:
             raise PipelineError("Cannot fetch annoy similarities from AcousticBrainz: HTTP code %d" % r.status_code)
 
@@ -52,7 +53,7 @@ class AnnoyLookupElement(Element):
             raise PipelineError("Cannot fetch annoy similarities from AcousticBrainz: Invalid JSON returned: " + str(err))
 
         entities = []
-        for row in results:
+        for row in results[self.mbid]["0"]:
             r = Recording(mbid=row['recording_mbid'], 
                           acousticbrainz={
                               'metric': self.metric,
