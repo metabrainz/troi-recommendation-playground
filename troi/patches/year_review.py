@@ -1,3 +1,4 @@
+from datetime import datetime
 from collections import defaultdict
 import requests
 
@@ -19,7 +20,7 @@ def cli():
 class YearReviewFetcherElement(Element):
     '''
     '''
-    SERVER_URL = "https://datasets.listenbrainz.org/first-listened-to-2020/json"
+    SERVER_URL = "https://bono.metabrainz.org/top-discoveries/json"
 
     def __init__(self, user_name, minimum_count=20):
         super().__init__()
@@ -43,11 +44,13 @@ class YearReviewFetcherElement(Element):
 
         recordings = []
         for row in r.json():
+            if row['recording_mbid'] is None:
+                continue
+
             recordings.append(Recording(mbid=row['recording_mbid'], 
                                         name=row['recording_name'], 
                                         listenbrainz={"listen_count": row["listen_count"]},
-                                        artist=Artist(name=row['artist_credit_name'],
-                                                      artist_credit_id=row['artist_credit_id'])))
+                                        artist=Artist(name=row['artist_credit_name'])))
 
             self.debug("%-60s %-50s %d" % (row['recording_name'][:59], row['artist_credit_name'][:49], row["listen_count"]))
 
@@ -77,16 +80,17 @@ class YearReviewShaperElement(Element):
 
         artists = defaultdict(int)
         for r in recordings:
-            artists[r.artist.artist_credit_id] += 1
+            artists[r.artist.name] += 1
 
+        self.debug("found %d artists" % len(artists.keys()))
         if len(artists.keys()) > self.artist_count:
             self.debug("returned filtered year review list")
             filtered = []
             artists = defaultdict(int)
             for r in recordings:
-                if artists[r.artist.artist_credit_id] < 2: 
+                if artists[r.artist.name] < 2: 
                     filtered.append(r)
-                    artists[r.artist.artist_credit_id] += 1
+                    artists[r.artist.name] += 1
 
             return filtered[:self.max_num_recordings]
         else:
@@ -143,8 +147,9 @@ class YearReview(troi.patch.Patch):
         shaper = YearReviewShaperElement()
         shaper.set_sources(y_lookup)
 
-        pl_maker = troi.patches.top_tracks_for_year.PlaylistMakerElement("Top discoveries of 2020",
-                                                                         "Top tracks you started listening to in 2020.")
+        year = datetime.now().year
+        pl_maker = troi.patches.top_tracks_for_year.PlaylistMakerElement("Top discoveries of %s" % year,
+                                                                         "Top tracks you started listening to in %s." % year)
         pl_maker.set_sources(shaper)
 
         return pl_maker

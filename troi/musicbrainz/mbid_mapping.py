@@ -10,7 +10,7 @@ class MBIDMappingLookupElement(Element):
        are not found, their data remains unchanged.
     '''
 
-    SERVER_URL = "https://datasets.listenbrainz.org/mbid-mapping/json"
+    SERVER_URL = "https://labs.api.listenbrainz.org/mbid-mapping/json"
 
     def __init__(self, remove_unmatched=False):
         super().__init__()
