@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+import random
 
 
 class Element(ABC):
@@ -240,6 +241,12 @@ class Playlist(Entity):
 
     def __str__(self):
         return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)
+
+    def shuffle(self, index=None):
+        """ Shuffle the playlists randomly, making no effort to make it "nice" for humans. Screw humans
+            and their pesky concept of 'random'."""
+
+        random.shuffle(self.recordings)
 
 
 

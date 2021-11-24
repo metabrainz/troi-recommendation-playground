@@ -74,6 +74,9 @@ class PlaylistElement(Element):
     def inputs():
         return [Recording, Playlist]
 
+    def __str__(self):
+        print(str(self.playlists))
+
     def read(self, inputs):
 
         outputs = []
@@ -123,7 +126,6 @@ class PlaylistElement(Element):
                     rec_name = recording.name
                 print("%-60s %-50s %s" % (rec_name[:59], artist[:49], str(recording.year or "")))
             print()
-
 
     def save(self):
         """Save each playlist to disk, giving each playlist a unique name if none was provided."""

@@ -1,5 +1,6 @@
 from datetime import datetime
 from collections import defaultdict
+import random
 import requests
 
 import click
@@ -11,6 +12,8 @@ import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.year_lookup
 import troi.patches.top_tracks_for_year
+
+from icecream import ic
 
 
 @click.group()
@@ -99,6 +102,29 @@ class YearReviewShaperElement(Element):
         return recordings[:self.max_num_recordings]
 
 
+class ShuffleElement(Element):
+    '''
+    '''
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def inputs():
+        return [Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+
+        for playlist in inputs[0]:
+            playlist.shuffle()
+
+        return inputs[0]
+
+
 class TopDiscoveries(troi.patch.Patch):
     """
         See below for description
@@ -152,4 +178,7 @@ class TopDiscoveries(troi.patch.Patch):
                                                                          "Top tracks you started listening to in %s." % year)
         pl_maker.set_sources(shaper)
 
-        return pl_maker
+        shuffle = ShuffleElement()
+        shuffle.set_sources(pl_maker)
+
+        return shuffle
