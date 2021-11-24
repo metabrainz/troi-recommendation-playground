@@ -99,7 +99,7 @@ class YearReviewShaperElement(Element):
         return recordings[:self.max_num_recordings]
 
 
-class YearReview(troi.patch.Patch):
+class TopDiscoveries(troi.patch.Patch):
     """
         See below for description
     """
@@ -112,7 +112,7 @@ class YearReview(troi.patch.Patch):
     @click.argument('user_name')
     def parse_args(**kwargs):
         """
-        Generate a year in review playlist.
+        Generate a top discoveries playlist for a user.
 
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
@@ -130,11 +130,11 @@ class YearReview(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "year-review"
+        return "top-discoveries"
 
     @staticmethod
     def description():
-        return "Generate your year in review playlist."
+        return "Generate a top discoveries playlist for a user."
 
     def create(self, inputs):
         user_name = inputs['user_name']
