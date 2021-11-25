@@ -1,3 +1,4 @@
+from datetime import datetime 
 from collections import defaultdict
 import requests
 
@@ -43,7 +44,7 @@ class TopTracksYearPatch(troi.patch.Patch):
         See below for description
     """
 
-    def __init__(self, debug=False, max_num_recordings=30):
+    def __init__(self, debug=False, max_num_recordings=50):
         troi.patch.Patch.__init__(self, debug)
         self.max_num_recordings = max_num_recordings
 
@@ -79,9 +80,10 @@ class TopTracksYearPatch(troi.patch.Patch):
     def create(self, inputs):
         user_name = inputs['user_name']
 
+        year = datetime.now().year
         stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="year")
 
-        pl_maker = PlaylistMakerElement("Top Recordings of 2020", "These are your top most listened to recordings of 2020.")
+        pl_maker = PlaylistMakerElement("Top Recordings of %d" % year, "These are your top most listened to recordings of %d." % year)
         pl_maker.set_sources(stats)
 
         return pl_maker

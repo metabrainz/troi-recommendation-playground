@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 import requests
 
@@ -178,3 +179,72 @@ class PlaylistElement(Element):
             playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
         return playlist_mbids
+
+
+class PlaylistRedundancyReducerElement(Element):
+    '''
+        This element takes a larger playlist and whittles it down to a smaller playlist by
+        removing some tracks in order to reduce the number of times a single artist appears
+        in the playlist.
+    '''
+
+    def __init__(self, artist_count=15, max_num_recordings=50):
+        super().__init__()
+        self.artist_count = artist_count
+        self.max_num_recordings = max_num_recordings
+
+    @staticmethod
+    def inputs():
+        return []
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+
+        recordings = inputs[0]
+
+        artists = defaultdict(int)
+        for r in recordings:
+            artists[r.artist.name] += 1
+
+        self.debug("found %d artists" % len(artists.keys()))
+        if len(artists.keys()) > self.artist_count:
+            self.debug("playlist shaper fixing up playlist")
+            filtered = []
+            artists = defaultdict(int)
+            for r in recordings:
+                if artists[r.artist.name] < 2: 
+                    filtered.append(r)
+                    artists[r.artist.name] += 1
+
+            return filtered[:self.max_num_recordings]
+        else:
+            self.debug("playlist shaper returned full playlist")
+
+        return recordings[:self.max_num_recordings]
+
+
+class PlaylistShuffleElement(Element):
+    '''
+        Take in a list of playlists, pass on shuffled playlists.
+    '''
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def inputs():
+        return [Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+
+        for playlist in inputs[0]:
+            playlist.shuffle()
+
+        return inputs[0]
