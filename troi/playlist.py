@@ -248,3 +248,27 @@ class PlaylistShuffleElement(Element):
             playlist.shuffle()
 
         return inputs[0]
+
+
+class PlaylistMakerElement(Element):
+    '''
+    '''
+
+    def __init__(self, name, desc, max_items = 50):
+        super().__init__()
+        self.name = name
+        self.desc = desc
+        self.max_items = max_items
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+        return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_items])]
+
+

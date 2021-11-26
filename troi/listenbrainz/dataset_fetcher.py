@@ -18,6 +18,8 @@ class DataSetFetcherElement(Element):
         super().__init__()
         self.server_url = server_url
         self.json_post_data = json_post_data
+        print(self.server_url)
+        print(self.json_post_data)
 
     @staticmethod
     def inputs():
@@ -38,11 +40,20 @@ class DataSetFetcherElement(Element):
             if row['recording_mbid'] is None:
                 continue
 
-            recordings.append(Recording(mbid=row['recording_mbid'], 
-                                        name=row['recording_name'], 
-                                        listenbrainz={"listen_count": row["listen_count"]},
-                                        artist=Artist(name=row['artist_credit_name'])))
+            r = Recording(mbid=row['recording_mbid']) 
+            if 'artist_credit_name' in row:
+                r.artist = Artist(name=row['artist_credit_name'])
 
+            if 'recording_name' in row:
+                r.name = row['recording_name']
+
+            if 'year' in row:
+                r.year = row['year']
+
+            if 'listen_count' in row:
+                r.listenbrainz={"listen_count": row["listen_count"]}
+
+            recordings.append(r)
             self.debug("%-60s %-50s %d" % (row['recording_name'][:59], row['artist_credit_name'][:49], row["listen_count"]))
 
         return recordings

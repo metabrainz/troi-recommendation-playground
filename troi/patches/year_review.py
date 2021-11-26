@@ -168,7 +168,7 @@ class YearReview(troi.patch.Patch):
         dups = troi.filters.DuplicateRecordingFilterElement()
         dups.set_sources(shaper)
 
-        pl_maker = troi.patches.top_tracks_for_year.PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
         pl_maker.set_sources(dups)
 
         return pl_maker

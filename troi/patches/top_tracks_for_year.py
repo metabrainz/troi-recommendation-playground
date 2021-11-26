@@ -17,28 +17,6 @@ import troi.musicbrainz.mbid_mapping
 def cli():
     pass
 
-class PlaylistMakerElement(Element):
-    '''
-    '''
-
-    def __init__(self, name, desc, max_items = 30):
-        super().__init__()
-        self.name = name
-        self.desc = desc
-        self.max_items = max_items
-
-    @staticmethod
-    def inputs():
-        return [Recording]
-
-    @staticmethod
-    def outputs():
-        return [Playlist]
-
-    def read(self, inputs):
-        return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_items])]
-
-
 
 class TopTracksYearPatch(troi.patch.Patch):
     """
@@ -104,7 +82,7 @@ class TopTracksYearPatch(troi.patch.Patch):
         year = datetime.now().year
         stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="year")
 
-        pl_maker = PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
-        pl_maker.set_sources(mbid_lookup)
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
+        pl_maker.set_sources(stats)
 
         return pl_maker
