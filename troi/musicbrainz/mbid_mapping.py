@@ -1,5 +1,5 @@
 import requests
-import json
+import ujson
 
 from troi import Element, Recording, Release, PipelineError
 
@@ -36,9 +36,8 @@ class MBIDMappingLookupElement(Element):
             raise PipelineError("Cannot fetch MBID mapping rows from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
 
         entities = []
-        for row in json.loads(r.text):
+        for row in r.json():
             r = inputs[0][int(row['index'])]
-            print(r)
 
             if not row['artist_credit_name']:
                 if not self.remove_unmatched:
