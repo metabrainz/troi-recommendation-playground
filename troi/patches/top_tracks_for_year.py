@@ -23,10 +23,10 @@ class TopTracksYearPatch(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Top recordings of 2020 for %s"
+    NAME = "Top recordings of 2021 for %s"
     DESC = """<p>
               This playlist is made from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
-              top recordings for 2020 statistics</a>.
+              top recordings for 2021 statistics</a>.
               </p>
               <p>
               Double click on any recording to start playing it -- we'll do our best to find a matching recording
