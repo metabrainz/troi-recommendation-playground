@@ -28,11 +28,17 @@ class Element(ABC):
         """
         """
 
-        # TODO: add type checking of the pipeline
         if not isinstance(sources, list):
             sources = [ sources ]
 
         self.sources = sources
+
+        # type check the source
+        for source in sources:
+            for output_type in source.outputs():
+                if output_type not in self.inputs():
+                    raise RuntimeError("Element %s cannot accept %s as input." % (type(self).__name__, type(source_type).__name__)) 
+
 
     def check(self):
         """
@@ -58,10 +64,19 @@ class Element(ABC):
         source_lists = []
         if self.sources:
             for source in self.sources:
-                source_lists.append(source.generate())
+                result = source.generate()
+                if type(result[0]) not in self.inputs():
+                    raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
+                                       (type(source).__name__, source.outputs()[0], type(result[0])))
+
+                source_lists.append(result)
 
         items = self.read(source_lists)
-        self.debug("%-50s %d items" % (type(self).__name__[:49], len(items or [])))
+
+        if len(items) > 0 and type(items[0]) == Playlist:
+            print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
+        else:
+            print("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
         return items
 

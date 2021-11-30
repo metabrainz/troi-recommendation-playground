@@ -57,7 +57,7 @@ class BPMLookupElement(Element):
         output = []
         for r in recordings:
             try:
-                r.year = mbid_index[r.mbid]
+                r.acousticbrainz["bpm"] = mbid_index[r.mbid]
             except KeyError:
                 if self.skip_not_found:
                     self.debug("recording (%s) not found, skipping." % (r.mbid))

@@ -56,7 +56,9 @@ def playlist(patch, debug, echo, save, token, args, created_for):
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
+        print("Troi playlist generation starting...")
         playlist.generate()
+        print("done.")
     except troi.PipelineError as err:
         print("Failed to generate playlist: %s" % err,
               file=sys.stderr)
@@ -71,7 +73,8 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         print("playlist saved.")
 
     if echo:
-        playlist.print()
+        print()
+        playlist.print(bpm=True)
 
     if not echo and not save and not token:
         if len(playlist.playlists) == 0:

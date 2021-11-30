@@ -61,7 +61,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "year-missed-recordings"
+        return "top-missed-recordings"
 
     @staticmethod
     def description():

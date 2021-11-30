@@ -1,4 +1,5 @@
 from collections import defaultdict
+from operator import attrgetter
 import json
 import requests
 
@@ -80,7 +81,6 @@ class PlaylistElement(Element):
 
     def read(self, inputs):
 
-        outputs = []
         for input in inputs:
             if len(input) == 0:
                 print("No recordings or playlists generated to save.")
@@ -97,7 +97,7 @@ class PlaylistElement(Element):
             else:
                 raise PipelineError("Playlist passed incorrect input types.")
 
-        return outputs
+        return inputs[0]
 
     def print(self, listen_count=False, year=False, bpm=False):
         """Prints the resultant playlists, one after another."""
@@ -212,7 +212,6 @@ class PlaylistRedundancyReducerElement(Element):
     def read(self, inputs):
 
         for playlist in inputs[0]:
-            assert type(playlist) == Playlist
             artists = defaultdict(int)
             for r in playlist.recordings:
                 artists[r.artist.name] += 1
@@ -227,13 +226,12 @@ class PlaylistRedundancyReducerElement(Element):
                         filtered.append(r)
                         artists[r.artist.name] += 1
 
-                return filtered[:self.max_num_recordings]
+                playlist.recordings = filtered[:self.max_num_recordings]
+                break
             else:
                 self.debug("playlist shaper returned full playlist")
+                playlist.recordings = playlist.recordings[:self.max_num_recordings]
 
-            playlist.recordings = playlist.recordings[:self.max_num_recordings]
-
-        assert type(inputs[0]) == Playlist
         return inputs[0]
 
 
@@ -278,10 +276,13 @@ class PlaylistBPMSawtoothSortElement(Element):
     def outputs():
         return [Playlist]
 
-
     def bpm_sawtooth_sort(self, recordings):
-        sorted_recs = sorted(recordings)
-        index = sorted_recs.index(max(sorted_recs, key=attrgetter('acousticbrainz.bpm')))
+        try:
+            sorted_recs = sorted(recordings, key=lambda rec: rec.acousticbrainz["bpm"])
+        except AttributeError:
+            raise RuntimeError("acousticbrainz.bpm not set for recording in playlist PBM sort.")
+
+        index = sorted_recs.index(max(sorted_recs, key=lambda rec: rec.acousticbrainz["bpm"]))
         while index >= 0:
             sorted_recs.append(sorted_recs.pop(index))
             index -= 2
@@ -291,7 +292,6 @@ class PlaylistBPMSawtoothSortElement(Element):
 
     def read(self, inputs):
         for playlist in inputs[0]:
-            assert type(playlist) == Playlist
             playlist.recordings = self.bpm_sawtooth_sort(playlist.recordings)
 
         return inputs[0]
