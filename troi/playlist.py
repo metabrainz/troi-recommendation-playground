@@ -301,11 +301,10 @@ class PlaylistMakerElement(Element):
     '''
     '''
 
-    def __init__(self, name, desc, max_items = 50):
+    def __init__(self, name, desc):
         super().__init__()
         self.name = name
         self.desc = desc
-        self.max_items = max_items
 
     @staticmethod
     def inputs():
@@ -316,4 +315,4 @@ class PlaylistMakerElement(Element):
         return [Playlist]
 
     def read(self, inputs):
-        return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_items])]
+        return [Playlist(name=self.name, description=self.desc, recordings=inputs[0])]
