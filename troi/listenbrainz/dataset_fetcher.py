@@ -18,8 +18,6 @@ class DataSetFetcherElement(Element):
         super().__init__()
         self.server_url = server_url
         self.json_post_data = json_post_data
-        print(self.server_url)
-        print(self.json_post_data)
 
     @staticmethod
     def inputs():
@@ -27,7 +25,7 @@ class DataSetFetcherElement(Element):
 
     @staticmethod
     def outputs():
-        return [Playlist]
+        return [Recording]
 
     def read(self, inputs):
 
@@ -53,7 +51,9 @@ class DataSetFetcherElement(Element):
             if 'listen_count' in row:
                 r.listenbrainz={"listen_count": row["listen_count"]}
 
+            if 'bpm' in row:
+                r.acousticbrainz={"bpm": row["bpm"]}
+
             recordings.append(r)
-            self.debug("%-60s %-50s %d" % (row['recording_name'][:59], row['artist_credit_name'][:49], row["listen_count"]))
 
         return recordings

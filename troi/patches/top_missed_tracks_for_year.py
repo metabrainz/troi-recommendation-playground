@@ -8,7 +8,9 @@ import click
 import troi
 from troi import Element, Artist, Recording, Playlist, PipelineError
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
+from troi.acousticbrainz.bpm_lookup import BPMLookupElement
+from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement, \
+                          PlaylistBPMSawtoothSortElement
 
 
 @click.group()
@@ -66,18 +68,21 @@ class TopMissedTracksPatch(troi.patch.Patch):
         return "Generate a playlist from the top tracks that the most similar users listened to, but the user didn't listen to."
 
     def create(self, inputs):
-        recs = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-missed-tracks/json",
-                                     json_post_data=[{ 'user_name': inputs['user_name'] }])
+        source = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-missed-tracks/json",
+                                       json_post_data=[{ 'user_name': inputs['user_name'] }])
 
-        shaper = PlaylistRedundancyReducerElement()
-        shaper.set_sources(recs)
+        bpm_lookup = BPMLookupElement()
+        bpm_lookup.set_sources(source)
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % inputs['user_name'],
                                                       self.DESC)
-        pl_maker.set_sources(shaper)
+        pl_maker.set_sources(bpm_lookup)
 
-        shuffle = PlaylistShuffleElement()
-        shuffle.set_sources(pl_maker)
+        reducer = PlaylistRedundancyReducerElement()
+        reducer.set_sources(pl_maker)
 
-        return shuffle
+        bpm_sort = PlaylistBPMSawtoothSortElement()
+        bpm_sort.set_sources(reducer)
+
+        return bpm_sort

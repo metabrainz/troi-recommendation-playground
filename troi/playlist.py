@@ -99,7 +99,7 @@ class PlaylistElement(Element):
 
         return outputs
 
-    def print(self):
+    def print(self, listen_count=False, year=False, bpm=False):
         """Prints the resultant playlists, one after another."""
 
         if not self.playlists:
@@ -125,7 +125,15 @@ class PlaylistElement(Element):
                     rec_name = ""
                 else:
                     rec_name = recording.name
-                print("%-60s %-50s %s" % (rec_name[:59], artist[:49], str(recording.year or "")))
+                print("%-60s %-50s" % (rec_name[:59], artist[:49]), end='')
+                if year:
+                    print(" %d" % recording.year, end='')
+                if listen_count:
+                    print(" %4d" % recording.listenbrainz['listen_count'], end='')
+                if bpm:
+                    print(" %3d" % recording.acousticbrainz['bpm'], end='')
+                print()
+
             print()
 
     def save(self):
@@ -195,7 +203,7 @@ class PlaylistRedundancyReducerElement(Element):
 
     @staticmethod
     def inputs():
-        return []
+        return [Playlist]
 
     @staticmethod
     def outputs():
@@ -203,27 +211,30 @@ class PlaylistRedundancyReducerElement(Element):
 
     def read(self, inputs):
 
-        recordings = inputs[0]
-
-        artists = defaultdict(int)
-        for r in recordings:
-            artists[r.artist.name] += 1
-
-        self.debug("found %d artists" % len(artists.keys()))
-        if len(artists.keys()) > self.artist_count:
-            self.debug("playlist shaper fixing up playlist")
-            filtered = []
+        for playlist in inputs[0]:
+            assert type(playlist) == Playlist
             artists = defaultdict(int)
-            for r in recordings:
-                if artists[r.artist.name] < 2: 
-                    filtered.append(r)
-                    artists[r.artist.name] += 1
+            for r in playlist.recordings:
+                artists[r.artist.name] += 1
 
-            return filtered[:self.max_num_recordings]
-        else:
-            self.debug("playlist shaper returned full playlist")
+            self.debug("found %d artists" % len(artists.keys()))
+            if len(artists.keys()) > self.artist_count:
+                self.debug("playlist shaper fixing up playlist")
+                filtered = []
+                artists = defaultdict(int)
+                for r in playlist.recordings:
+                    if artists[r.artist.name] < 2: 
+                        filtered.append(r)
+                        artists[r.artist.name] += 1
 
-        return recordings[:self.max_num_recordings]
+                return filtered[:self.max_num_recordings]
+            else:
+                self.debug("playlist shaper returned full playlist")
+
+            playlist.recordings = playlist.recordings[:self.max_num_recordings]
+
+        assert type(inputs[0]) == Playlist
+        return inputs[0]
 
 
 class PlaylistShuffleElement(Element):
@@ -245,7 +256,43 @@ class PlaylistShuffleElement(Element):
     def read(self, inputs):
 
         for playlist in inputs[0]:
+            assert type(playlist) == Playlist
             playlist.shuffle()
+
+        return inputs[0]
+
+
+class PlaylistBPMSawtoothSortElement(Element):
+    '''
+        Sort a playlist by BPM going from slow to fast and back to slow.
+    '''
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def inputs():
+        return [Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+
+    def bpm_sawtooth_sort(self, recordings):
+        sorted_recs = sorted(recordings)
+        index = sorted_recs.index(max(sorted_recs, key=attrgetter('acousticbrainz.bpm')))
+        while index >= 0:
+            sorted_recs.append(sorted_recs.pop(index))
+            index -= 2
+
+        return sorted_recs
+
+
+    def read(self, inputs):
+        for playlist in inputs[0]:
+            assert type(playlist) == Playlist
+            playlist.recordings = self.bpm_sawtooth_sort(playlist.recordings)
 
         return inputs[0]
 
@@ -270,5 +317,3 @@ class PlaylistMakerElement(Element):
 
     def read(self, inputs):
         return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_items])]
-
-
