@@ -45,7 +45,7 @@ class AnnoyLookupElement(Element):
         # recording_ids format is mbid:offset;mbid:offset
         r = requests.get(url, params={'remove_dups': 'all',
                                       'recording_ids': self.mbid + ":0",
-                                      'n_neighbours': 500})
+                                      'n_neighbours': 1000})
         if r.status_code != 200:
             raise PipelineError("Cannot fetch annoy similarities from AcousticBrainz: HTTP code %d" % r.status_code)
 

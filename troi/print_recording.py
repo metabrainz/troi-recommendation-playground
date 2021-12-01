@@ -66,13 +66,15 @@ class PrintRecordingList():
             artist = "[missing]"
         elif recording.artist.name is None:
             if recording.artist.mbids is not None:
-                artist = "artist_mbids:%s" % ",".join(recording.artist.mbids)
+                artist = "[[ artist_mbids:%s ]]" % ",".join(recording.artist.mbids)
+            elif recording.artist.artist_credit_id is not None:
+                artist = "[[ artist_credit_id:%d ]]" % (recording.artist.artist_credit_id)
             else:
-                artist = "artist_credit_id:%d" % recording.artist_credit_id
+                artist = "[[ unknown ]]"
         else:
             artist = recording.artist.name
         if recording.name is None:
-            rec_name = "[mbid:%s]" % recording.mbid
+            rec_name = "[[ mbid:%s ]]" % recording.mbid
         else:
             rec_name = recording.name
         print("%-60s %-50s" % (rec_name[:59], artist[:49]), end='')

@@ -53,6 +53,8 @@ class RecordingLookupElement(Element):
         for r in recordings:
             try:
                 row = mbid_index[r.mbid]
+                if row["recording_mbid"] is None:
+                    continue
             except KeyError:
                 if self.skip_not_found:
                     self.debug("- debug recording MBID %s not found, skipping." % r.mbid)
@@ -74,6 +76,7 @@ class RecordingLookupElement(Element):
             r.length = row['length']
             r.mbid = row['recording_mbid']
 
+            print(r)
             output.append(r)
 
         return output

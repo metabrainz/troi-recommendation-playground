@@ -24,8 +24,10 @@ def cli():
 @click.option('--save', '-s', required=False, is_flag=True)
 @click.option('--token', '-t', required=False, type=click.UUID)
 @click.option('--created-for', '-c', required=False)
+@click.option('--name', '-n', required=False)
+@click.option('--desc', '-d', required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, args, created_for):
+def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
     """
     Generate a playlist using a patch
 
@@ -58,6 +60,12 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         playlist.set_sources(pipeline)
         print("Troi playlist generation starting...")
         playlist.generate()
+
+        if name:
+            playlist.playlists[0].name = name
+        if desc:
+            playlist.playlists[0].descripton = description
+
         print("done.")
     except troi.PipelineError as err:
         print("Failed to generate playlist: %s" % err,
