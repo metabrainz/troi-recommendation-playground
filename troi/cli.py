@@ -72,7 +72,7 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         playlist.save()
         print("playlist saved.")
 
-    if echo:
+    if echo or not token:
         print()
         playlist.print()
 
@@ -83,8 +83,6 @@ def playlist(patch, debug, echo, save, token, args, created_for):
             print("A playlist with %d tracks was generated." % len(playlist.playlists[0].recordings))
         else:
             print("%d playlists were generated." % len(playlist.playlists))
-
-        print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --token or --print)")
 
     sys.exit(0)
 

@@ -80,7 +80,7 @@ class TopTracksYearPatch(troi.patch.Patch):
         user_name = inputs['user_name']
 
         year = datetime.now().year
-        stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="year")
+        stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="this_year")
 
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
         pl_maker.set_sources(stats)
