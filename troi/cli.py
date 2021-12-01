@@ -74,7 +74,7 @@ def playlist(patch, debug, echo, save, token, args, created_for):
 
     if echo:
         print()
-        playlist.print(bpm=True)
+        playlist.print()
 
     if not echo and not save and not token:
         if len(playlist.playlists) == 0:
