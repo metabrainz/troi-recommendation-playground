@@ -5,6 +5,7 @@ import requests
 
 from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
+from troi.print_recording import PrintRecordingList
 
 LISTENBRAINZ_SERVER_URL = "https://api.listenbrainz.org"
 LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_SERVER_URL + "/1/playlist/create"
@@ -71,6 +72,7 @@ class PlaylistElement(Element):
     def __init__(self):
         super().__init__()
         self.playlists = []
+        self.print_recording = PrintRecordingList()
 
     @staticmethod
     def inputs():
@@ -112,49 +114,11 @@ class PlaylistElement(Element):
             else:
                 print("playlist: %d" % i)
 
-            # Look at the first item and decide which columns to show
-            year = False
-            listen_count = False
-            bpm = False
-            moods = False
-            r = playlist.recordings[0]
-            if r.year is not None:
-                year = True
-
-            if "listen_count" in r.listenbrainz:
-                listen_count = True
-
-            if "bpm" in r.acousticbrainz:
-                bpm = True
-
-            if "moods" in r.acousticbrainz:
-                moods = True
-
             for recording in playlist.recordings:
                 if not recording:
                     print("[invalid Recording]")
                     continue
-
-                if recording.artist is None or recording.artist.name is None:
-                    artist = ""
-                else:
-                    artist = recording.artist.name
-                if recording.name is None:
-                    rec_name = ""
-                else:
-                    rec_name = recording.name
-                print("%-60s %-50s" % (rec_name[:59], artist[:49]), end='')
-                if year:
-                    print(" %d" % recording.year, end='')
-                if listen_count:
-                    print(" %4d" % recording.listenbrainz['listen_count'], end='')
-                if bpm:
-                    print(" %3d" % recording.acousticbrainz['bpm'], end='')
-                if moods:
-                    print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
-                print()
-
-            print()
+                self.print_recording.print(recording)
 
     def save(self):
         """Save each playlist to disk, giving each playlist a unique name if none was provided."""

@@ -4,8 +4,9 @@ import os
 import traceback
 import sys
 
-from troi import Element, Artist, Recording
+from troi import Element, Artist, Recording, Playlist
 import troi.patch
+from troi.print_recording import PrintRecordingList
 
 
 def discover_patches():
@@ -96,9 +97,15 @@ class DumpElement(Element):
 
     @staticmethod
     def inputs():
-        return []
+        return [Recording, Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Recording, Playlist]
 
     def read(self, inputs):
-
         for input in inputs:
-            print_entity_list(input)
+            pr = PrintRecordingList()
+            pr.print(input)
+
+        return inputs[0]
