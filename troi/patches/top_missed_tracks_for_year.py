@@ -8,9 +8,8 @@ import click
 import troi
 from troi import Element, Artist, Recording, Playlist, PipelineError
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-from troi.acousticbrainz.bpm_lookup import BPMLookupElement
-from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement, \
-                          PlaylistBPMSawtoothSortElement
+from troi.acousticbrainz.mood_lookup import MoodLookupElement
+from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
 
 
 @click.group()
@@ -71,18 +70,15 @@ class TopMissedTracksPatch(troi.patch.Patch):
         source = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-missed-tracks/json",
                                        json_post_data=[{ 'user_name': inputs['user_name'] }])
 
-        bpm_lookup = BPMLookupElement()
-        bpm_lookup.set_sources(source)
+        mood_lookup = MoodLookupElement()
+        mood_lookup.set_sources(source)
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % inputs['user_name'],
                                                       self.DESC)
-        pl_maker.set_sources(bpm_lookup)
+        pl_maker.set_sources(mood_lookup)
 
         reducer = PlaylistRedundancyReducerElement()
         reducer.set_sources(pl_maker)
 
-        bpm_sort = PlaylistBPMSawtoothSortElement()
-        bpm_sort.set_sources(reducer)
-
-        return bpm_sort
+        return pl_maker

@@ -99,7 +99,7 @@ class PlaylistElement(Element):
 
         return inputs[0]
 
-    def print(self, listen_count=False, year=False, bpm=False):
+    def print(self):
         """Prints the resultant playlists, one after another."""
 
         if not self.playlists:
@@ -111,6 +111,24 @@ class PlaylistElement(Element):
                 print("playlist: '%s'" % playlist.name)
             else:
                 print("playlist: %d" % i)
+
+            # Look at the first item and decide which columns to show
+            year = False
+            listen_count = False
+            bpm = False
+            moods = False
+            r = playlist.recordings[0]
+            if r.year is not None:
+                year = True
+
+            if "listen_count" in r.listenbrainz:
+                listen_count = True
+
+            if "bpm" in r.acousticbrainz:
+                bpm = True
+
+            if "moods" in r.acousticbrainz:
+                moods = True
 
             for recording in playlist.recordings:
                 if not recording:
@@ -132,6 +150,8 @@ class PlaylistElement(Element):
                     print(" %4d" % recording.listenbrainz['listen_count'], end='')
                 if bpm:
                     print(" %3d" % recording.acousticbrainz['bpm'], end='')
+                if moods:
+                    print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
                 print()
 
             print()
