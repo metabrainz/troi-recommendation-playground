@@ -70,13 +70,10 @@ class TopMissedTracksPatch(troi.patch.Patch):
         source = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-missed-tracks/json",
                                        json_post_data=[{ 'user_name': inputs['user_name'] }])
 
-        mood_lookup = MoodLookupElement()
-        mood_lookup.set_sources(source)
-
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % inputs['user_name'],
                                                       self.DESC)
-        pl_maker.set_sources(mood_lookup)
+        pl_maker.set_sources(source)
 
         reducer = PlaylistRedundancyReducerElement()
         reducer.set_sources(pl_maker)

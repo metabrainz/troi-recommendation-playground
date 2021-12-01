@@ -65,15 +65,15 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         y_lookup = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)
         y_lookup.set_sources(recs)
 
-        shaper = PlaylistRedundancyReducerElement()
-        shaper.set_sources(y_lookup)
-
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement("Tracks released in %s you've listened to." % year,
                          "Tracks that were released in %s and you've listened to. (Yes, we finish sentences with prepositions here.)" % year)
-        pl_maker.set_sources(shaper)
+        pl_maker.set_sources(recs)
+
+        shaper = PlaylistRedundancyReducerElement()
+        shaper.set_sources(pl_maker)
 
         shuffle = PlaylistShuffleElement()
-        shuffle.set_sources(pl_maker)
+        shuffle.set_sources(shaper)
 
         return shuffle

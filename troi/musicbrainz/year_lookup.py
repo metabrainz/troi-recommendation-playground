@@ -39,8 +39,11 @@ class YearLookupElement(Element):
 
         data = []
         for r in recordings:
-            data.append({ '[recording_name]': r.name, 
-                          '[artist_credit_name]': r.artist.name })
+            try:
+                data.append({ '[recording_name]': r.name, 
+                              '[artist_credit_name]': r.artist.name })
+            except AttributeError:
+                raise PipelineError("YearLookupElement requires artist_credit_name and recording_name to exist.")
 
         r = requests.post(self.SERVER_URL, json=data)
         if r.status_code != 200:

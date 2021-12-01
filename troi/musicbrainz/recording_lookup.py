@@ -11,8 +11,9 @@ class RecordingLookupElement(Element):
 
     SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, skip_not_found=True):
+        Element.__init__(self)
+        self.skip_not_found = skip_not_found
 
     @staticmethod
     def inputs():
@@ -48,11 +49,15 @@ class RecordingLookupElement(Element):
         for row in rows:
             mbid_index[row['original_recording_mbid']] = row
 
+        output = []
         for r in recordings:
             try:
                 row = mbid_index[r.mbid]
             except KeyError:
-                self.debug("- debug recording MBID %s not found, skipping." % r.mbid)
+                if self.skip_not_found:
+                    self.debug("- debug recording MBID %s not found, skipping." % r.mbid)
+                else:
+                    output.append(r)
                 continue
 
             if not r.artist:
@@ -69,4 +74,6 @@ class RecordingLookupElement(Element):
             r.length = row['length']
             r.mbid = row['recording_mbid']
 
-        return recordings
+            output.append(r)
+
+        return output

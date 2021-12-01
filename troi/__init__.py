@@ -37,7 +37,8 @@ class Element(ABC):
         for source in sources:
             for output_type in source.outputs():
                 if output_type not in self.inputs():
-                    raise RuntimeError("Element %s cannot accept %s as input." % (type(self).__name__, type(source_type).__name__)) 
+                    raise RuntimeError("Element %s cannot accept %s as input." %
+                                       (type(self).__name__, output_type)) 
 
 
     def check(self):
