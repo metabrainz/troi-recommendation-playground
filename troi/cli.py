@@ -93,8 +93,9 @@ def list_patches():
     patches = troi.utils.discover_patches()
 
     print("Available patches:")
-    for slug in patches or []:
-        print("  %s: %s" % (slug, patches[slug]().description()))
+    size = max([ len(k) for k in patches])
+    for slug in sorted(patches or []):
+        print("%s:%s %s" % (slug, " " * (size - len(slug)), patches[slug]().description()))
 
 
 @cli.command()

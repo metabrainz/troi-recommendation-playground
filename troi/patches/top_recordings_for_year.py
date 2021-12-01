@@ -70,7 +70,7 @@ class TopTracksYearPatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "year-top-recordings"
+        return "top-recordings-for-year"
 
     @staticmethod
     def description():
