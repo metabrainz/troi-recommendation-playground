@@ -44,16 +44,10 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
 
         annoy_element = annoy.AnnoyLookupElement(similarity_type, recording_id)
 
-        dump_element = troi.utils.DumpElement()
-        dump_element.set_sources(annoy_element)
-
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        r_lookup.set_sources(dump_element)
+        r_lookup.set_sources(annoy_element)
 
-        remove_none = troi.filters.EmptyRecordingFilterElement()
-        remove_none.set_sources(r_lookup)
+        pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist")
+        pl_maker.set_sources(r_lookup)
 
-        remove_dups = troi.filters.DuplicateRecordingFilterElement()
-        remove_dups.set_sources(remove_none)
-
-        return remove_dups
+        return pl_maker

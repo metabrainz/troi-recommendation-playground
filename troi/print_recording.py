@@ -43,7 +43,7 @@ class PrintRecordingList():
             self.print_recording(entity)
             return
 
-        if type(entity) == List and type(entity[0]) == Recording:
+        if type(entity) == list and type(entity[0]) == Recording:
             for rec in entity:
                 self.print_recording(rec)
 
@@ -62,12 +62,17 @@ class PrintRecordingList():
         if self.print_year is None:
             self._examine_recording_for_headers(recording)
 
-        if recording.artist is None or recording.artist.name is None:
+        if recording.artist is None:
             artist = "[missing]"
+        elif recording.artist.name is None:
+            if recording.artist.mbids is not None:
+                artist = "artist_mbids:%s" % ",".join(recording.artist.mbids)
+            else:
+                artist = "artist_credit_id:%d" % recording.artist_credit_id
         else:
             artist = recording.artist.name
         if recording.name is None:
-            rec_name = "[missing]"
+            rec_name = "[mbid:%s]" % recording.mbid
         else:
             rec_name = recording.name
         print("%-60s %-50s" % (rec_name[:59], artist[:49]), end='')

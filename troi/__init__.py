@@ -36,7 +36,9 @@ class Element(ABC):
         # type check the source
         for source in sources:
             for output_type in source.outputs():
-                if output_type not in self.inputs():
+                if output_type in self.inputs():
+                    break
+                else:
                     raise RuntimeError("Element %s cannot accept %s as input." %
                                        (type(self).__name__, output_type)) 
 
