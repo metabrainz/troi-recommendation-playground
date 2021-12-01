@@ -135,7 +135,7 @@ class ArtistCreditLimiterElement(troi.Element):
         return outputs
 
 
-class DuplicateRecordingFilterElement(troi.Element):
+class DuplicateRecordingMBIDFilterElement(troi.Element):
     """This Element takes a list of recordings and removes any duplicate recordings
     based on the recording's MBID, preserving the input order.
     """
@@ -158,6 +158,34 @@ class DuplicateRecordingFilterElement(troi.Element):
                 output.append(rec)
 
         return output
+
+
+class DuplicateRecordingArtistCreditFilterElement(troi.Element):
+    """This Element takes a list of recordings and removes any duplicate recordings
+    based on the recording's name and artist_credit name, preserving the input order.
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        recordings = inputs[0]
+        index = {}
+        for rec in recordings:
+            if rec.name is None or rec.name == "" or rec.artist is None or rec.artist.name is None or rec.artist.name == "":
+                self.debug("Recording %s has insufficient metadata, removing" % rec.mbid)
+                continue
+
+            k = rec.name + rec.artist.name
+            if k not in index:
+                index[k] = rec
+
+        return [ index[k] for k in index ]  
 
 
 class ConsecutiveRecordingFilterElement(troi.Element):

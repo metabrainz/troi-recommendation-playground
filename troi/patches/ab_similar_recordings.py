@@ -47,7 +47,10 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(annoy_element)
 
+        dedup_filter = troi.filters.DuplicateRecordingArtistCreditFilterElement()
+        dedup_filter.set_sources(r_lookup)
+
         pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist", 50)
-        pl_maker.set_sources(r_lookup)
+        pl_maker.set_sources(dedup_filter)
 
         return pl_maker
