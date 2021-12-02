@@ -79,7 +79,7 @@ class PlaylistElement(Element):
         return [Recording, Playlist]
 
     def __str__(self):
-        print(str(self.playlists))
+        return str(self.playlists)
 
     def read(self, inputs):
 
@@ -266,6 +266,8 @@ class PlaylistBPMSawtoothSortElement(Element):
         except AttributeError:
             raise RuntimeError("acousticbrainz.bpm not set for recording in playlist PBM sort.")
 
+        # Sort the recordings by BPM ASC. Then, walking from the back of the array to the front,
+        # Move every second track to the back of the array, creating a sawtooth shape of BPMs
         index = sorted_recs.index(max(sorted_recs, key=lambda rec: rec.acousticbrainz["bpm"]))
         while index >= 0:
             sorted_recs.append(sorted_recs.pop(index))

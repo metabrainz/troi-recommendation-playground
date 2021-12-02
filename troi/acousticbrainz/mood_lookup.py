@@ -46,6 +46,7 @@ class MoodLookupElement(Element):
             return []
 
         max_items_per_call = 25
+        output = []
         for rec_chunk in chunks(recordings, max_items_per_call):
             mbids = [ r.mbid for r in rec_chunk ]
             r = requests.post(self.SERVER_URL + ";".join(mbids))
@@ -53,7 +54,6 @@ class MoodLookupElement(Element):
                 raise PipelineError("Cannot fetch moods from AcousticBrainz: HTTP code %d" % r.status_code)
 
             data = r.json()
-            output = []
             for r in recordings:
                 if r.mbid not in data:
                     if not self.skip_not_found:

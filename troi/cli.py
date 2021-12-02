@@ -64,7 +64,7 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
         if name:
             playlist.playlists[0].name = name
         if desc:
-            playlist.playlists[0].descripton = description
+            playlist.playlists[0].descripton = desc
 
         print("done.")
     except troi.PipelineError as err:

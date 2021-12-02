@@ -4,6 +4,7 @@ import troi
 import troi.patch
 import troi.filters
 import troi.utils
+import troi.playlist
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
 from troi.acousticbrainz import annoy

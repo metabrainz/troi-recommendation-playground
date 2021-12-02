@@ -63,8 +63,7 @@ class WorldTripElement(Element):
         countries = countryinfo.CountryInfo().all()
 
         continents = defaultdict(list)
-        for c_key in countries.keys():
-            country = countries[c_key]
+        for country in countries.values():
             if 'region' not in country:
                 continue
 
@@ -170,7 +169,7 @@ class WorldTripPatch(troi.patch.Patch):
 
         trip = WorldTripElement(inputs['continent'], latitude)
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (inputs["continent"], lat_string),
-                                                      self.DESC % (quote(inputs["continent"]), lat_string), max_items=5000)
+                                                      self.DESC % (quote(inputs["continent"]), lat_string))
         pl_maker.set_sources(trip)
 
         return pl_maker
