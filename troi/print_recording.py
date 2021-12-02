@@ -62,7 +62,7 @@ class PrintRecordingList():
 
     def print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
-            The year, listen_count, bpm and mood arguments here can override the settings
+            The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
 
         if self.print_year is None:

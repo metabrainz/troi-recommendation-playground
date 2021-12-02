@@ -36,6 +36,13 @@ def recording_from_row(row):
 
 class WorldTripElement(Element):
     '''
+        Given a continent (Africa, North America, South America, Asia, Europe, Oceania) and
+        a sort order latitude or longitude, pick random tracks from each country and
+        add tracks to a playlist sorted by latitude or longitude.
+
+        Arguments:
+            continent: one of: (Africa, North America, South America, Asia, Europe, Oceania)
+            latitude: boolean. Sort by latiduded if True, otherwise sort by longitude
     '''
 
     def __init__(self, continent, latitude):
@@ -71,9 +78,8 @@ class WorldTripElement(Element):
         else:
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][1])
 
-#        continent = continent[:5]
         for i, country in enumerate(continent):
-            print("   ", country["name"])
+            self.debug("   ", country["name"])
 
             r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % country['name'])
             if r.status_code != 200:

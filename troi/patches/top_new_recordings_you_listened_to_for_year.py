@@ -23,6 +23,9 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
     """
         See below for description
     """
+    NAME = "Tracks released in %d that you've listened to."
+    DESC = """Tracks that were released in %d that you've listened to. (Yes, we finish
+              sentences with prepositions here.)"""
 
     def __init__(self, debug=False, max_num_recordings=50):
         troi.patch.Patch.__init__(self, debug)
@@ -66,8 +69,7 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         y_lookup.set_sources(recs)
 
         year = datetime.now().year
-        pl_maker = troi.playlist.PlaylistMakerElement("Tracks released in %s you've listened to." % year,
-                         "Tracks that were released in %s and you've listened to. (Yes, we finish sentences with prepositions here.)" % year)
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % year, self.DESC % year)
         pl_maker.set_sources(recs)
 
         shaper = PlaylistRedundancyReducerElement()

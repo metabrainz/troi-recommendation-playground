@@ -23,10 +23,10 @@ class TopTracksYearPatch(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Top recordings of 2021 for %s"
+    NAME = "Top recordings of %d for %s"
     DESC = """<p>
               This playlist is made from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
-              top recordings for 2021 statistics</a>.
+              top recordings for %d statistics</a>.
               </p>
               <p>
               Double click on any recording to start playing it -- we'll do our best to find a matching recording
@@ -82,7 +82,7 @@ class TopTracksYearPatch(troi.patch.Patch):
         year = datetime.now().year
         stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="this_year")
 
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % user_name, self.DESC % quote(user_name))
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name), self.DESC % (quote(user_name), year))
         pl_maker.set_sources(stats)
 
         return pl_maker

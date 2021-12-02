@@ -10,6 +10,18 @@ def chunks(lst, n):
 
 class MoodLookupElement(Element):
     '''
+        Lookup moods and store them in the acousticbrainz element of the Recordings:
+
+        Once loaded, the acousticbrainz dict shuld contain a moods key with the following sub-keys:
+            mood_acoustic
+            aggressive
+            electronic
+            happy
+            party
+            relaxed
+            sad
+
+        Each with a float value from 0->1.0
     '''
 
     SERVER_URL = "http://acousticbrainz.org/api/v1/high-level?recording_ids="

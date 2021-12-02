@@ -283,6 +283,7 @@ class PlaylistBPMSawtoothSortElement(Element):
 
 class PlaylistMakerElement(Element):
     '''
+        This element takes in Recordings and spits out a Playlist.
     '''
 
     def __init__(self, name, desc, max_tracks=None):
