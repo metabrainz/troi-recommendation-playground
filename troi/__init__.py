@@ -34,13 +34,14 @@ class Element(ABC):
         self.sources = sources
 
         # type check the source
-        for source in sources:
-            for output_type in source.outputs():
-                if output_type in self.inputs():
-                    break
-                else:
-                    raise RuntimeError("Element %s cannot accept %s as input." %
-                                       (type(self).__name__, output_type)) 
+        if len(self.inputs()) > 0:
+            for source in sources:
+                for output_type in source.outputs() or []:
+                    if output_type in self.inputs():
+                        break
+                    else:
+                        raise RuntimeError("Element %s cannot accept %s as input." %
+                                           (type(self).__name__, output_type)) 
 
 
     def check(self):
@@ -68,7 +69,7 @@ class Element(ABC):
         if self.sources:
             for source in self.sources:
                 result = source.generate()
-                if type(result[0]) not in self.inputs():
+                if len(self.inputs()) > 0 and type(result[0]) not in self.inputs():
                     raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
                                        (type(source).__name__, source.outputs()[0], type(result[0])))
 

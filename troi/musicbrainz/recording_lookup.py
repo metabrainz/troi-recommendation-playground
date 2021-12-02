@@ -76,7 +76,6 @@ class RecordingLookupElement(Element):
             r.length = row['length']
             r.mbid = row['recording_mbid']
 
-            print(r)
             output.append(r)
 
         return output

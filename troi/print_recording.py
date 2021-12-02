@@ -13,6 +13,7 @@ class PrintRecordingList():
         self.print_bpm = None
         self.print_list_count = None
         self.print_moods = None
+        self.print_genre = None
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -36,6 +37,11 @@ class PrintRecordingList():
         else:
             self.print_moods = False
 
+        if "genres" in recording.musicbrainz or "tags" in recording.musicbrainz:
+            self.print_genre = True
+        else:
+            self.print_genre = False
+
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
 
@@ -54,7 +60,7 @@ class PrintRecordingList():
         raise PipelineError("You must pass a Recording or list of Recordings or a Playlist to print.")
 
 
-    def print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False):
+    def print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
             The year, listen_count, bpm and mood arguments here can override the settings
             gleaned from the first recording submitted to this class"""
@@ -88,5 +94,8 @@ class PrintRecordingList():
         if self.print_moods or moods:
             # TODO: make this print more than agg, but given the current state of moods/coverage...
             print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
+        if self.print_genre or genre:
+            print(" %s" % ",".join(recording.musicbrainz['genres']), end='')
+            print(" %s" % ",".join(recording.musicbrainz['tags']), end='')
 
         print()
