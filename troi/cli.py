@@ -24,8 +24,10 @@ def cli():
 @click.option('--save', '-s', required=False, is_flag=True)
 @click.option('--token', '-t', required=False, type=click.UUID)
 @click.option('--created-for', '-c', required=False)
+@click.option('--name', '-n', required=False)
+@click.option('--desc', '-d', required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, args, created_for):
+def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
     """
     Generate a playlist using a patch
 
@@ -56,7 +58,15 @@ def playlist(patch, debug, echo, save, token, args, created_for):
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
+        print("Troi playlist generation starting...")
         playlist.generate()
+
+        if name:
+            playlist.playlists[0].name = name
+        if desc:
+            playlist.playlists[0].descripton = desc
+
+        print("done.")
     except troi.PipelineError as err:
         print("Failed to generate playlist: %s" % err,
               file=sys.stderr)
@@ -70,7 +80,8 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         playlist.save()
         print("playlist saved.")
 
-    if echo:
+    if echo or not token:
+        print()
         playlist.print()
 
     if not echo and not save and not token:
@@ -81,8 +92,6 @@ def playlist(patch, debug, echo, save, token, args, created_for):
         else:
             print("%d playlists were generated." % len(playlist.playlists))
 
-        print("\nBut, you didn't tell me what to do with it, so I discarded it. (hint: use --token or --print)")
-
     sys.exit(0)
 
 
@@ -92,8 +101,9 @@ def list_patches():
     patches = troi.utils.discover_patches()
 
     print("Available patches:")
-    for slug in patches or []:
-        print("  %s: %s" % (slug, patches[slug]().description()))
+    size = max([ len(k) for k in patches])
+    for slug in sorted(patches or []):
+        print("%s:%s %s" % (slug, " " * (size - len(slug)), patches[slug]().description()))
 
 
 @cli.command()

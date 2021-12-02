@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+import random
 
 
 class Element(ABC):
@@ -27,11 +28,21 @@ class Element(ABC):
         """
         """
 
-        # TODO: add type checking of the pipeline
         if not isinstance(sources, list):
             sources = [ sources ]
 
         self.sources = sources
+
+        # type check the source
+        if len(self.inputs()) > 0:
+            for source in sources:
+                for output_type in source.outputs() or []:
+                    if output_type in self.inputs():
+                        break
+                    else:
+                        raise RuntimeError("Element %s cannot accept %s as input." %
+                                           (type(self).__name__, output_type)) 
+
 
     def check(self):
         """
@@ -57,10 +68,19 @@ class Element(ABC):
         source_lists = []
         if self.sources:
             for source in self.sources:
-                source_lists.append(source.generate())
+                result = source.generate()
+                if len(self.inputs()) > 0 and type(result[0]) not in self.inputs():
+                    raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
+                                       (type(source).__name__, source.outputs()[0], type(result[0])))
+
+                source_lists.append(result)
 
         items = self.read(source_lists)
-        self.debug("%-50s %d items" % (type(self).__name__[:49], len(items or [])))
+
+        if len(items) > 0 and type(items[0]) == Playlist:
+            print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
+        else:
+            print("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
         return items
 
@@ -240,6 +260,12 @@ class Playlist(Entity):
 
     def __str__(self):
         return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)
+
+    def shuffle(self, index=None):
+        """ Shuffle the playlists randomly, making no effort to make it "nice" for humans. Screw humans
+            and their pesky concept of 'random'."""
+
+        random.shuffle(self.recordings)
 
 
 

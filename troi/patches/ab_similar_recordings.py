@@ -3,6 +3,8 @@ import click
 import troi
 import troi.patch
 import troi.filters
+import troi.utils
+import troi.playlist
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
 from troi.acousticbrainz import annoy
@@ -42,11 +44,14 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         similarity_type = inputs['similarity_type']
 
         annoy_element = annoy.AnnoyLookupElement(similarity_type, recording_id)
+
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         r_lookup.set_sources(annoy_element)
-        remove_none = troi.filters.EmptyRecordingFilterElement()
-        remove_none.set_sources(r_lookup)
-        remove_dups = troi.filters.DuplicateRecordingFilterElement()
-        remove_dups.set_sources(remove_none)
 
-        return remove_dups
+        dedup_filter = troi.filters.DuplicateRecordingArtistCreditFilterElement()
+        dedup_filter.set_sources(r_lookup)
+
+        pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist", 50)
+        pl_maker.set_sources(dedup_filter)
+
+        return pl_maker

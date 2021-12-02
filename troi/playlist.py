@@ -1,8 +1,11 @@
+from collections import defaultdict
+from operator import attrgetter
 import json
 import requests
 
 from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
+from troi.print_recording import PrintRecordingList
 
 LISTENBRAINZ_SERVER_URL = "https://api.listenbrainz.org"
 LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_SERVER_URL + "/1/playlist/create"
@@ -69,14 +72,17 @@ class PlaylistElement(Element):
     def __init__(self):
         super().__init__()
         self.playlists = []
+        self.print_recording = PrintRecordingList()
 
     @staticmethod
     def inputs():
         return [Recording, Playlist]
 
+    def __str__(self):
+        return str(self.playlists)
+
     def read(self, inputs):
 
-        outputs = []
         for input in inputs:
             if len(input) == 0:
                 print("No recordings or playlists generated to save.")
@@ -93,7 +99,7 @@ class PlaylistElement(Element):
             else:
                 raise PipelineError("Playlist passed incorrect input types.")
 
-        return outputs
+        return inputs[0]
 
     def print(self):
         """Prints the resultant playlists, one after another."""
@@ -112,18 +118,7 @@ class PlaylistElement(Element):
                 if not recording:
                     print("[invalid Recording]")
                     continue
-
-                if recording.artist is None or recording.artist.name is None:
-                    artist = ""
-                else:
-                    artist = recording.artist.name
-                if recording.name is None:
-                    rec_name = ""
-                else:
-                    rec_name = recording.name
-                print("%-60s %-50s %s" % (rec_name[:59], artist[:49], str(recording.year or "")))
-            print()
-
+                self.print_recording.print(recording)
 
     def save(self):
         """Save each playlist to disk, giving each playlist a unique name if none was provided."""
@@ -176,3 +171,139 @@ class PlaylistElement(Element):
             playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
         return playlist_mbids
+
+
+class PlaylistRedundancyReducerElement(Element):
+    '''
+        This element takes a larger playlist and whittles it down to a smaller playlist by
+        removing some tracks in order to reduce the number of times a single artist appears
+        in the playlist.
+    '''
+
+    def __init__(self, artist_count=15, max_num_recordings=50):
+        super().__init__()
+        self.artist_count = artist_count
+        self.max_num_recordings = max_num_recordings
+
+    @staticmethod
+    def inputs():
+        return [Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+
+        for playlist in inputs[0]:
+            artists = defaultdict(int)
+            for r in playlist.recordings:
+                artists[r.artist.name] += 1
+
+            self.debug("found %d artists" % len(artists.keys()))
+            if len(artists.keys()) > self.artist_count:
+                self.debug("playlist shaper fixing up playlist")
+                filtered = []
+                artists = defaultdict(int)
+                for r in playlist.recordings:
+                    if artists[r.artist.name] < 2: 
+                        filtered.append(r)
+                        artists[r.artist.name] += 1
+
+                playlist.recordings = filtered[:self.max_num_recordings]
+                break
+            else:
+                self.debug("playlist shaper returned full playlist")
+                playlist.recordings = playlist.recordings[:self.max_num_recordings]
+
+        return inputs[0]
+
+
+class PlaylistShuffleElement(Element):
+    '''
+        Take in a list of playlists, pass on shuffled playlists.
+    '''
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def inputs():
+        return [Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+
+        for playlist in inputs[0]:
+            assert type(playlist) == Playlist
+            playlist.shuffle()
+
+        return inputs[0]
+
+
+class PlaylistBPMSawtoothSortElement(Element):
+    '''
+        Sort a playlist by BPM going from slow to fast and back to slow.
+    '''
+
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def inputs():
+        return [Playlist]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def bpm_sawtooth_sort(self, recordings):
+        try:
+            sorted_recs = sorted(recordings, key=lambda rec: rec.acousticbrainz["bpm"])
+        except AttributeError:
+            raise RuntimeError("acousticbrainz.bpm not set for recording in playlist PBM sort.")
+
+        # Sort the recordings by BPM ASC. Then, walking from the back of the array to the front,
+        # Move every second track to the back of the array, creating a sawtooth shape of BPMs
+        index = sorted_recs.index(max(sorted_recs, key=lambda rec: rec.acousticbrainz["bpm"]))
+        while index >= 0:
+            sorted_recs.append(sorted_recs.pop(index))
+            index -= 2
+
+        return sorted_recs
+
+
+    def read(self, inputs):
+        for playlist in inputs[0]:
+            playlist.recordings = self.bpm_sawtooth_sort(playlist.recordings)
+
+        return inputs[0]
+
+
+class PlaylistMakerElement(Element):
+    '''
+        This element takes in Recordings and spits out a Playlist.
+    '''
+
+    def __init__(self, name, desc, max_tracks=None):
+        super().__init__()
+        self.name = name
+        self.desc = desc
+        self.max_tracks = max_tracks
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+        if self.max_tracks is not None:
+            return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_tracks])]
+        else:
+            return [Playlist(name=self.name, description=self.desc, recordings=inputs[0])]

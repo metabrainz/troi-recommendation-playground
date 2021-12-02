@@ -5,6 +5,7 @@ import click
 
 from troi import Element, Recording, Playlist, PipelineError
 import troi.listenbrainz.recs
+import troi.playlist
 import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
@@ -41,7 +42,7 @@ class DecadePlaylistSplitterElement(Element):
         """
         recordings = inputs[0]
         if not recordings or len(recordings) == 0:
-            return []
+            return inputs[0]
 
         decades = defaultdict(list)
         for r in recordings:
@@ -73,8 +74,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
 
     @staticmethod
     @cli.command(no_args_is_help=True)
-    @click.argument('user_name')
     @click.argument('type')
+    @click.argument('user_name')
     def parse_args(**kwargs):
         """
         Generate weekly flashback playlists from the ListenBrainz recommended recordings.
@@ -114,7 +115,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
                                                                           count=-1)
-        r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(skip_not_found=True)
         r_lookup.set_sources(recs)
 
         y_lookup = troi.musicbrainz.year_lookup.YearLookupElement()
@@ -124,14 +125,13 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         year_sort = troi.sorts.YearSortElement()
         year_sort.set_sources(y_lookup)
 
-        # If an artist should never appear in a playlist, add the artist_credit_id here
-        artist_filter = troi.filters.ArtistCreditFilterElement([])
-        artist_filter.set_sources(year_sort)
-
         decade_splitter = DecadePlaylistSplitterElement()
-        decade_splitter.set_sources(artist_filter)
+        decade_splitter.set_sources(year_sort)
 
-        artist_limiter = troi.filters.ArtistCreditLimiterElement(3)
-        artist_limiter.set_sources(decade_splitter)
+        shaper = troi.playlist.PlaylistRedundancyReducerElement(artist_count=3)
+        shaper.set_sources(decade_splitter)
 
-        return artist_limiter
+        shuffle = troi.playlist.PlaylistShuffleElement()
+        shuffle.set_sources(shaper)
+
+        return shuffle
