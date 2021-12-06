@@ -95,7 +95,6 @@ class PrintRecordingList():
             # TODO: make this print more than agg, but given the current state of moods/coverage...
             print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
         if self.print_genre or genre:
-            print(" %s" % ",".join(recording.musicbrainz['genres']), end='')
             print(" %s" % ",".join(recording.musicbrainz['tags']), end='')
 
         print()

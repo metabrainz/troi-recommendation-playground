@@ -289,3 +289,38 @@ class YearRangeFilterElement(troi.Element):
                         results.append(r)
 
         return results
+
+
+class GenreFilterElement(troi.Element):
+    '''
+        Keep recorindgs that have at least one genre in commong
+        from the list passed in when this class is created.
+    '''
+
+    def __init__(self, genre_list):
+        troi.Element.__init__(self)
+        self.genre_list = genre_list
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+
+        recordings = inputs[0]
+
+        results = []
+        for r in recordings:
+            if "tags" not in r.musicbrainz:
+                continue
+
+            for genre in self.genre_list:
+                if genre in r.musicbrainz["tags"]:
+                    results.append(r)
+                    break
+
+        return results

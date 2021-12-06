@@ -6,7 +6,8 @@ from troi import Element, Recording, PipelineError
 
 class GenreLookupElement(Element):
     """
-        Look up musicbrainz tag and genres for a list of recordings recordings, based on recording mbid.
+        Look up musicbrainz tags for a list of recordings recordings, based on recording mbid.
+        Mosly for experimentation for now -- still needs support for adding genre vs tag.
     """
 
     SERVER_URL = "http://bono.metabrainz.org:8000/genre-mbid-lookup/json"
@@ -43,21 +44,12 @@ class GenreLookupElement(Element):
 
         mbid_index = {}
         for row in rows:
-            mbid_index[row['recording_mbid']] = row
+            mbid_index[row['recording_mbid']] = row["tags"]
 
         output = []
         for r in recordings:
             try:
-                tags = mbid_index[r.mbid].get('tags', '')
-                if tags:
-                    r.musicbrainz['tags'] = tags.split(',')
-                else:
-                    r.musicbrainz['tags'] = []
-                genres = mbid_index[r.mbid].get('genres', '')
-                if genres:
-                    r.musicbrainz['genres'] = genres.split(',')
-                else:
-                    r.musicbrainz['genres'] = []
+                r.musicbrainz["tags"] = mbid_index[r.mbid]
             except KeyError:
                 self.debug("recording (%s) not found, skipping." % r.mbid)
                 continue
