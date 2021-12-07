@@ -7,7 +7,6 @@ import pytest
 import troi
 import troi.playlist
 import troi.utils
-from troi.patches.ab_similar_recordings import ABSimilarRecordingsPatch
 
 
 @click.group()
@@ -59,7 +58,7 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
         print("Troi playlist generation starting...")
-        playlist.generate()
+        result = playlist.generate()
 
         if name:
             playlist.playlists[0].name = name
@@ -68,24 +67,25 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
 
         print("done.")
     except troi.PipelineError as err:
-        print("Failed to generate playlist: %s" % err,
-              file=sys.stderr)
+        print("Failed to generate playlist: %s" % err, file=sys.stderr)
         sys.exit(2)
 
     if token:
         for url, _ in playlist.submit(token, created_for):
             print("Submitted playlist: %s" % url)
 
-    if save:
+    if result is not None and save:
         playlist.save()
         print("playlist saved.")
 
-    if echo or not token:
+    if result is not None and (echo or not token):
         print()
         playlist.print()
 
     if not echo and not save and not token:
-        if len(playlist.playlists) == 0:
+        if result is None:
+            print("Patch executed successfully.")
+        elif len(playlist.playlists) == 0:
             print("No playlists were generated. :(")
         elif len(playlist.playlists) == 1:
             print("A playlist with %d tracks was generated." % len(playlist.playlists[0].recordings))

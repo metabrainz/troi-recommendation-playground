@@ -19,4 +19,4 @@ class UserListElement(Element):
         return [User]
 
     def read(self, inputs):
-        return [ User(user_name=user_name) for user_name in user_list ]
+        return [ User(user_name=user_name) for user_name in self.user_list ]

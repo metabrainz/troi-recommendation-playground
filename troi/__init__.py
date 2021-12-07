@@ -69,6 +69,9 @@ class Element(ABC):
         if self.sources:
             for source in self.sources:
                 result = source.generate()
+                if result is None:
+                    return None
+
                 if len(self.inputs()) > 0 and type(result[0]) not in self.inputs():
                     raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
                                        (type(source).__name__, source.outputs()[0], type(result[0])))
@@ -76,6 +79,8 @@ class Element(ABC):
                 source_lists.append(result)
 
         items = self.read(source_lists)
+        if items is None:
+            return None
 
         if len(items) > 0 and type(items[0]) == Playlist:
             print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
@@ -272,13 +277,13 @@ class User(Entity):
     """
         The class that represents a ListenBrainz user.
     """
-    def __init__(self, user_name=None, user_id=None)
+    def __init__(self, user_name=None, user_id=None):
         Entity.__init__(self)
         self.user_name = user_name
         self.user_id = user_id
 
     def __str__(self):
-        return "<User('%s', %d)>" % (self.user_name, self.user_id)
+        return "<User('%s', %d)>" % (self.user_name, self.user_id or -1)
 
 
 
