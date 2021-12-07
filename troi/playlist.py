@@ -15,7 +15,16 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 
-def _serialize_to_jspf(playlist, created_for=None):
+def _serialize_to_jspf(playlist, created_for=None, track_count=None):
+    """
+        Serialize a playlist to JSPF.
+
+        Arguments:
+            created_for: The user name of the user for whom this playlist
+                         was created.
+            track_count: The number of tracks to serialize. If not provided,
+                         all tracks will be serialized.
+    """
 
     data = { "creator": "ListenBrainz Troi",
              "extension": {
@@ -120,8 +129,12 @@ class PlaylistElement(Element):
                     continue
                 self.print_recording.print(recording)
 
-    def save(self):
-        """Save each playlist to disk, giving each playlist a unique name if none was provided."""
+    def save(self, track_count=None):
+        """Save each playlist to disk, giving each playlist a unique name if none was provided.
+
+           Arguments:
+              track_count: If provided, write out only this many tracks to the playlist/
+        """
 
         if not self.playlists:
             raise PipelineError("Playlists have not been generated yet.")
@@ -129,7 +142,7 @@ class PlaylistElement(Element):
         for i, playlist in enumerate(self.playlists):
             filename = playlist.filename or "playlist_%03d.jspf" % i
             with open(filename, "w") as f:
-                f.write(json.dumps(_serialize_to_jspf(playlist)))
+                f.write(json.dumps(_serialize_to_jspf(playlist, track_count)))
 
     def submit(self, token, created_for):
         """

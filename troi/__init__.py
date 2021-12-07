@@ -268,6 +268,19 @@ class Playlist(Entity):
         random.shuffle(self.recordings)
 
 
+class User(Entity):
+    """
+        The class that represents a ListenBrainz user.
+    """
+    def __init__(self, user_name=None, user_id=None)
+        Entity.__init__(self)
+        self.user_name = user_name
+        self.user_id = user_id
+
+    def __str__(self):
+        return "<User('%s', %d)>" % (self.user_name, self.user_id)
+
+
 
 class PipelineError(RuntimeError):
     """
