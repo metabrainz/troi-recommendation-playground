@@ -39,7 +39,7 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
     def description():
         return "Find acoustically similar recordings from AcousticBrainz"
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         recording_id = inputs['recording_id']
         similarity_type = inputs['similarity_type']
 
@@ -51,7 +51,7 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         dedup_filter = troi.filters.DuplicateRecordingArtistCreditFilterElement()
         dedup_filter.set_sources(r_lookup)
 
-        pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist", 50)
+        pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist", 50, patch_slug=self.slug())
         pl_maker.set_sources(dedup_filter)
 
         return pl_maker

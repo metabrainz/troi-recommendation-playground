@@ -105,7 +105,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
     def description():
         return "Generate weekly flashback playlists from the ListenBrainz recommended recordings."
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         user_name = inputs['user_name']
         type = inputs['type']
 

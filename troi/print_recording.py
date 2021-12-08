@@ -84,6 +84,7 @@ class PrintRecordingList():
         else:
             rec_name = recording.name
         print("%-60s %-50s" % (rec_name[:59], artist[:49]), end='')
+        print(" %s" % recording.mbid, end='')
 
         if self.print_year or year:
             print(" %d" % recording.year, end='')

@@ -8,7 +8,6 @@ import click
 import troi
 from troi import Element, Artist, Recording, Playlist, PipelineError
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-from troi.acousticbrainz.mood_lookup import MoodLookupElement
 from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
 
 
@@ -66,16 +65,17 @@ class TopMissedTracksPatch(troi.patch.Patch):
     def description():
         return "Generate a playlist from the top tracks that the most similar users listened to, but the user didn't listen to."
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         source = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-missed-tracks/json",
                                        json_post_data=[{ 'user_name': inputs['user_name'] }])
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % inputs['user_name'],
-                                                      self.DESC)
+                                                      self.DESC,
+                                                      patch_slug=self.slug())
         pl_maker.set_sources(source)
 
-        reducer = PlaylistRedundancyReducerElement()
+        reducer = PlaylistRedundancyReducerElement(max_num_recordings=self.max_num_recordings)
         reducer.set_sources(pl_maker)
 
-        return pl_maker
+        return reducer

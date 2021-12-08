@@ -52,8 +52,17 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
 
     context = patch.parse_args.make_context(patchname, list(args))
     pipelineargs = context.forward(patch.parse_args)
-    pipeline = patch.create(pipelineargs)
 
+    patch_args = {
+        "echo": echo,
+        "save": save,
+        "token": token,
+        "created_for": created_for, 
+        "name": name,
+        "desc": desc
+    }
+
+    pipeline = patch.create(pipelineargs, patch_args)
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
@@ -70,7 +79,7 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
         print("Failed to generate playlist: %s" % err, file=sys.stderr)
         sys.exit(2)
 
-    if token:
+    if result is not None and token:
         for url, _ in playlist.submit(token, created_for):
             print("Submitted playlist: %s" % url)
 

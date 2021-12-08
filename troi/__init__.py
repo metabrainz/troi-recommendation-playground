@@ -72,7 +72,9 @@ class Element(ABC):
                 if result is None:
                     return None
 
-                if len(self.inputs()) > 0 and type(result[0]) not in self.inputs():
+                if len(self.inputs()) > 0 and \
+                    type(result[0]) not in self.inputs() and \
+                    len(self.outputs()) > 0:
                     raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
                                        (type(source).__name__, source.outputs()[0], type(result[0])))
 
@@ -254,14 +256,15 @@ class Playlist(Entity):
         and that filename is the suggested filename that this playlist should be saved as, if the user asked to 
         do that and didn't provide a different filename.
     """
-    def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None,
-                 ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None, ranking=None,
+                 year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.filename = filename
         self.mbid = mbid
         self.recordings = recordings
         self.description = description
+        self.patch_slug = patch_slug
 
     def __str__(self):
         return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)

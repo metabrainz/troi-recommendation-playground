@@ -49,7 +49,7 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
     def description():
         return "Generate a list of random recordings from a given area."
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         area_name = inputs['area']
         start_year = inputs['start_year']
         end_year = inputs['end_year']

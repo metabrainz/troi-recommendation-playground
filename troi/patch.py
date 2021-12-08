@@ -66,9 +66,13 @@ class Patch(ABC):
         return None
 
     @abstractmethod
-    def create(self, input_args):
+    def create(self, input_args, patch_args):
         '''
-            The function creates the data pipeline and then returns it.
+            The function creates the data pipeline and then returns it. 
+
+            Params:
+               input_args: the passed arguments to the pipeline
+               patch_args: the arguments passed to the topmost patch.
         '''
 
         return None

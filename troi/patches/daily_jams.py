@@ -85,7 +85,7 @@ class DailyJamsPatch(troi.patch.Patch):
     def description():
         return "Generate a daily playlist from the ListenBrainz recommended recordings. Day 1 = Monday, Day 2  = Tuesday ..."
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         user_name = inputs['user_name']
         type = inputs['type']
         day = inputs['day']

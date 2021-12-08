@@ -144,7 +144,7 @@ class PlaylistElement(Element):
             with open(filename, "w") as f:
                 f.write(json.dumps(_serialize_to_jspf(playlist, track_count)))
 
-    def submit(self, token, created_for):
+    def submit(self, token, created_for=None):
         """
             Submit the playlist to ListenBrainz.
 
@@ -301,10 +301,11 @@ class PlaylistMakerElement(Element):
         This element takes in Recordings and spits out a Playlist.
     '''
 
-    def __init__(self, name, desc, max_tracks=None):
+    def __init__(self, name, desc, patch_slug=None, max_tracks=None):
         super().__init__()
         self.name = name
         self.desc = desc
+        self.patch_slug = patch_slug
         self.max_tracks = max_tracks
 
     @staticmethod
@@ -317,6 +318,13 @@ class PlaylistMakerElement(Element):
 
     def read(self, inputs):
         if self.max_tracks is not None:
-            return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_tracks])]
+            return [Playlist(name=self.name,
+                    description=self.desc,
+                    recordings=inputs[0][:self.max_tracks],
+                    patch_slug=self.patch_slug)]
         else:
-            return [Playlist(name=self.name, description=self.desc, recordings=inputs[0])]
+            return [Playlist(name=self.name,
+                    description=self.desc,
+                    recordings=inputs[0],
+                    patch_slug=self.patch_slug)]
+

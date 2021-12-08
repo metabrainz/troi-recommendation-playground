@@ -76,13 +76,19 @@ class TopTracksYearPatch(troi.patch.Patch):
     def description():
         return "Generate your year in review playlist."
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         user_name = inputs['user_name']
 
         year = datetime.now().year
-        stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="this_year")
+        stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name,
+                                                             count=self.max_num_recordings,
+                                                             time_range="this_year")
+        remove_empty = troi.filters.EmptyRecordingFilterElement()
+        remove_empty.set_sources(stats)
 
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name), self.DESC % (quote(user_name), year))
-        pl_maker.set_sources(stats)
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name),
+                                                      self.DESC % (quote(user_name), year),
+                                                      patch_slug=self.slug())
+        pl_maker.set_sources(remove_empty)
 
         return pl_maker
