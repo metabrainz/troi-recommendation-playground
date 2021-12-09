@@ -23,19 +23,17 @@ class PlaylistMultiplexerElement(Element):
 
     @staticmethod
     def inputs():
-        return []
+        return [Playlist]
 
     @staticmethod
     def outputs():
-        return []
+        return [[Playlist]]
 
     def read(self, inputs):
-        outputs = []
-        for input in inputs:
-            for entity in input:
-                outputs.append(entity)
 
-        return outputs
+        ic(inputs)
+
+        return [[ playlist for playlist in inputs ]]
 
 
 class YIMSubmitterElement(Element):
@@ -48,17 +46,19 @@ class YIMSubmitterElement(Element):
 
     @staticmethod
     def inputs():
-        return [[Playlist]]
+        return [Playlist]
 
     @staticmethod
     def outputs():
         return []
 
     def read(self, inputs):
+        ic(inputs)
 
-        for input in inputs:
-            for nested in input:
-                print(nested.playlists[0].patch_slug, nested.playlists[0].user_name)
+        print("YIMSubmitter:")
+        for playlist in inputs[0]:
+            print("  ", playlist.patch_slug, playlist.user_name)
+        print("")
 
         return None
 
@@ -119,10 +119,10 @@ class YIMRunnerPatch(troi.patch.Patch):
         for_loop = ForLoopElement(patch_slugs, inputs, patch_args)
         for_loop.set_sources(u)
 
-        m = PlaylistMultiplexerElement()
-        m.set_sources(for_loop)
+#        m = PlaylistMultiplexerElement()
+#        m.set_sources(for_loop)
 
         y = YIMSubmitterElement()
-        y.set_sources(m)
+        y.set_sources(for_loop)
 
         return y
