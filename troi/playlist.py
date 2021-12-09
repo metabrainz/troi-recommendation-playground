@@ -15,7 +15,7 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 
-def _serialize_to_jspf(playlist, created_for=None, track_count=None):
+def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_metadata=None):
     """
         Serialize a playlist to JSPF.
 
@@ -41,10 +41,16 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
         data["annotation"] = playlist.description
 
     if created_for:
-        data["created_for"] = created_for
+        data["extension"][PLAYLIST_EXTENSION_URI]["created_for"] = created_for
+
+    if algorithm_metadata:
+        data["extension"][PLAYLIST_EXTENSION_URI]["alogrithm_metadata"] = algorithm_metadata
+
+    if not track_count or track_count < 0 or track_count > len(playlist.recordings):
+        track_count = len(playlist.recordings)
 
     tracks = []
-    for e in playlist.recordings:
+    for e in playlist.recordings[:track_count]:
         track = {}
         artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
         track["creator"] = e.artist.name if e.artist else ""
@@ -129,20 +135,30 @@ class PlaylistElement(Element):
                     continue
                 self.print_recording.print(recording)
 
-    def save(self, track_count=None):
+    def save(self, track_count=None, algorithm_metadata=None, file_obj=None):
         """Save each playlist to disk, giving each playlist a unique name if none was provided.
 
            Arguments:
               track_count: If provided, write out only this many tracks to the playlist/
+              algorithm_metadata: If provided, submit this dict of data with the playlist
+                                  as part of the playlist metadata. 
+              file_obj: If provided, write the JSPF file to this file_object
         """
 
         if not self.playlists:
             raise PipelineError("Playlists have not been generated yet.")
 
         for i, playlist in enumerate(self.playlists):
-            filename = playlist.filename or "playlist_%03d.jspf" % i
-            with open(filename, "w") as f:
-                f.write(json.dumps(_serialize_to_jspf(playlist, track_count)))
+            if not file_obj:
+                filename = playlist.filename or "playlist_%03d.jspf" % i
+                with open(filename, "w") as f:
+                    f.write(json.dumps(_serialize_to_jspf(playlist,
+                                                          track_count=track_count,
+                                                          algorithm_metadata=algorithm_metadata)))
+            else:
+                file_obj.write(json.dumps(_serialize_to_jspf(playlist,
+                                                             track_count=track_count,
+                                                             algorithm_metadata=algorithm_metadata)))
 
     def submit(self, token, created_for=None):
         """

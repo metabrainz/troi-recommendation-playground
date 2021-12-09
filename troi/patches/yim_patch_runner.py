@@ -4,6 +4,7 @@ import troi
 from troi import Element, Artist, Recording, Playlist, PipelineError
 from troi.listenbrainz.user import UserListElement
 from troi.loops import ForLoopElement
+from troi.playlist import PlaylistElement
 
 from icecream import ic
 
@@ -11,29 +12,6 @@ from icecream import ic
 @click.group()
 def cli():
     pass
-
-
-class PlaylistMultiplexerElement(Element):
-    '''
-        Multiplex data from multiple streams into one stream
-    '''
-
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def inputs():
-        return [Playlist]
-
-    @staticmethod
-    def outputs():
-        return [[Playlist]]
-
-    def read(self, inputs):
-
-        ic(inputs)
-
-        return [[ playlist for playlist in inputs ]]
 
 
 class YIMSubmitterElement(Element):
@@ -53,12 +31,22 @@ class YIMSubmitterElement(Element):
         return []
 
     def read(self, inputs):
-        ic(inputs)
 
-        print("YIMSubmitter:")
-        for playlist in inputs[0]:
-            print("  ", playlist.patch_slug, playlist.user_name)
-        print("")
+        slug = inputs[0][0].patch_slug
+        metadata = { "source_patch": slug }
+        with open("%s-playlists.json" % slug, "a") as f:
+            print("YIMSubmitter:")
+            for playlist in inputs[0]:
+                print("  ", playlist.patch_slug, playlist.user_name)
+                f.write("%s\n" % playlist.user_name)
+
+                # This is hacky and should be moved to playlist
+                playlist_element = PlaylistElement()
+                playlist_element.playlists = [ playlist ]
+                playlist_element.save(track_count=5, algorithm_metadata=metadata, file_obj=f)
+                f.write("\n")
+
+            print("")
 
         return None
 
@@ -118,9 +106,6 @@ class YIMRunnerPatch(troi.patch.Patch):
         
         for_loop = ForLoopElement(patch_slugs, inputs, patch_args)
         for_loop.set_sources(u)
-
-#        m = PlaylistMultiplexerElement()
-#        m.set_sources(for_loop)
 
         y = YIMSubmitterElement()
         y.set_sources(for_loop)
