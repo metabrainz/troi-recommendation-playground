@@ -73,7 +73,7 @@ class Element(ABC):
                     return None
 
                 if len(self.inputs()) > 0 and \
-                    type(result[0]) not in self.inputs() and \
+                    len(result) > 0 and type(result[0]) not in self.inputs() and \
                     len(source.outputs()) > 0:
                     raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
                                        (type(source).__name__, source.outputs()[0], type(result[0])))

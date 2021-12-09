@@ -2,7 +2,7 @@ import click
 
 import troi
 from troi import Element, Artist, Recording, Playlist, PipelineError
-from troi.listenbrainz.user import UserListElement
+from troi.listenbrainz.yim_user import YIMUserListElement
 from troi.loops import ForLoopElement
 from troi.playlist import PlaylistElement
 
@@ -63,14 +63,12 @@ class YIMRunnerPatch(troi.patch.Patch):
     @staticmethod
     @cli.command(no_args_is_help=True)
     @click.argument('patch_slugs')
-    @click.argument('user_names', nargs=-1)
     def parse_args(**kwargs):
         """
-        Run a patch for a number of users.
+        Run YIM patch for users in the LB DB
 
         \b
         PATCH_SLUG: The slug of the patch to run.
-        USER_NAMES: The list of ListenBrainz user names to run the patch for.
         """
 
         return kwargs
@@ -95,14 +93,12 @@ class YIMRunnerPatch(troi.patch.Patch):
         return "Run a given patch for a given list users."
 
     def create(self, inputs, patch_args):
-        user_names = inputs["user_names"]
-
         patch_slugs = [ slug for slug in inputs["patch_slugs"].split(",") ]
         print("Running the following patches:")
         for slug in patch_slugs:
             print("  %s" % slug)
 
-        u = UserListElement(user_names)
+        u = YIMUserListElement()
         
         for_loop = ForLoopElement(patch_slugs, inputs, patch_args)
         for_loop.set_sources(u)

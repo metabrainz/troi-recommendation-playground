@@ -177,7 +177,7 @@ class PlaylistElement(Element):
         for playlist in self.playlists:
             print("submit %d tracks" % len(playlist.recordings))
             if len(playlist.recordings) == 0:
-                print("skip playlist of length 0")
+                print("skip submitting a zero length playlist.")
                 continue
 
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
