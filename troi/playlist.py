@@ -301,12 +301,13 @@ class PlaylistMakerElement(Element):
         This element takes in Recordings and spits out a Playlist.
     '''
 
-    def __init__(self, name, desc, patch_slug=None, max_tracks=None):
+    def __init__(self, name, desc, patch_slug=None, user_name=None, max_num_recordings=None):
         super().__init__()
         self.name = name
         self.desc = desc
         self.patch_slug = patch_slug
-        self.max_tracks = max_tracks
+        self.user_name = user_name
+        self.max_num_recordings = max_num_recordings
 
     @staticmethod
     def inputs():
@@ -317,14 +318,16 @@ class PlaylistMakerElement(Element):
         return [Playlist]
 
     def read(self, inputs):
-        if self.max_tracks is not None:
+        if self.max_num_recordings is not None:
             return [Playlist(name=self.name,
                     description=self.desc,
-                    recordings=inputs[0][:self.max_tracks],
-                    patch_slug=self.patch_slug)]
+                    recordings=inputs[0][:self.max_num_recordings],
+                    patch_slug=self.patch_slug,
+                    user_name=self.user_name)]
         else:
             return [Playlist(name=self.name,
                     description=self.desc,
                     recordings=inputs[0],
-                    patch_slug=self.patch_slug)]
+                    patch_slug=self.patch_slug,
+                    user_name=self.user_name)]
 

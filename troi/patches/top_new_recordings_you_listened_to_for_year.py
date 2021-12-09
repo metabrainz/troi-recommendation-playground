@@ -69,7 +69,10 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         y_lookup.set_sources(recs)
 
         year = datetime.now().year
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % year, self.DESC % year, patch_slug=self.slug())
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % year,
+                                                      self.DESC % year,
+                                                      patch_slug=self.slug(),
+                                                      user_name=inputs['user_name'])
         pl_maker.set_sources(recs)
 
         shaper = PlaylistRedundancyReducerElement()

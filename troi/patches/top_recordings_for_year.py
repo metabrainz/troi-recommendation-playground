@@ -81,14 +81,16 @@ class TopTracksYearPatch(troi.patch.Patch):
 
         year = datetime.now().year
         stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name,
-                                                             count=self.max_num_recordings,
+                                                             count=(self.max_num_recordings*2),
                                                              time_range="this_year")
         remove_empty = troi.filters.EmptyRecordingFilterElement()
         remove_empty.set_sources(stats)
 
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name),
                                                       self.DESC % (quote(user_name), year),
-                                                      patch_slug=self.slug())
+                                                      patch_slug=self.slug(),
+                                                      user_name=user_name,
+                                                      max_num_recordings=self.max_num_recordings)
         pl_maker.set_sources(remove_empty)
 
         return pl_maker

@@ -257,7 +257,7 @@ class Playlist(Entity):
         do that and didn't provide a different filename.
     """
     def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None, ranking=None,
-                 year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None):
+                 year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None, user_name=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.filename = filename
@@ -265,6 +265,7 @@ class Playlist(Entity):
         self.recordings = recordings
         self.description = description
         self.patch_slug = patch_slug
+        self.user_name = user_name
 
     def __str__(self):
         return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)

@@ -87,7 +87,8 @@ class TopDiscoveries(troi.patch.Patch):
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
                                                       self.DESC % (inputs['user_name'], year, year, year),
-                                                      patch_slug=self.slug())
+                                                      patch_slug=self.slug(),
+                                                      user_name=inputs['user_name'])
         pl_maker.set_sources(y_lookup)
 
         shaper = PlaylistRedundancyReducerElement()

@@ -72,7 +72,8 @@ class TopMissedTracksPatch(troi.patch.Patch):
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % inputs['user_name'],
                                                       self.DESC,
-                                                      patch_slug=self.slug())
+                                                      patch_slug=self.slug(),
+                                                      user_name=inputs['user_name'])
         pl_maker.set_sources(source)
 
         reducer = PlaylistRedundancyReducerElement(max_num_recordings=self.max_num_recordings)

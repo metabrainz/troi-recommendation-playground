@@ -58,12 +58,12 @@ class YIMSubmitterElement(Element):
 
         for input in inputs:
             for nested in input:
-                print(nested.playlists[0].patch_slug)
+                print(nested.playlists[0].patch_slug, nested.playlists[0].user_name)
 
         return None
 
 
-class PatchRunnerPatch(troi.patch.Patch):
+class YIMRunnerPatch(troi.patch.Patch):
     """
         Run a patch for a list of users.
     """
