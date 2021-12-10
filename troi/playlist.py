@@ -41,10 +41,11 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
         data["annotation"] = playlist.description
 
     if created_for:
-        data["extension"][PLAYLIST_EXTENSION_URI]["created_for"] = created_for
+        # TODO: This element is in the wrong location!
+        data["created_for"] = created_for
 
     if algorithm_metadata:
-        data["extension"][PLAYLIST_EXTENSION_URI]["alogrithm_metadata"] = algorithm_metadata
+        data["extension"][PLAYLIST_EXTENSION_URI]["algorithm_metadata"] = algorithm_metadata
 
     if not track_count or track_count < 0 or track_count > len(playlist.recordings):
         track_count = len(playlist.recordings)
@@ -160,7 +161,7 @@ class PlaylistElement(Element):
                                                              track_count=track_count,
                                                              algorithm_metadata=algorithm_metadata)))
 
-    def submit(self, token, created_for=None):
+    def submit(self, token, created_for=None, algorithm_metadata=None):
         """
             Submit the playlist to ListenBrainz.
 
@@ -181,7 +182,7 @@ class PlaylistElement(Element):
                 continue
 
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                              json=_serialize_to_jspf(playlist, created_for),
+                              json=_serialize_to_jspf(playlist, created_for, algorithm_metadata=algorithm_metadata),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
                 try:
@@ -197,6 +198,7 @@ class PlaylistElement(Element):
             except ValueError as err:
                 raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
 
+            playlist.mbid = result["playlist_mbid"]
             playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
         return playlist_mbids

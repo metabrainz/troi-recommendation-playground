@@ -42,6 +42,7 @@ class YIMSubmitterElement(Element):
             for playlist in inputs[0]:
                 print("  ", playlist.patch_slug, playlist.user_name)
                 f.write("%s\n" % playlist.user_name)
+                f.write("%s\n" % playlist.mbid)
 
                 # This is hacky and should be moved to playlist
                 playlist_element = PlaylistElement()
