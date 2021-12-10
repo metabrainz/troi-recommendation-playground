@@ -32,6 +32,9 @@ class YIMSubmitterElement(Element):
 
     def read(self, inputs):
 
+        if len(inputs) == 0 or len(inputs[0]) == 0:
+            return None
+
         slug = inputs[0][0].patch_slug
         metadata = { "source_patch": slug }
         with open("%s-playlists.json" % slug, "a") as f:
@@ -77,7 +80,7 @@ class YIMRunnerPatch(troi.patch.Patch):
     def inputs():
         return [
                    { "type": str, "name": "patch_slugs", "desc": "List of Troi patches name to execute (separated by comman, no spaces!)", "optional": False },
-                   { "type": list, "name": "user_names", "desc": "ListenBrainz user names", "optional": False }
+                   { "type": list, "name": "user_names", "desc": "ListenBrainz user names", "optional": True }
                ]
 
     @staticmethod

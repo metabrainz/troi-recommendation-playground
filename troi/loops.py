@@ -56,6 +56,10 @@ class ForLoopElement(troi.Element):
                     playlist.set_sources(pipeline)
                     playlist.generate()
 
+                    if len(playlist.playlists[0].recordings) < self.patch_args["min_recordings"]:
+                        print("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
+                        continue
+
                     if self.patch_args["echo"]:
                         playlist.print()
 

@@ -25,8 +25,9 @@ def cli():
 @click.option('--created-for', '-c', required=False)
 @click.option('--name', '-n', required=False)
 @click.option('--desc', '-d', required=False)
+@click.option('--min-recordings', '-m', type=int, required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
+def playlist(patch, debug, echo, save, token, args, created_for, name, desc, min_recordings):
     """
     Generate a playlist using a patch
 
@@ -39,6 +40,11 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
     CREATED-FOR: If this option is specified, it must give a valid user name and the
                  TOKEN argument must specify a user who is whitelisted as a playlist bot at
                  listenbrainz.org .
+    NAME: Override the algorithms that generate a playlist name and use this name instead.
+    DESC: Override the algorithms that generate a playlist description and use this description instead.
+    MIN-RECORDINGS: The minimum number of recordings that must be present in a playlist to consider it complete.
+                    If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
+                    Default: Off, a playlist with at least one track will be considere complete.
     """
 
     patchname = patch
@@ -59,7 +65,8 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
         "token": token,
         "created_for": created_for, 
         "name": name,
-        "desc": desc
+        "desc": desc,
+        "min_recordings": min_recordings
     }
 
     pipeline = patch.create(pipelineargs, patch_args)
@@ -82,6 +89,10 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
     if result is not None and token:
         for url, _ in playlist.submit(token, created_for):
             print("Submitted playlist: %s" % url)
+
+    if len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings:
+        print("Playlist does not have at least %d recordings, stopping." % min_recordings)
+        sys.exit(0)
 
     if result is not None and save:
         playlist.save()
