@@ -22,7 +22,7 @@ def cli():
 @click.option('--print', '-p', 'echo', required=False, is_flag=True)
 @click.option('--save', '-s', required=False, is_flag=True)
 @click.option('--token', '-t', required=False, type=click.UUID)
-@click.option('--upload', '-u', required=False, type=click.UUID)
+@click.option('--upload', '-u', required=False, is_flag=True)
 @click.option('--created-for', '-c', required=False)
 @click.option('--name', '-n', required=False)
 @click.option('--desc', '-d', required=False)
