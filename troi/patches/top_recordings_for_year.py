@@ -78,11 +78,14 @@ class TopTracksYearPatch(troi.patch.Patch):
 
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
+        auth_token = patch_args["token"]
 
         year = datetime.now().year
         stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name,
                                                              count=(self.max_num_recordings*2),
-                                                             time_range="this_year")
+                                                             time_range="this_year",
+                                                             auth_token=auth_token)
+
         remove_empty = troi.filters.EmptyRecordingFilterElement()
         remove_empty.set_sources(stats)
 

@@ -56,14 +56,18 @@ class ForLoopElement(troi.Element):
                     playlist.set_sources(pipeline)
                     playlist.generate()
 
-                    if len(playlist.playlists[0].recordings) < self.patch_args["min_recordings"]:
+                    if self.patch_args["min_recordings"] is not None and \
+                        len(playlist.playlists[0].recordings) < self.patch_args["min_recordings"]:
                         print("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
                         continue
 
                     if self.patch_args["echo"]:
                         playlist.print()
 
-                    if self.patch_args["token"] and self.patch_args["token"] != "":
+                    if self.patch_args["upload"]:
+                        if not self.patch_args["token"] or self.patch_args["token"] == "":
+                            raise PipelineError("In order to upload a playlist an auth token must be provided. Use --token")
+
                         if self.patch_args["created_for"] and self.patch_args["created_for"] != "":
                             playlist.submit(self.patch_args["token"], self.patch_args["created_for"])
                         else:

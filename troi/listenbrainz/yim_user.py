@@ -32,7 +32,8 @@ class YIMUserListElement(Element):
                              FROM "user"
                              JOIN statistics.year_in_music yim
                                ON "user".id = yim.user_id
-                            WHERE yim.data->'playlists'->>'slug' is NULL"""
+                            WHERE yim.data->'playlists'->>'slug' is NULL
+                            LIMIT 100"""
                 curs.execute(query)
 
                 return [ User(user_name=row["user_name"]) for row in curs.fetchall()]

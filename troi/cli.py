@@ -22,21 +22,22 @@ def cli():
 @click.option('--print', '-p', 'echo', required=False, is_flag=True)
 @click.option('--save', '-s', required=False, is_flag=True)
 @click.option('--token', '-t', required=False, type=click.UUID)
+@click.option('--upload', '-u', required=False, type=click.UUID)
 @click.option('--created-for', '-c', required=False)
 @click.option('--name', '-n', required=False)
 @click.option('--desc', '-d', required=False)
 @click.option('--min-recordings', '-m', type=int, required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, args, created_for, name, desc, min_recordings):
+def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings):
     """
     Generate a playlist using a patch
 
     \b
     PRINT: This option causes the generated playlist to be printed to stdout.
     SAVE: The save option causes the generated playlist to be saved to disk.
-    TOKEN: Specifying a token submits the playlists to ListenBrainz. This must be the token of
-           the user whose account the playlist is being submitted to. See https://listenbrainz.org/profile to
-           get your user token.
+    TOKEN: Auth token to use when using the LB API. Required for submitting playlists to the server.
+           See https://listenbrainz.org/profile to get your user token.
+    UPLOAD: Whether or not to submit the finished playlist to the LB server. Token must be set for this to work.
     CREATED-FOR: If this option is specified, it must give a valid user name and the
                  TOKEN argument must specify a user who is whitelisted as a playlist bot at
                  listenbrainz.org .
@@ -64,6 +65,7 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc, min
         "save": save,
         "token": token,
         "created_for": created_for, 
+        "upload": upload, 
         "name": name,
         "desc": desc,
         "min_recordings": min_recordings
@@ -86,11 +88,16 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc, min
         print("Failed to generate playlist: %s" % err, file=sys.stderr)
         sys.exit(2)
 
-    if result is not None and token:
+    if upload and not token:
+        print("In order to upload a playlist, you must provide an auth token. Use option --token.")
+        sys.exit(2)
+
+    if result is not None and token and upload:
         for url, _ in playlist.submit(token, created_for):
             print("Submitted playlist: %s" % url)
 
-    if len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings:
+    if min_recordings is not None and \
+        (len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings):
         print("Playlist does not have at least %d recordings, stopping." % min_recordings)
         sys.exit(0)
 
