@@ -211,10 +211,10 @@ class PlaylistRedundancyReducerElement(Element):
         in the playlist.
     '''
 
-    def __init__(self, artist_count=15, max_num_recordings=50):
+    def __init__(self, max_artist_occurance=2, max_num_recordings=50):
         super().__init__()
-        self.artist_count = artist_count
         self.max_num_recordings = max_num_recordings
+        self.max_artist_occurance = max_artist_occurance
 
     @staticmethod
     def inputs():
@@ -226,26 +226,32 @@ class PlaylistRedundancyReducerElement(Element):
 
     def read(self, inputs):
 
-        for playlist in inputs[0]:
-            artists = defaultdict(int)
-            for r in playlist.recordings:
-                artists[r.artist.name] += 1
+        kept = []
+        playlists = []
 
-            self.debug("found %d artists" % len(artists.keys()))
-            if len(artists.keys()) > self.artist_count:
-                self.debug("playlist shaper fixing up playlist")
-                filtered = []
+        from icecream import ic
+        max_artist_occurance = self.max_artist_occurance
+        for playlist in inputs[0]:
+            while True:
                 artists = defaultdict(int)
                 for r in playlist.recordings:
-                    if artists[r.artist.name] < 2: 
-                        filtered.append(r)
-                        artists[r.artist.name] += 1
+                    for mbid in r.artist.mbids:
+                        print(mbid)
+                        artists[mbid] += 1
+                    for mbid in r.artist.mbids:
+                        if artists[mbid] > max_artist_occurance:
+                            break
+                    else:
+                        kept.append(r)
 
-                playlist.recordings = filtered[:self.max_num_recordings]
-                break
-            else:
-                self.debug("playlist shaper returned full playlist")
-                playlist.recordings = playlist.recordings[:self.max_num_recordings]
+                if len(kept) >= self.max_num_recordings:
+                    playlist.recordings = kept[:self.max_num_recordings]
+                    break
+                else:
+                    max_artist_occurance += 1
+                    if max_artist_occurance > 4:
+                        playlist.recordings = playlist.recordings[:self.max_num_recordings]
+                        break
 
         return inputs[0]
 
