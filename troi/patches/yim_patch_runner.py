@@ -6,8 +6,6 @@ from troi.listenbrainz.yim_user import YIMUserListElement
 from troi.loops import ForLoopElement
 from troi.playlist import PlaylistElement
 
-from icecream import ic
-
 
 @click.group()
 def cli():
@@ -37,7 +35,7 @@ class YIMSubmitterElement(Element):
 
         slug = inputs[0][0].patch_slug
         metadata = { "source_patch": slug }
-        with open("%s-playlists.json" % slug, "a") as f:
+        with open("%s-playlists.json" % slug, "w") as f:
             print("YIMSubmitter:")
             for playlist in inputs[0]:
                 print("  ", playlist.patch_slug, playlist.user_name)

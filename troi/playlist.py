@@ -229,7 +229,6 @@ class PlaylistRedundancyReducerElement(Element):
         kept = []
         playlists = []
 
-        from icecream import ic
         max_artist_occurance = self.max_artist_occurance
         for playlist in inputs[0]:
             while True:
