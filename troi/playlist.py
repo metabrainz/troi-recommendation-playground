@@ -236,7 +236,6 @@ class PlaylistRedundancyReducerElement(Element):
                 artists = defaultdict(int)
                 for r in playlist.recordings:
                     for mbid in r.artist.mbids:
-                        print(mbid)
                         artists[mbid] += 1
                     for mbid in r.artist.mbids:
                         if artists[mbid] > max_artist_occurance:
