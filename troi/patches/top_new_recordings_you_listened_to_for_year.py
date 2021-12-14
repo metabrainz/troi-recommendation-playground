@@ -23,9 +23,25 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
     """
         See below for description
     """
-    NAME = "Tracks released in %d that you've listened to."
-    DESC = """Tracks that were released in %d that you've listened to. (Yes, we finish
-              sentences with prepositions here.)"""
+    NAME = "Top New Releases in %d for %s"
+    DESC = """<p>
+              This playlist highlights recordings released in %d that %s listened to the most.
+              </p>
+              <p>
+              We generated this playlist from the user's listens and chose all the recordings
+              that were released this year and that the user listened to often. We removed
+              recordings from duplicate artists so that no artist (or an artist in a collaboration) appears
+              more than twice in this playlist. Finally we randomized the order of the recordings so that
+              two of the same artists hopefully won't appear in a row.
+              </p>
+              <p>
+              We have attempted to match all of the listens to MusicBrainz
+              IDs in order for them to be included in this playlist, but we may not have been able to match them all,
+              so some recordings may be missing from this list.
+              </p>
+              <p>
+              This is a review playlist that we hope will give insights the music released during the year.
+              </p>"""
 
     def __init__(self, debug=False, max_num_recordings=50):
         troi.patch.Patch.__init__(self, debug)
@@ -69,8 +85,8 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         y_lookup.set_sources(recs)
 
         year = datetime.now().year
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % year,
-                                                      self.DESC % year,
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
+                                                      self.DESC % (year, inputs['user_name']),
                                                       patch_slug=self.slug(),
                                                       user_name=inputs['user_name'])
         pl_maker.set_sources(recs)

@@ -21,14 +21,27 @@ class TopMissedTracksPatch(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Top Missed recordings for %s"
+    NAME = "Top Missed Recordings of %d for %s"
     DESC = """<p>
-              This playlist is made from tracks that your most similar users listened to this year, but that
-              you didn't listen to this year.
+              This playlist is made from recordings that %s's most similar users listened to this year, but that
+              %s didn't listen to this year.
               </p>
               <p>
-              Double click on any recording to start playing it -- we'll do our best to find a matching recording
-              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
+              We determined the top 3 most similar users to %s and selected all of the recordings
+              they listened to this year. We then removed all of the recordings that %s listened to from
+              this list of recordings, leaving only those that they didn't listen to. Finally we
+              randomized the order of the recordings so that two of the same artists hopefully won't appear
+              in a row.
+              </p>
+              <p>
+              We have attempted to match all of the listens to MusicBrainz
+              IDs in order for them to be included in this playlist, but we may not have been able to match them all,
+              so some recordings may be missing from this list.
+              </p>
+              <p>
+              This is a discovery playlist that will hopefully introduce the user to some new recordings
+              that other similar users love. Because this is a discovery playlist, it may require
+              more active listening since it may contain tracks that are not fully to the taste of the user.
               </p>
            """
 
@@ -70,8 +83,8 @@ class TopMissedTracksPatch(troi.patch.Patch):
                                        json_post_data=[{ 'user_name': inputs['user_name'] }])
 
         year = datetime.now().year
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % inputs['user_name'],
-                                                      self.DESC,
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
+                                                      self.DESC % (inputs['user_name'], inputs['user_name'], inputs['user_name'], inputs['user_name']),
                                                       patch_slug=self.slug(),
                                                       user_name=inputs['user_name'])
         pl_maker.set_sources(source)

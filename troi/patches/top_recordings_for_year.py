@@ -23,23 +23,16 @@ class TopTracksYearPatch(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Top recordings of %d for %s"
+    NAME = "Top Recordings of %d for %s"
     DESC = """<p>
-              This playlist is made from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
-              top recordings for %d statistics</a>.
+              This playlist is made from %s's Top Recordings for %d statistics.
               </p>
               <p>
-              Double click on any recording to start playing it -- we'll do our best to find a matching recording
-              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
+              We selected the top tracks from this user’s statistics and removed those recordings that we could not
+              match to entries in MusicBrainz. (This is a requirement to make this list playable.)
               </p>
               <p>
-              Please keep in mind that this is our first attempt at making playlists for our users. Our processes
-              are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
-              very accurate, we apologize -- we'll continue to make them better. (e.g. some recordings may be missing
-              from this list because we were not able to find a match for it in MusicBrainz.)
-              </p>
-              <p>
-              Happy holidays from everyone at MetaBrainz!
+              This is a review playlist that we hope will give insights into the listening habits of the year.
               </p>
            """
 

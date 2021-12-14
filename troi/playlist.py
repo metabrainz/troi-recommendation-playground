@@ -225,14 +225,15 @@ class PlaylistRedundancyReducerElement(Element):
 
     def read(self, inputs):
 
-        kept = []
         playlists = []
 
         max_artist_occurance = self.max_artist_occurance
         for playlist in inputs[0]:
             while True:
+                kept = []
                 artists = defaultdict(int)
                 for r in playlist.recordings:
+
                     for mbid in r.artist.mbids:
                         artists[mbid] += 1
                     for mbid in r.artist.mbids:
@@ -247,7 +248,7 @@ class PlaylistRedundancyReducerElement(Element):
                 else:
                     max_artist_occurance += 1
                     if max_artist_occurance > 4:
-                        playlist.recordings = playlist.recordings[:self.max_num_recordings]
+                        playlist.recordings = kept
                         break
 
         return inputs[0]
@@ -351,4 +352,3 @@ class PlaylistMakerElement(Element):
                     recordings=inputs[0],
                     patch_slug=self.patch_slug,
                     user_name=self.user_name)]
-
