@@ -29,7 +29,9 @@ class TopMissedTracksPatch(troi.patch.Patch):
               <p>
               We determined the top 3 most similar users to %s and selected all of the recordings
               they listened to this year. We then removed all of the recordings that %s listened to from
-              this list of recordings, leaving only those that they didn't listen to. Finally we
+              this list of recordings, leaving only those that they didn't listen to. We removed recordings from
+              duplicate artists so that ideally no artist (or an artist in a collaboration) appears
+              more than twice in this playlist, although that may not always be possible. Finally we
               randomized the order of the recordings so that two of the same artists hopefully won't appear
               in a row.
               </p>

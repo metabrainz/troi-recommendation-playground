@@ -31,9 +31,10 @@ class TopDiscoveries(troi.patch.Patch):
               <p>
               We generated this playlist from %s's listens and chose all the recordings
               that they first listened to this year and they listened to more than once. We removed
-              recordings from duplicate artists so that no artist (or an artist in a collaboration) appears
-              more than twice in this playlist. Finally we randomized the order of the recordings so that
-              two of the same artists hopefully won't appear in a row.
+              recordings from duplicate artists so that ideally no artist (or an artist in a collaboration) appears
+              more than twice in this playlist, although that may not always be possible. 
+              Finally we randomized the order of the recordings so that two of the same artists hopefully
+              won't appear in a row.
               </p>
               <p>
               Please remember that ListenBrainz may not know about all the times this user listened to a recording

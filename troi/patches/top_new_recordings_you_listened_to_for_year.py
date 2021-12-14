@@ -29,10 +29,10 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
               </p>
               <p>
               We generated this playlist from the user's listens and chose all the recordings
-              that were released this year and that the user listened to often. We removed
-              recordings from duplicate artists so that no artist (or an artist in a collaboration) appears
-              more than twice in this playlist. Finally we randomized the order of the recordings so that
-              two of the same artists hopefully won't appear in a row.
+              that were released this year and that the user listened to often. We removed recordings
+              from duplicate artists so that ideally no artist (or an artist in a collaboration) appears
+              more than twice in this playlist, although that may not always be possible. Finally we randomized
+              the order of the recordings so that two of the same artists hopefully won't appear in a row.
               </p>
               <p>
               We have attempted to match all of the listens to MusicBrainz
