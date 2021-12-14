@@ -38,6 +38,9 @@ class YIMSubmitterElement(Element):
         with open("%s-playlists.json" % slug, "w") as f:
             print("YIMSubmitter:")
             for playlist in inputs[0]:
+                if len(playlist.recordings) == 0:
+                    continue
+
                 print("  ", playlist.patch_slug, playlist.user_name)
                 f.write("%s\n" % playlist.user_name)
                 f.write("%s\n" % playlist.mbid)

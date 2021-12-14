@@ -176,11 +176,10 @@ class PlaylistElement(Element):
 
         playlist_mbids = []
         for playlist in self.playlists:
-            print("submit %d tracks" % len(playlist.recordings))
             if len(playlist.recordings) == 0:
-                print("skip submitting a zero length playlist.")
                 continue
 
+            print("submit %d tracks" % len(playlist.recordings))
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for, algorithm_metadata=algorithm_metadata),
                               headers={"Authorization": "Token " + str(token)})
