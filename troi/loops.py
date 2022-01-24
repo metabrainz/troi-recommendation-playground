@@ -80,7 +80,7 @@ class ForLoopElement(troi.Element):
                                                 algorithm_metadata=metadata)
                         except troi.PipelineError as err:
                             print("Failed to submit playlist: %s, continuing..." % err, file=sys.stderr)
-                            next
+                            continue
 
                     outputs.append(playlist.playlists[0])
                     print()

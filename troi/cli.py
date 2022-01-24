@@ -92,14 +92,14 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
         print("In order to upload a playlist, you must provide an auth token. Use option --token.")
         sys.exit(2)
 
-    if result is not None and token and upload:
-        for url, _ in playlist.submit(token, created_for):
-            print("Submitted playlist: %s" % url)
-
     if min_recordings is not None and \
         (len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings):
         print("Playlist does not have at least %d recordings, stopping." % min_recordings)
         sys.exit(0)
+
+    if result is not None and token and upload:
+        for url, _ in playlist.submit(token, created_for):
+            print("Submitted playlist: %s" % url)
 
     if result is not None and save:
         playlist.save()
