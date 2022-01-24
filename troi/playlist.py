@@ -15,7 +15,16 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 
-def _serialize_to_jspf(playlist, created_for=None):
+def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_metadata=None):
+    """
+        Serialize a playlist to JSPF.
+
+        Arguments:
+            created_for: The user name of the user for whom this playlist
+                         was created.
+            track_count: The number of tracks to serialize. If not provided,
+                         all tracks will be serialized.
+    """
 
     data = { "creator": "ListenBrainz Troi",
              "extension": {
@@ -32,10 +41,17 @@ def _serialize_to_jspf(playlist, created_for=None):
         data["annotation"] = playlist.description
 
     if created_for:
+        # TODO: This element is in the wrong location!
         data["created_for"] = created_for
 
+    if algorithm_metadata:
+        data["extension"][PLAYLIST_EXTENSION_URI]["algorithm_metadata"] = algorithm_metadata
+
+    if not track_count or track_count < 0 or track_count > len(playlist.recordings):
+        track_count = len(playlist.recordings)
+
     tracks = []
-    for e in playlist.recordings:
+    for e in playlist.recordings[:track_count]:
         track = {}
         artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
         track["creator"] = e.artist.name if e.artist else ""
@@ -120,18 +136,32 @@ class PlaylistElement(Element):
                     continue
                 self.print_recording.print(recording)
 
-    def save(self):
-        """Save each playlist to disk, giving each playlist a unique name if none was provided."""
+    def save(self, track_count=None, algorithm_metadata=None, file_obj=None):
+        """Save each playlist to disk, giving each playlist a unique name if none was provided.
+
+           Arguments:
+              track_count: If provided, write out only this many tracks to the playlist/
+              algorithm_metadata: If provided, submit this dict of data with the playlist
+                                  as part of the playlist metadata. 
+              file_obj: If provided, write the JSPF file to this file_object
+        """
 
         if not self.playlists:
             raise PipelineError("Playlists have not been generated yet.")
 
         for i, playlist in enumerate(self.playlists):
-            filename = playlist.filename or "playlist_%03d.jspf" % i
-            with open(filename, "w") as f:
-                f.write(json.dumps(_serialize_to_jspf(playlist)))
+            if not file_obj:
+                filename = playlist.filename or "playlist_%03d.jspf" % i
+                with open(filename, "w") as f:
+                    f.write(json.dumps(_serialize_to_jspf(playlist,
+                                                          track_count=track_count,
+                                                          algorithm_metadata=algorithm_metadata)))
+            else:
+                file_obj.write(json.dumps(_serialize_to_jspf(playlist,
+                                                             track_count=track_count,
+                                                             algorithm_metadata=algorithm_metadata)))
 
-    def submit(self, token, created_for):
+    def submit(self, token, created_for=None, algorithm_metadata=None):
         """
             Submit the playlist to ListenBrainz.
 
@@ -146,13 +176,12 @@ class PlaylistElement(Element):
 
         playlist_mbids = []
         for playlist in self.playlists:
-            print("submit %d tracks" % len(playlist.recordings))
             if len(playlist.recordings) == 0:
-                print("skip playlist of length 0")
                 continue
 
+            print("submit %d tracks" % len(playlist.recordings))
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                              json=_serialize_to_jspf(playlist, created_for),
+                              json=_serialize_to_jspf(playlist, created_for, algorithm_metadata=algorithm_metadata),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
                 try:
@@ -168,6 +197,7 @@ class PlaylistElement(Element):
             except ValueError as err:
                 raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
 
+            playlist.mbid = result["playlist_mbid"]
             playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
         return playlist_mbids
@@ -180,10 +210,10 @@ class PlaylistRedundancyReducerElement(Element):
         in the playlist.
     '''
 
-    def __init__(self, artist_count=15, max_num_recordings=50):
+    def __init__(self, max_artist_occurance=2, max_num_recordings=50):
         super().__init__()
-        self.artist_count = artist_count
         self.max_num_recordings = max_num_recordings
+        self.max_artist_occurance = max_artist_occurance
 
     @staticmethod
     def inputs():
@@ -195,26 +225,31 @@ class PlaylistRedundancyReducerElement(Element):
 
     def read(self, inputs):
 
-        for playlist in inputs[0]:
-            artists = defaultdict(int)
-            for r in playlist.recordings:
-                artists[r.artist.name] += 1
+        playlists = []
 
-            self.debug("found %d artists" % len(artists.keys()))
-            if len(artists.keys()) > self.artist_count:
-                self.debug("playlist shaper fixing up playlist")
-                filtered = []
+        max_artist_occurance = self.max_artist_occurance
+        for playlist in inputs[0]:
+            while True:
+                kept = []
                 artists = defaultdict(int)
                 for r in playlist.recordings:
-                    if artists[r.artist.name] < 2: 
-                        filtered.append(r)
-                        artists[r.artist.name] += 1
 
-                playlist.recordings = filtered[:self.max_num_recordings]
-                break
-            else:
-                self.debug("playlist shaper returned full playlist")
-                playlist.recordings = playlist.recordings[:self.max_num_recordings]
+                    for mbid in r.artist.mbids:
+                        artists[mbid] += 1
+                    for mbid in r.artist.mbids:
+                        if artists[mbid] > max_artist_occurance:
+                            break
+                    else:
+                        kept.append(r)
+
+                if len(kept) >= self.max_num_recordings:
+                    playlist.recordings = kept[:self.max_num_recordings]
+                    break
+                else:
+                    max_artist_occurance += 1
+                    if max_artist_occurance > 4:
+                        playlist.recordings = kept
+                        break
 
         return inputs[0]
 
@@ -288,11 +323,13 @@ class PlaylistMakerElement(Element):
         This element takes in Recordings and spits out a Playlist.
     '''
 
-    def __init__(self, name, desc, max_tracks=None):
+    def __init__(self, name, desc, patch_slug=None, user_name=None, max_num_recordings=None):
         super().__init__()
         self.name = name
         self.desc = desc
-        self.max_tracks = max_tracks
+        self.patch_slug = patch_slug
+        self.user_name = user_name
+        self.max_num_recordings = max_num_recordings
 
     @staticmethod
     def inputs():
@@ -303,7 +340,15 @@ class PlaylistMakerElement(Element):
         return [Playlist]
 
     def read(self, inputs):
-        if self.max_tracks is not None:
-            return [Playlist(name=self.name, description=self.desc, recordings=inputs[0][:self.max_tracks])]
+        if self.max_num_recordings is not None:
+            return [Playlist(name=self.name,
+                    description=self.desc,
+                    recordings=inputs[0][:self.max_num_recordings],
+                    patch_slug=self.patch_slug,
+                    user_name=self.user_name)]
         else:
-            return [Playlist(name=self.name, description=self.desc, recordings=inputs[0])]
+            return [Playlist(name=self.name,
+                    description=self.desc,
+                    recordings=inputs[0],
+                    patch_slug=self.patch_slug,
+                    user_name=self.user_name)]

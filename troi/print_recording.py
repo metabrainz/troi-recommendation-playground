@@ -83,8 +83,12 @@ class PrintRecordingList():
             rec_name = "[[ mbid:%s ]]" % recording.mbid
         else:
             rec_name = recording.name
-        print("%-60s %-50s" % (rec_name[:59], artist[:49]), end='')
+        print("%-60s %-50s %5s" % (rec_name[:59], artist[:49], recording.mbid[:5]), end='')
 
+        if recording.artist.mbids is not None:
+            print(" %-20s" % ",".join([ mbid[:5] for mbid in recording.artist.mbids ]), end='')
+        if recording.artist.artist_credit_id is not None:
+            print(" %8d" % recording.artist.artist_credit_id, end='')
         if self.print_year or year:
             print(" %d" % recording.year, end='')
         if self.print_listen_count or listen_count:

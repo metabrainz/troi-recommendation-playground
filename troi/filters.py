@@ -232,7 +232,7 @@ class EmptyRecordingFilterElement(troi.Element):
         recordings = inputs[0]
         output = []
         for rec in recordings:
-            if rec.name is None or (rec.artist and rec.artist.name is None):
+            if rec.name is None or (rec.artist and rec.artist.name is None) or rec.mbid is None:
                 if debug:
                     print(f"recording {rec.mbid} has no metadata, filtering")
             else:

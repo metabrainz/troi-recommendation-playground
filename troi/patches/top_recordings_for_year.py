@@ -23,23 +23,16 @@ class TopTracksYearPatch(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Top recordings of %d for %s"
+    NAME = "Top Recordings of %d for %s"
     DESC = """<p>
-              This playlist is made from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
-              top recordings for %d statistics</a>.
+              This playlist is made from %s's Top Recordings for %d statistics.
               </p>
               <p>
-              Double click on any recording to start playing it -- we'll do our best to find a matching recording
-              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
+              We selected the top tracks from this user’s statistics and removed those recordings that we could not
+              match to entries in MusicBrainz. (This is a requirement to make this list playable.)
               </p>
               <p>
-              Please keep in mind that this is our first attempt at making playlists for our users. Our processes
-              are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
-              very accurate, we apologize -- we'll continue to make them better. (e.g. some recordings may be missing
-              from this list because we were not able to find a match for it in MusicBrainz.)
-              </p>
-              <p>
-              Happy holidays from everyone at MetaBrainz!
+              This is a review playlist that we hope will give insights into the listening habits of the year.
               </p>
            """
 
@@ -76,13 +69,24 @@ class TopTracksYearPatch(troi.patch.Patch):
     def description():
         return "Generate your year in review playlist."
 
-    def create(self, inputs):
+    def create(self, inputs, patch_args):
         user_name = inputs['user_name']
+        auth_token = patch_args["token"]
 
         year = datetime.now().year
-        stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name, count=self.max_num_recordings, time_range="this_year")
+        stats = troi.listenbrainz.stats.UserRecordingElement(user_name=user_name,
+                                                             count=(self.max_num_recordings*2),
+                                                             time_range="this_year",
+                                                             auth_token=auth_token)
 
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name), self.DESC % (quote(user_name), year))
-        pl_maker.set_sources(stats)
+        remove_empty = troi.filters.EmptyRecordingFilterElement()
+        remove_empty.set_sources(stats)
+
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name),
+                                                      self.DESC % (quote(user_name), year),
+                                                      patch_slug=self.slug(),
+                                                      user_name=user_name,
+                                                      max_num_recordings=self.max_num_recordings)
+        pl_maker.set_sources(remove_empty)
 
         return pl_maker

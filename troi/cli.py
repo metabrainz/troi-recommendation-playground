@@ -7,7 +7,6 @@ import pytest
 import troi
 import troi.playlist
 import troi.utils
-from troi.patches.ab_similar_recordings import ABSimilarRecordingsPatch
 
 
 @click.group()
@@ -23,23 +22,30 @@ def cli():
 @click.option('--print', '-p', 'echo', required=False, is_flag=True)
 @click.option('--save', '-s', required=False, is_flag=True)
 @click.option('--token', '-t', required=False, type=click.UUID)
+@click.option('--upload', '-u', required=False, is_flag=True)
 @click.option('--created-for', '-c', required=False)
 @click.option('--name', '-n', required=False)
 @click.option('--desc', '-d', required=False)
+@click.option('--min-recordings', '-m', type=int, required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
+def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings):
     """
     Generate a playlist using a patch
 
     \b
     PRINT: This option causes the generated playlist to be printed to stdout.
     SAVE: The save option causes the generated playlist to be saved to disk.
-    TOKEN: Specifying a token submits the playlists to ListenBrainz. This must be the token of
-           the user whose account the playlist is being submitted to. See https://listenbrainz.org/profile to
-           get your user token.
+    TOKEN: Auth token to use when using the LB API. Required for submitting playlists to the server.
+           See https://listenbrainz.org/profile to get your user token.
+    UPLOAD: Whether or not to submit the finished playlist to the LB server. Token must be set for this to work.
     CREATED-FOR: If this option is specified, it must give a valid user name and the
                  TOKEN argument must specify a user who is whitelisted as a playlist bot at
                  listenbrainz.org .
+    NAME: Override the algorithms that generate a playlist name and use this name instead.
+    DESC: Override the algorithms that generate a playlist description and use this description instead.
+    MIN-RECORDINGS: The minimum number of recordings that must be present in a playlist to consider it complete.
+                    If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
+                    Default: Off, a playlist with at least one track will be considere complete.
     """
 
     patchname = patch
@@ -53,13 +59,24 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
 
     context = patch.parse_args.make_context(patchname, list(args))
     pipelineargs = context.forward(patch.parse_args)
-    pipeline = patch.create(pipelineargs)
 
+    patch_args = {
+        "echo": echo,
+        "save": save,
+        "token": token,
+        "created_for": created_for, 
+        "upload": upload, 
+        "name": name,
+        "desc": desc,
+        "min_recordings": min_recordings
+    }
+
+    pipeline = patch.create(pipelineargs, patch_args)
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
         print("Troi playlist generation starting...")
-        playlist.generate()
+        result = playlist.generate()
 
         if name:
             playlist.playlists[0].name = name
@@ -68,24 +85,34 @@ def playlist(patch, debug, echo, save, token, args, created_for, name, desc):
 
         print("done.")
     except troi.PipelineError as err:
-        print("Failed to generate playlist: %s" % err,
-              file=sys.stderr)
+        print("Failed to generate playlist: %s" % err, file=sys.stderr)
         sys.exit(2)
 
-    if token:
+    if upload and not token:
+        print("In order to upload a playlist, you must provide an auth token. Use option --token.")
+        sys.exit(2)
+
+    if min_recordings is not None and \
+        (len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings):
+        print("Playlist does not have at least %d recordings, stopping." % min_recordings)
+        sys.exit(0)
+
+    if result is not None and token and upload:
         for url, _ in playlist.submit(token, created_for):
             print("Submitted playlist: %s" % url)
 
-    if save:
+    if result is not None and save:
         playlist.save()
         print("playlist saved.")
 
-    if echo or not token:
+    if result is not None and (echo or not token):
         print()
         playlist.print()
 
     if not echo and not save and not token:
-        if len(playlist.playlists) == 0:
+        if result is None:
+            print("Patch executed successfully.")
+        elif len(playlist.playlists) == 0:
             print("No playlists were generated. :(")
         elif len(playlist.playlists) == 1:
             print("A playlist with %d tracks was generated." % len(playlist.playlists[0].recordings))
