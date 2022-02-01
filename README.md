@@ -89,3 +89,12 @@ To run a container with the build-in webserver, do:
 docker build -t metabrainz/troi-hoster .
 docker run --rm -p 8000:80 --name troi-hoster metabrainz/troi-hoster
 ```
+
+## References for the future path of Troi
+
+Troi is a rather primitive tool at this point in time, but as the MetaBrainz projects gather more data, we can improve
+how we generate playlists. A good overview of the technology and psychology behind playlists and recommendations, see:
+
+* https://www.slideshare.net/BenFields/finding-a-path-through-the-juke-box-the-playlist-tutorial?utm_source=pocket_mylist
+
+
