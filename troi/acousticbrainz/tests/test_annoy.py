@@ -57,7 +57,7 @@ class TestAnnoyLookupElement(unittest.TestCase):
 
         entities = e.read([[]])
         req.assert_called_with(e.SERVER_URL + "mfccs/", params={
-            "remove_dups": "true", "recording_ids": "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf:0"
+            "remove_dups": "all", "recording_ids": "8f8cc91f-0bca-4351-90d4-ef334ac0a0cf:0", 'n_neighbours': 1000
         })
 
         assert len(entities) == 6
