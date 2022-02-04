@@ -14,6 +14,7 @@ PLAYLIST_ARTIST_URI_PREFIX = "https://musicbrainz.org/artist/"
 PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
+PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_metadata=None):
     """
@@ -60,8 +61,8 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
         if artist_mbids:
             track["extension"] = {
-                PLAYLIST_TRACK_URI_PREFIX: {
-                    "artist_mbids" : artist_mbids,
+                PLAYLIST_TRACK_EXTENSION_URI: {
+                    "artist_identifiers": artist_mbids,
                 }
             }
         tracks.append(track)
