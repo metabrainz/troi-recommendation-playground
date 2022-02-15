@@ -22,4 +22,4 @@ def area_lookup(area_name):
     if len(rows) == 0:
         raise PipelineError("Cannot find area name. Must be spelled exactly as in MusicBrainz.")
 
-    return rows[0]['area_id']
+    return rows[0]['area_mbid']
