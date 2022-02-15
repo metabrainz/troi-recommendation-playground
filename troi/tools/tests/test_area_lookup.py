@@ -13,7 +13,7 @@ request_json = [
 
 return_json = [
     {
-        "area_id": 81,
+        "area_mbid": "85752fda-13c4-31a3-bee5-0e5cb1f51dad",
         "area_name": "Germany"
     }
 ]
@@ -30,4 +30,4 @@ class TestAreaLookup(unittest.TestCase):
         area_id = troi.tools.area_lookup.area_lookup(request_json[0]["[area]"])
         req.assert_called_with(troi.tools.area_lookup.AREA_LOOKUP_SERVER_URL, json=request_json)
 
-        assert area_id == 81
+        assert area_id == "85752fda-13c4-31a3-bee5-0e5cb1f51dad"

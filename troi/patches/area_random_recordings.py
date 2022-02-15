@@ -3,11 +3,12 @@ import datetime
 import click
 
 from troi import PipelineError, Recording
-import troi.listenbrainz.area_random_recordings
 import troi.tools.area_lookup
 import troi.musicbrainz.recording_lookup
 import troi.patch
 import troi.filters
+from troi.playlist import PlaylistRedundancyReducerElement
+from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
 
 @click.group()
@@ -16,6 +17,8 @@ def cli():
 
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
+
+    SERVER_URL = "http://bono.metabrainz.org:8000/area-random-recordings/json"
 
     def __init__(self, debug=False):
         super().__init__(debug)
@@ -65,11 +68,17 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         if end_year < start_year:
             raise PipelineError("end_year must be equal to or greater than start_year.")
 
-        area = troi.listenbrainz.area_random_recordings.AreaRandomRecordingsElement(area_id, start_year, end_year)
-        r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        r_lookup.set_sources(area)
+        recs = DataSetFetcherElement(server_url=self.SERVER_URL,
+                                     json_post_data=[{ 'start_year': start_year,
+                                                       'end_year': end_year,
+                                                       'area_mbid': area_id }])
 
-        artist_limiter = troi.filters.ArtistCreditLimiterElement()
-        artist_limiter.set_sources(r_lookup)
 
-        return artist_limiter
+        name = "Random recordings from %s between %d and %d." % (area_name, start_year, end_year)
+        pl_maker = troi.playlist.PlaylistMakerElement(name=name, desc=name)
+        pl_maker.set_sources(recs)
+
+        reducer = PlaylistRedundancyReducerElement()
+        reducer.set_sources(pl_maker)
+
+        return reducer
