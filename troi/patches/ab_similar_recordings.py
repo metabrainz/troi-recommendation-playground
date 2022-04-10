@@ -51,7 +51,7 @@ class ABSimilarRecordingsPatch(troi.patch.Patch):
         dedup_filter = troi.filters.DuplicateRecordingArtistCreditFilterElement()
         dedup_filter.set_sources(r_lookup)
 
-        pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist", 50, patch_slug=self.slug())
+        pl_maker = troi.playlist.PlaylistMakerElement("Annoy test playlist", "Annoy test playlist", patch_slug=self.slug(), max_num_recordings=50)
         pl_maker.set_sources(dedup_filter)
 
         return pl_maker
