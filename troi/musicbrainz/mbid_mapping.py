@@ -48,6 +48,7 @@ class MBIDMappingLookupElement(Element):
                 r.add_note("recording mbid %s overwritten by mbid_lookup" % (r.mbid))
             r.mbid = row['recording_mbid']
             r.name = row['recording_name']
+            r.year = row['year']
 
             if r.artist.artist_credit_id:
                 r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id))

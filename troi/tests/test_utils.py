@@ -9,11 +9,12 @@ class TestPatches(unittest.TestCase):
     def test_discover_patches(self):
         patches = discover_patches()
 
-        assert len(patches) == 12
+        assert len(patches) == 5
         assert "daily-jams" in patches
         assert "area-random-recordings" in patches
-        assert "ab-similar-recordings" in patches
         assert "weekly-flashback-jams" in patches
+        assert "playlist-from-mbids" in patches
+        assert "world-trip" in patches
 
-        assert issubclass(patches['daily-jams'], Patch)
-        assert issubclass(patches['area-random-recordings'], Patch)
+        for p in patches:
+            assert issubclass(patches[p], Patch)
