@@ -87,7 +87,7 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
                                                       patch_slug=self.slug())
         pl_maker.set_sources(remove_empty)
 
-        shaper = troi.playlist.PlaylistRedundancyReducerElement(max_artist_occurance=1, max_num_recordings=self.max_num_recordings)
+        shaper = troi.playlist.PlaylistRedundancyReducerElement(max_artist_occurrence=1, max_num_recordings=self.max_num_recordings)
         shaper.set_sources(pl_maker)
 
         return shaper

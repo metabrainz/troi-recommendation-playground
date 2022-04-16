@@ -211,10 +211,10 @@ class PlaylistRedundancyReducerElement(Element):
         in the playlist.
     '''
 
-    def __init__(self, max_artist_occurance=2, max_num_recordings=50):
+    def __init__(self, max_artist_occurrence=2, max_num_recordings=50):
         super().__init__()
         self.max_num_recordings = max_num_recordings
-        self.max_artist_occurance = max_artist_occurance
+        self.max_artist_occurrence = max_artist_occurrence
 
     @staticmethod
     def inputs():
@@ -228,7 +228,7 @@ class PlaylistRedundancyReducerElement(Element):
 
         playlists = []
 
-        max_artist_occurance = self.max_artist_occurance
+        max_artist_occurrence = self.max_artist_occurrence
         for playlist in inputs[0]:
             while True:
                 kept = []
@@ -238,7 +238,7 @@ class PlaylistRedundancyReducerElement(Element):
                     for mbid in r.artist.mbids:
                         artists[mbid] += 1
                     for mbid in r.artist.mbids:
-                        if artists[mbid] > max_artist_occurance:
+                        if artists[mbid] > max_artist_occurrence:
                             break
                     else:
                         kept.append(r)
@@ -247,8 +247,8 @@ class PlaylistRedundancyReducerElement(Element):
                     playlist.recordings = kept[:self.max_num_recordings]
                     break
                 else:
-                    max_artist_occurance += 1
-                    if max_artist_occurance > 4:
+                    max_artist_occurrence += 1
+                    if max_artist_occurrence > 4:
                         playlist.recordings = kept
                         break
 
