@@ -9,7 +9,7 @@ class AreaRandomRecordingsElement(Element):
         by artists from that given area.
     '''
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/area-random-recordings/json"
+    SERVER_URL = "http://wolf.metabrainz.org:8000/area-random-recordings/json"
 
     def __init__(self, area_id, start_year=0, end_year=3000):
         super().__init__()

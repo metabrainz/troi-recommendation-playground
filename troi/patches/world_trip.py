@@ -85,7 +85,7 @@ class WorldTripElement(Element):
                 raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
 
             country_code = r.json()['areas'][0]['id']
-            r = requests.post("https://bono.metabrainz.org/area-random-recordings/json", json=[{ "area_mbid": country_code,
+            r = requests.post("http://wolf.metabrainz.org:8000/area-random-recordings/json", json=[{ "area_mbid": country_code,
                                 "start_year": 2012,
                                 "end_year": 2021 }])
             if r.status_code != 200:

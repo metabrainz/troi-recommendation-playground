@@ -9,7 +9,7 @@ class GenreLookupElement(Element):
         Look up musicbrainz tag and genres for a list of recordings recordings, based on recording mbid.
     """
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/genre-mbid-lookup/json"
+    SERVER_URL = "http://wolf.metabrainz.org:8000/genre-mbid-lookup/json"
 
     def __init__(self):
         Element.__init__(self)

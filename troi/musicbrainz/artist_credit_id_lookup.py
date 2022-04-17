@@ -9,7 +9,7 @@ class ArtistCreditIdLookupElement(Element):
        Look up MBIDs for the given artist_credit_ids
     '''
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-id-lookup/json"
+    SERVER_URL = "http://wolf.metabrainz.org:8000/artist-credit-id-lookup/json"
 
     def __init__(self):
         super().__init__()
