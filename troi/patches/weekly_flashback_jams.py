@@ -81,8 +81,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         Generate weekly flashback playlists from the ListenBrainz recommended recordings.
 
         \b
-        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         TYPE: is The type of daily jam. Must be 'top' or 'similar'.
+        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         TOKEN: is the user token from the LB user into whose account you wish to post this playlist
         """
 

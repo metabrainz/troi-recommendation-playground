@@ -9,7 +9,6 @@ import countryinfo
 from troi import Element, Artist, Recording, Playlist, PipelineError
 import troi.patch
 
-
 @click.group()
 def cli():
     pass
@@ -42,7 +41,7 @@ class WorldTripElement(Element):
 
         Arguments:
             continent: one of: (Africa, North America, South America, Asia, Europe, Oceania)
-            latitude: boolean. Sort by latiduded if True, otherwise sort by longitude
+            latitude: boolean. Sort by latitude if True, otherwise sort by longitude
     '''
 
     def __init__(self, continent, latitude):
@@ -56,7 +55,7 @@ class WorldTripElement(Element):
 
     @staticmethod
     def outputs():
-        return [Playlist]
+        return [ Recording ]
 
     def read(self, inputs):
 
@@ -78,7 +77,8 @@ class WorldTripElement(Element):
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][1])
 
         for i, country in enumerate(continent):
-            self.debug("   ", country["name"])
+
+            self.debug(country["name"])
 
             r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % country['name'])
             if r.status_code != 200:
