@@ -32,10 +32,9 @@ def recording_from_row(row):
 
     return r
 
-
 class WorldTripElement(Element):
     '''
-        Given a continent (Africa, North America, South America, Asia, Europe, Oceania) and
+        Given a continent (Africa, Americas, Asia, Europe, Oceania) and
         a sort order latitude or longitude, pick random tracks from each country and
         add tracks to a playlist sorted by latitude or longitude.
 
@@ -86,9 +85,11 @@ class WorldTripElement(Element):
 
             country_code = r.json()['areas'][0]['id']
             r = requests.post("http://wolf.metabrainz.org:8000/area-random-recordings/json", json=[{ "area_mbid": country_code,
-                                "start_year": 2012,
+                                "start_year": 2020,
                                 "end_year": 2021 }])
             if r.status_code != 200:
+                if r.status_code == 504:
+                    continue
                 raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" % (r.status_code, r.text))
 
             recordings = []
