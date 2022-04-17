@@ -18,7 +18,7 @@ def cli():
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/area-random-recordings/json"
+    SERVER_URL = "http://wolf.metabrainz.org:8000/area-random-recordings/json"
 
     def __init__(self, debug=False):
         super().__init__(debug)
