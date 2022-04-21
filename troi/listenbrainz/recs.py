@@ -49,8 +49,10 @@ class UserRecordingRecommendationsElement(Element):
             if not recordings or not len(recordings['payload']['mbids']):
                 break
 
+            lb_metadata = { "model_id": recordings["payload"].get("model_id", None),
+                            "model_info_url": recordings["payload"].get("model_info_url", None) }
             for r in recordings['payload']['mbids']:
-                recording_list.append(Recording(mbid=r['recording_mbid'], ranking=r['score']))
+                recording_list.append(Recording(mbid=r['recording_mbid'], ranking=r['score'], listenbrainz=lb_metadata))
 
             remaining -= len(recordings['payload']['mbids'])
             if remaining <= 0:

@@ -7,8 +7,9 @@ from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 
-LISTENBRAINZ_SERVER_URL = "https://api.listenbrainz.org"
-LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_SERVER_URL + "/1/playlist/create"
+LISTENBRAINZ_SERVER_URL = "https://listenbrainz.org"
+LISTENBRAINZ_API_URL = "https://api.listenbrainz.org"
+LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_API_URL + "/1/playlist/create"
 PLAYLIST_TRACK_URI_PREFIX = "https://musicbrainz.org/recording/"
 PLAYLIST_ARTIST_URI_PREFIX = "https://musicbrainz.org/artist/"
 PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
