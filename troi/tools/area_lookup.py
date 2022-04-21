@@ -1,9 +1,9 @@
 import requests
 import ujson
 
-from troi import PipelineError
+from troi import PipelineError, DEVELOPMENT_SERVER_URL
 
-AREA_LOOKUP_SERVER_URL = "http://bono.metabrainz.org:8000/area-lookup/json"
+AREA_LOOKUP_SERVER_URL = DEVELOPMENT_SERVER_URL + "/area-lookup/json"
 def area_lookup(area_name):
     '''
         Given an area name, lookup the area_id and return it. Return None if area not found.

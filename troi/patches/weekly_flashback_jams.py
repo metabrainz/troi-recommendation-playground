@@ -74,8 +74,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
 
     @staticmethod
     @cli.command(no_args_is_help=True)
-    @click.argument('type')
     @click.argument('user_name')
+    @click.argument('type')
     def parse_args(**kwargs):
         """
         Generate weekly flashback playlists from the ListenBrainz recommended recordings.
@@ -108,6 +108,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
         type = inputs['type']
+        print(type)
 
         if type not in ("top", "similar"):
             raise PipelineError("type must be either 'top' or 'similar'")

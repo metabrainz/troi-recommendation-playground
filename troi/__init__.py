@@ -3,6 +3,9 @@ import logging
 import random
 
 
+DEVELOPMENT_SERVER_URL = "https://datasets.listenbrainz.org"
+
+
 class Element(ABC):
     """
         Base class for elements

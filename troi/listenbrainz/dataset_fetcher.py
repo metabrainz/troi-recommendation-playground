@@ -31,7 +31,7 @@ class DataSetFetcherElement(Element):
 
         r = requests.post(self.server_url, json=self.json_post_data)
         if r.status_code != 200:
-            raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s" % r.status_code)
+            raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" % (r.status_code, r.text))
 
         recordings = []
         for row in r.json():

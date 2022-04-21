@@ -2,7 +2,7 @@ import datetime
 
 import click
 
-from troi import PipelineError, Recording
+from troi import PipelineError, Recording, DEVELOPMENT_SERVER_URL 
 import troi.tools.area_lookup
 import troi.musicbrainz.recording_lookup
 import troi.patch
@@ -18,7 +18,7 @@ def cli():
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/area-random-recordings/json"
+    SERVER_URL = DEVELOPMENT_SERVER_URL + "/area-random-recordings/json"
 
     def __init__(self, debug=False):
         super().__init__(debug)
