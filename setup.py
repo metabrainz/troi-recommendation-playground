@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setup(
     name="troi",
-    version="0.0.1pre",
+    version="0.1.0",
     author="MetaBrainz Foundation",
     description="An empathetic music recommendation system pipeline",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/metabrainz/troi-recommendation-playground",
-    install_requires=["click>=7", "ujson>=2", "requests>=2.24", "pylistenbrainz", "openpost"],
+    install_requires=["click>=7", "ujson==1.35", "requests>=2.24", "pylistenbrainz", "openpost"],
     packages=find_packages(exclude=("patches",)),
     classifiers=[
         "Programming Language :: Python :: 3",
