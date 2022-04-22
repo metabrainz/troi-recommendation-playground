@@ -91,7 +91,7 @@ class PrintRecordingList():
             if recording.artist.artist_credit_id is not None:
                 print(" %8d" % recording.artist.artist_credit_id, end='')
 
-        if self.print_year or year:
+        if self.print_year and recording.year is not None:
             print(" %d" % recording.year, end='')
         if self.print_listen_count or listen_count:
             print(" %4d" % recording.listenbrainz['listen_count'], end='')
