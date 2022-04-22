@@ -30,6 +30,9 @@ def generate_playlist(patch, debug=False, echo=True, save=False, token=None, upl
                     Default: Off, a playlist with at least one track will be considere complete.
     """
 
+    if args is None:
+        args = []
+
     patchname = patch
     patches = troi.utils.discover_patches()
     if patch not in patches:
