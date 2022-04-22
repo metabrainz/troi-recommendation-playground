@@ -7,7 +7,8 @@ import troi.playlist
 import troi.utils
 
 
-def generate_playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings):
+def generate_playlist(patch, debug=False, echo=True, save=False, token=None, upload=False, args=None,
+                      created_for=None, name="", desc="", min_recordings=10):
     """
     Generate a playlist using a patch
 
