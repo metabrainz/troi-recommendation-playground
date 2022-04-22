@@ -55,8 +55,11 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
     tracks = []
     for e in playlist.recordings[:track_count]:
         track = {}
-        artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
-        track["creator"] = e.artist.name if e.artist else ""
+        artist_mbids = []
+        if e.artist is not None:
+            artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
+            track["creator"] = e.artist.name if e.artist else ""
+
         track["album"] = e.release.name if e.release else ""
         track["title"] = e.name
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
