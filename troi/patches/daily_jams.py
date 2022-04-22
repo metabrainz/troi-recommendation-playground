@@ -111,7 +111,10 @@ class DailyJamsPatch(troi.patch.Patch):
         artist_filter = troi.filters.ArtistCreditFilterElement([])
         artist_filter.set_sources(r_lookup)
 
-        artist_limiter = troi.filters.ArtistCreditLimiterElement()
+        if type == "top":
+            artist_limiter = troi.filters.ArtistCreditLimiterElement(count=9)
+        else:
+            artist_limiter = troi.filters.ArtistCreditLimiterElement(count=3)
         artist_limiter.set_sources(artist_filter)
 
         jams = DailyJamsElement(recs, user=user_name, day=day)
