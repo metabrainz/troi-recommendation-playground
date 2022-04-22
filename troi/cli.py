@@ -2,7 +2,6 @@
 
 import sys
 import click
-import pytest
 
 from troi.core import generate_playlist, list_patches, patch_info
 
@@ -70,6 +69,7 @@ def info(patch):
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def test(args):
     """Run unit tests"""
+    import pytest
     pytest.main(list(args))
 
 
