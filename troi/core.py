@@ -2,6 +2,8 @@
 
 import sys
 
+import click
+
 import troi
 import troi.playlist
 import troi.utils
