@@ -113,17 +113,11 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
                                                                           count=100)
-        r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(skip_not_found=False)
-        r_lookup.set_sources(recs)
-
-        y_lookup = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement()
-        y_lookup.set_sources(r_lookup)
-
         pl_maker = RecsPlaylistMakerElement(name="[unknown]",
                                             desc="[unknown]",
                                             patch_slug="saved-recs",
                                             user_name=user_name,
                                             type="top artists" if type == "top" else "similar artists")
-        pl_maker.set_sources(y_lookup)
+        pl_maker.set_sources(recs)
 
         return pl_maker
