@@ -19,11 +19,12 @@ class DailyJamsElement(Element):
         Split weekly recommended recordings into 7 sets, one for each day of the week.
     '''
 
-    def __init__(self, recs, user, day):
+    def __init__(self, recs, user, day, slug):
         Element.__init__(self)
         self.recs = recs
         self.user = user
         self.day = day
+        self.slug = slug
 
     @staticmethod
     def inputs():
@@ -47,7 +48,9 @@ class DailyJamsElement(Element):
         jam_date += timedelta(days=self.day)
         jam_date = jam_date.strftime("%Y-%m-%d %a")
 
-        return [ Playlist(name="Daily Jams for %s, %s" % (self.user, jam_date), recordings=days[self.day - 1]) ]
+        return [ Playlist(name="Daily Jams for %s, %s" % (self.user, jam_date),
+                          recordings=days[self.day - 1],
+                          patch_slug=self.slug) ]
 
 
 class DailyJamsPatch(troi.patch.Patch):
@@ -117,7 +120,7 @@ class DailyJamsPatch(troi.patch.Patch):
             artist_limiter = troi.filters.ArtistCreditLimiterElement(count=3)
         artist_limiter.set_sources(artist_filter)
 
-        jams = DailyJamsElement(recs, user=user_name, day=day)
+        jams = DailyJamsElement(recs, user=user_name, day=day, slug=DailyJamsPatch.slug())
         jams.set_sources(artist_limiter)
 
         return jams
