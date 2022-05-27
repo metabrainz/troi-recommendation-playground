@@ -34,12 +34,12 @@ class ZipperElement(Element):
 
     def read(self, inputs):
         output = []
-        for rec in zip_longest(inputs[0], inputs[1]):
-            if rec[0] is not None:
-                output.append(rec[0])
-            if rec[1] is not None:
-                output.append(rec[1])
-           
+        for rec0, rec1 in zip_longest(inputs[0], inputs[1]):
+            if rec0 is not None:
+                output.append(rec0)
+            if rec1 is not None:
+                output.append(rec1)
+
         return output
 
 
@@ -83,7 +83,6 @@ class DailyJamsPatch(troi.patch.Patch):
         top_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         top_recs_lookup.set_sources(top_recs)
 
-
         sim_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                               artist_type="similar",
                                                                               count=100)
@@ -93,10 +92,10 @@ class DailyJamsPatch(troi.patch.Patch):
         zipper = ZipperElement()
         zipper.set_sources([top_recs_lookup, sim_recs_lookup])
 
-        jam_date = datetime.utcnow() 
+        jam_date = datetime.utcnow()
         jam_date = jam_date.strftime("%Y-%m-%d %a")
 
-        pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date), 
+        pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
                                         patch_slug=self.slug)
         pl_maker.set_sources(zipper)
