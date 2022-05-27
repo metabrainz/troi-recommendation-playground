@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
+from itertools import zip_longest
 import random
 
 import click
 
 from troi import Element, PipelineError, Recording, Playlist
+from troi.playlist import PlaylistRedundancyReducerElement, PlaylistMakerElement, PlaylistShuffleElement
 import troi.listenbrainz.recs
 import troi.filters
 import troi.musicbrainz.recording_lookup
@@ -14,40 +16,31 @@ def cli():
     pass
 
 
-class DailyJamsElement(Element):
+class ZipperElement(Element):
     '''
-        Split weekly recommended recordings into 7 sets, one for each day of the week.
+        Given two or more inputs, pick recordings from each alternatingly
     '''
 
-    def __init__(self, recs, user, day):
+    def __init__(self):
         Element.__init__(self)
-        self.recs = recs
-        self.user = user
-        self.day = day
 
     @staticmethod
     def inputs():
-        return [Recording]
+        return [Recording, Recording]
 
     @staticmethod
     def outputs():
-        return [Playlist]
+        return [Recording]
 
     def read(self, inputs):
-        recordings = inputs[0]
-        if not recordings or len(recordings) == 0:
-            return []
+        output = []
+        for rec0, rec1 in zip_longest(inputs[0], inputs[1]):
+            if rec0 is not None:
+                output.append(rec0)
+            if rec1 is not None:
+                output.append(rec1)
 
-        random.seed(self.recs.last_updated)
-        random.shuffle(recordings)
-        num_per_day = len(recordings) // 7
-        days = [recordings[i:i + num_per_day] for i in range(0, len(recordings), num_per_day)]
-
-        jam_date = datetime.utcnow() - timedelta(days=datetime.utcnow().isoweekday() % 7)
-        jam_date += timedelta(days=self.day)
-        jam_date = jam_date.strftime("%Y-%m-%d %a")
-
-        return [ Playlist(name="Daily Jams for %s, %s" % (self.user, jam_date), recordings=days[self.day - 1]) ]
+        return output
 
 
 class DailyJamsPatch(troi.patch.Patch):
@@ -59,16 +52,12 @@ class DailyJamsPatch(troi.patch.Patch):
     @staticmethod
     @cli.command(no_args_is_help=True)
     @click.argument('user_name')
-    @click.argument('type')
-    @click.argument('day', required=False, type=int)
     def parse_args(**kwargs):
         """
         Generate a daily playlist from the ListenBrainz recommended recordings.
 
         \b
         USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE is The type of daily jam. Must be 'top' or 'similar'.
-        DAY is The day of the week to generate jams for (1 = Monday, 2 = Tuesday, 7 = Sunday). Leave blank for today.
         """
 
         return kwargs
@@ -83,41 +72,38 @@ class DailyJamsPatch(troi.patch.Patch):
 
     @staticmethod
     def description():
-        return "Generate a daily playlist from the ListenBrainz recommended recordings. Day 1 = Monday, Day 2  = Tuesday ..."
+        return "Generate a daily playlist from the ListenBrainz recommended recordings."
 
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
-        type = inputs['type']
-        day = inputs['day']
-        if day is None:
-            day = 0
 
-        if day > 7:
-            raise PipelineError("day must be an integer between 0-7.")
-        if day == 0:
-            day = datetime.today().weekday() + 1
+        top_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
+                                                                              artist_type="top",
+                                                                              count=100)
+        top_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        top_recs_lookup.set_sources(top_recs)
 
-        if type not in ("top", "similar"):
-            raise PipelineError("type must be either 'top' or 'similar'")
+        sim_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
+                                                                              artist_type="similar",
+                                                                              count=100)
+        sim_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        sim_recs_lookup.set_sources(sim_recs)
 
+        zipper = ZipperElement()
+        zipper.set_sources([top_recs_lookup, sim_recs_lookup])
 
-        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
-                                                                          artist_type=type,
-                                                                          count=-1)
-        r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        r_lookup.set_sources(recs)
+        jam_date = datetime.utcnow()
+        jam_date = jam_date.strftime("%Y-%m-%d %a")
 
-        # If an artist should never appear in a playlist, add the artist_credit_id here
-        artist_filter = troi.filters.ArtistCreditFilterElement([])
-        artist_filter.set_sources(r_lookup)
+        pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
+                                        desc="Daily jams playlist!",
+                                        patch_slug=self.slug)
+        pl_maker.set_sources(zipper)
 
-        if type == "top":
-            artist_limiter = troi.filters.ArtistCreditLimiterElement(count=9)
-        else:
-            artist_limiter = troi.filters.ArtistCreditLimiterElement(count=3)
-        artist_limiter.set_sources(artist_filter)
+        reducer = PlaylistRedundancyReducerElement()
+        reducer.set_sources(pl_maker)
 
-        jams = DailyJamsElement(recs, user=user_name, day=day)
-        jams.set_sources(artist_limiter)
+        shuffle = PlaylistShuffleElement()
+        shuffle.set_sources(reducer)
 
-        return jams
+        return shuffle

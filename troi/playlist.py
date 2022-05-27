@@ -185,6 +185,8 @@ class PlaylistElement(Element):
                 continue
 
             print("submit %d tracks" % len(playlist.recordings))
+            if algorithm_metadata is None and playlist.patch_slug is not None:
+                algorithm_metadata = { "source_patch": playlist.patch_slug }
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for, algorithm_metadata=algorithm_metadata),
                               headers={"Authorization": "Token " + str(token)})
