@@ -97,7 +97,7 @@ class DailyJamsPatch(troi.patch.Patch):
 
         pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
-                                        patch_slug=self.slug)
+                                        patch_slug=self.slug())
         pl_maker.set_sources(zipper)
 
         reducer = PlaylistRedundancyReducerElement()
