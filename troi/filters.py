@@ -289,3 +289,49 @@ class YearRangeFilterElement(troi.Element):
                         results.append(r)
 
         return results
+
+
+class LatestListenedAtFilterElement(troi.Element):
+    '''
+        Remove recordings if the have been played recently
+    '''
+
+    def __init__(self, min_number_of_days=14):
+        '''
+            Filter the recordings according to latest_listened_at field in the lb metadata. 
+            If that field is None, treat it as if the user hasn't listened to this track
+            recently or at all and keep the track in the list.
+        '''
+        troi.Element.__init__(self)
+        self.min_number_of_days = days
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+
+        recordings = inputs[0]
+
+        results = []
+        for r in recordings:
+            if not r.year:
+                continue
+
+            if self.inverse:
+                if r.year < self.start_year:
+                    results.append(r)
+                elif self.end_year and r.year > self.end_year:
+                    results.append(r)
+            else:
+                if r.year >= self.start_year:
+                    if not self.end_year:
+                        results.append(r)
+                    elif r.year <= self.end_year:
+                        results.append(r)
+
+        return results

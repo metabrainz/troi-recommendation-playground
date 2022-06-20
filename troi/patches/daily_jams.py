@@ -77,20 +77,11 @@ class DailyJamsPatch(troi.patch.Patch):
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
 
-        top_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
-                                                                              artist_type="top",
+        raw_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
+                                                                              artist_type="raw",
                                                                               count=100)
-        top_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        top_recs_lookup.set_sources(top_recs)
-
-        sim_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
-                                                                              artist_type="similar",
-                                                                              count=100)
-        sim_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        sim_recs_lookup.set_sources(sim_recs)
-
-        zipper = ZipperElement()
-        zipper.set_sources([top_recs_lookup, sim_recs_lookup])
+        raw_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        raw_recs_lookup.set_sources(raw_recs)
 
         jam_date = datetime.utcnow()
         jam_date = jam_date.strftime("%Y-%m-%d %a")
@@ -98,7 +89,7 @@ class DailyJamsPatch(troi.patch.Patch):
         pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
                                         patch_slug=self.slug())
-        pl_maker.set_sources(zipper)
+        pl_maker.set_sources(raw_recs_lookup)
 
         reducer = PlaylistRedundancyReducerElement()
         reducer.set_sources(pl_maker)

@@ -14,6 +14,7 @@ class PrintRecordingList():
         self.print_list_count = None
         self.print_moods = None
         self.print_genre = None
+        self.print_latest_listened_at = None
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -41,6 +42,12 @@ class PrintRecordingList():
             self.print_genre = True
         else:
             self.print_genre = False
+
+        if "lastest_listened_at" in recording.listenbrainz:
+            self.print_lastest_listened_at = True
+        else:
+            self.print_lastest_listened_at = False
+
 
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
@@ -103,5 +110,11 @@ class PrintRecordingList():
         if self.print_genre or genre:
             print(" %s" % ",".join(recording.musicbrainz['genres']), end='')
             print(" %s" % ",".join(recording.musicbrainz['tags']), end='')
+        if self.print_latest_listened_at:
+            if recording.listenbrainz["latest_listened_at"] is None:
+                print("never    ")
+            else:
+                now = datetime.datetime.now()
+                print("%3d days " % (now - recording.listenbrainz["latest_listened_at"]))
 
         print()
