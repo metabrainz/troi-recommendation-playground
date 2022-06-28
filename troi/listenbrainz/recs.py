@@ -51,14 +51,14 @@ class UserRecordingRecommendationsElement(Element):
             if not recordings or not len(recordings['payload']['mbids']):
                 break
 
-            lb_metadata = { "model_id": recordings["payload"].get("model_id", None),
-                            "model_url": recordings["payload"].get("model_url", None),
-                            "latest_listened_at": None }
             for r in recordings['payload']['mbids']:
-                latest = recordings["payload"].get("latest_listened_at", None)
+                latest = r.get("latest_listened_at", None)
                 if latest is not None:
                     latest = dateutil.parser.isoparse(latest)
-                lb_metadata["latest_listened_at"] = latest
+                    latest = latest.replace(tzinfo=None)
+                lb_metadata = { "model_id": recordings["payload"].get("model_id", None),
+                                "model_url": recordings["payload"].get("model_url", None),
+                                "latest_listened_at": latest }
                 recording_list.append(Recording(mbid=r['recording_mbid'], ranking=r['score'], listenbrainz=lb_metadata))
 
             remaining -= len(recordings['payload']['mbids'])
