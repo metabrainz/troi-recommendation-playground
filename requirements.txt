@@ -3,8 +3,8 @@ Flask-Testing==0.8.0
 click==7.1.2
 ujson==1.35
 requests==2.24.0
-pytest==5.4.3
+pytest==7.1.2
 psycopg2-binary==2.9.3
 countryinfo==0.1.2
-git+https://github.com/paramsingh/pylistenbrainz.git@24135a86149e14f0#egg=pylistenbrainz
+git+https://github.com/metabrainz/pylistenbrainz.git@0827c6b36984de04fcdf#egg=pylistenbrainz
 python-dateutil==2.8.2

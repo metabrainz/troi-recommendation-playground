@@ -1,4 +1,5 @@
 from collections import defaultdict
+import datetime
 from operator import itemgetter
 from random import shuffle
 
@@ -293,7 +294,7 @@ class YearRangeFilterElement(troi.Element):
 
 class LatestListenedAtFilterElement(troi.Element):
     '''
-        Remove recordings if the have been played recently
+        Remove recordings if they have been played recently
     '''
 
     def __init__(self, min_number_of_days=14):
@@ -303,7 +304,7 @@ class LatestListenedAtFilterElement(troi.Element):
             recently or at all and keep the track in the list.
         '''
         troi.Element.__init__(self)
-        self.min_number_of_days = days
+        self.min_number_of_days = min_number_of_days
 
     @staticmethod
     def inputs():
@@ -318,20 +319,10 @@ class LatestListenedAtFilterElement(troi.Element):
         recordings = inputs[0]
 
         results = []
+        now = datetime.datetime.now()
         for r in recordings:
-            if not r.year:
-                continue
-
-            if self.inverse:
-                if r.year < self.start_year:
-                    results.append(r)
-                elif self.end_year and r.year > self.end_year:
-                    results.append(r)
-            else:
-                if r.year >= self.start_year:
-                    if not self.end_year:
-                        results.append(r)
-                    elif r.year <= self.end_year:
-                        results.append(r)
+            td = now - r.listenbrainz["latest_listened_at"]
+            if td.days > self.min_number_of_days:
+                results.append(r)
 
         return results
