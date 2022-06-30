@@ -321,8 +321,11 @@ class LatestListenedAtFilterElement(troi.Element):
         results = []
         now = datetime.datetime.now()
         for r in recordings:
-            td = now - r.listenbrainz["latest_listened_at"]
-            if td.days > self.min_number_of_days:
+            if "latest_listened_at" in r.listenbrainz and r.listenbrainz["latest_listened_at"] is not None:
+                td = now - r.listenbrainz["latest_listened_at"]
+                if td.days > self.min_number_of_days:
+                    results.append(r)
+            else:
                 results.append(r)
 
         return results
