@@ -5,6 +5,8 @@ experiment with music recommendation engines. To accomplish this goal,
 the MetaBrainz Foundation has created and hosted a number of data-sets
 that can be accessed as a part of this project.
 
+The project is named after [Deanna Troi](https://en.wikipedia.org/wiki/Deanna_Troi).
+
 The AcousticBrainz project hosts the Annoy indexes that allows
 you to find recordings that have similar characteristics given an initial recording.
 
