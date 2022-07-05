@@ -11,7 +11,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/metabrainz/troi-recommendation-playground",
-    install_requires=["click>=7", "ujson==1.35", "requests>=2.24", "pylistenbrainz", "openpost"],
+    install_requires=["click>=7", "ujson==5.4.0", "requests>=2.24", "pylistenbrainz", "openpost"],
     packages=find_packages(exclude=("patches",)),
     classifiers=[
         "Programming Language :: Python :: 3",
