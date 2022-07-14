@@ -81,7 +81,7 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
 
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE: is The type of daily jam. Must be 'top' or 'similar'.
+        TYPE: is The type of daily jam. Must be 'top' or 'similar' or 'raw'.
         """
 
         return kwargs
@@ -101,23 +101,29 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
 
     @staticmethod
     def description():
-        return "Save the current recommended tracks for a given user and type (top or similar)."
+        return "Save the current recommended tracks for a given user and type (top, similar or raw)."
 
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
         type = inputs['type']
 
-        if type not in ("top", "similar"):
-            raise PipelineError("type must be either 'top' or 'similar'")
+        if type not in ("top", "similar", "raw"):
+            raise PipelineError("type must be either 'top' or 'similar' or 'raw'")
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
                                                                           count=100)
+        if type == "top":
+            playlist_type = "top artists"
+        elif type == "similar":
+            playlist_type = "similar artists"
+        else:
+            playlist_type = "raw"
         pl_maker = RecsPlaylistMakerElement(name="[unknown]",
                                             desc="[unknown]",
                                             patch_slug="saved-recs",
                                             user_name=user_name,
-                                            type="top artists" if type == "top" else "similar artists")
+                                            type=playlist_type)
         pl_maker.set_sources(recs)
 
         return pl_maker
