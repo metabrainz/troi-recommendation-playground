@@ -38,7 +38,7 @@ TBC -- waiting for modules to be shipped to pypi.
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt -r requirements_test.txt
 python3 -m troi.cli --help
 ```
 
@@ -47,7 +47,7 @@ python3 -m troi.cli --help
 ```
 virtualenv -p python .ve
 .ve\Scripts\activate.bat
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements_test.txt
 python -m troi.cli --help
 ```
 
