@@ -38,7 +38,7 @@ TBC -- waiting for modules to be shipped to pypi.
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt -r requirements_test.txt
 python3 -m troi.cli --help
 ```
 
@@ -47,7 +47,7 @@ python3 -m troi.cli --help
 ```
 virtualenv -p python .ve
 .ve\Scripts\activate.bat
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements_test.txt
 python -m troi.cli --help
 ```
 
@@ -81,15 +81,6 @@ If the patch requires arguments, running it with no arguments will print a usage
 python3 -m troi.cli test
 python3 -m troi.cli test -v
 python3 -m troi.cli test -v <file to test>
-```
-
-## hosting troi on the web with docker
-
-To run a container with the build-in webserver, do:
-
-```
-docker build -t metabrainz/troi-hoster .
-docker run --rm -p 8000:80 --name troi-hoster metabrainz/troi-hoster
 ```
 
 ## References for the future path of Troi
