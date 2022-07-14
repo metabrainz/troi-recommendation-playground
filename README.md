@@ -83,15 +83,6 @@ python3 -m troi.cli test -v
 python3 -m troi.cli test -v <file to test>
 ```
 
-## hosting troi on the web with docker
-
-To run a container with the build-in webserver, do:
-
-```
-docker build -t metabrainz/troi-hoster .
-docker run --rm -p 8000:80 --name troi-hoster metabrainz/troi-hoster
-```
-
 ## References for the future path of Troi
 
 Troi is a rather primitive tool at this point in time, but as the MetaBrainz projects gather more data, we can improve
