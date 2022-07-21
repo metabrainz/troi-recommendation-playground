@@ -1,5 +1,4 @@
 import requests
-import json
 
 from troi import Element, Recording, PipelineError
 
@@ -12,7 +11,6 @@ class GenreLookupElement(Element):
     """
 
     SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
-#/?recording_mbids=e97f805a-ab48-4c52-855e-07049142113d&inc=tag
 
     def __init__(self, count_threshold=3):
         Element.__init__(self)
@@ -39,7 +37,9 @@ class GenreLookupElement(Element):
             if len(mbids) >= MAX_MBIDS_PER_CALL:
                 mbid_sets.append(mbids)
                 mbids = []
-
+        else:
+            mbid_sets.append(mbids)
+            
         output = []
 
         data = {}
@@ -58,20 +58,30 @@ class GenreLookupElement(Element):
             # Save the whole MB metadata tag info
             r.musicbrainz["tag_metadata"] = data[r.mbid]["tag"]
 
-
             genres = []
+            tags = []
             for genre in data[r.mbid]["tag"]["recording"]:
                 if genre["count"] >= self.count_threshold:
-                    genres.append(genre["tag"])
+                    if "genre_mbid" in genre:
+                        genres.append(genre["tag"])
+                    else:
+                        tags.append(genre["tag"])
 
-            r.musicbrainz["genres"] = genres
+            r.musicbrainz["genre"] = genres
+            r.musicbrainz["tag"] = tags
 
-            artist_genres = []
-            for genre in data[r.mbid]["tag"]["artist"]:
-                if genre["count"] >= self.count_threshold:
-                    artist_genres.append(genre["tag"])
+            if r.artist is not None and "artist" in data[r.mbid]["tag"]:
+                artist_genres = []
+                artist_tags = []
+                for genre in data[r.mbid]["tag"]["artist"]:
+                    if genre["count"] >= self.count_threshold:
+                        if "genre_mbid" in genre:
+                            artist_genres.append(genre["tag"])
+                        else:
+                            artist_tags.append(genre["tag"])
 
-            r.artist.musicbrainz["genres"] = artist_genres
+                r.artist.musicbrainz["genre"] = artist_genres
+                r.artist.musicbrainz["tag"] = artist_tags
 
             output.append(r)
 
