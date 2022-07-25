@@ -8,7 +8,7 @@ class PrintRecordingList():
         if they are found in the first recording.
     """
 
-    def __init__(self):
+    def __init__(self, listenbrainz_fields=None, musicbrainz_fields=None):
         super().__init__()
         self.print_year = False
         self.print_bpm = False
@@ -16,6 +16,14 @@ class PrintRecordingList():
         self.print_moods = False
         self.print_genre = False
         self.print_latest_listened_at = False
+        self.listenbrainz_fields = []
+        self.musicbrainz_fields = []
+
+        if listenbrainz_fields is not None:
+            self.listenbrainz_fields = listenbrainz_fields
+
+        if musicbrainz_fields is not None:
+            self.musicbrainz_fields = musicbrainz_fields
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -37,7 +45,8 @@ class PrintRecordingList():
         if "latest_listened_at" in recording.listenbrainz:
             self.print_latest_listened_at = True
 
-    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
+    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False,
+                         genre=False, musicbrainz_fields=None):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
             The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
@@ -86,6 +95,12 @@ class PrintRecordingList():
                 td = now - recording.listenbrainz["latest_listened_at"]
                 print(" %3d days " % td.days, end="")
 
+        for field in self.musicbrainz_fields:
+            print(" %s" % str(recording.musicbrainz[field])) 
+
+        for field in self.listenbrainz_fields:
+            print(" %s" % str(recording.listenbrainz[field])) 
+
         print()
 
 
@@ -99,6 +114,7 @@ class PrintRecordingList():
 
         for rec in entity:
             self._examine_recording_for_headers(rec)
+
 
         if type(entity) == list and type(entity[0]) == Recording:
             for rec in entity:
