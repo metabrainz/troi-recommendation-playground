@@ -50,17 +50,10 @@ class DialySimilarUsersPatch(troi.patch.Patch):
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
 
-        URL = "https://api.listenbrainz.org/1/%s/similar-users"
+        user_lookup = troi.listenbrainz.similar_users.SimilarUserLookupElement(user_name)
 
-        r = requests.get(self.URL % user_name)
-        if r.status_code != 200:
-            raise PipelineError("Cannot fetch recording tags from MusicBrainz: HTTP code %d" % r.status_code)
-
-        for user in r.json()["payload"]:
-        users = troi.listenbrainz.similar_users.SimilarUserLookupElement(user_name)
-
-        listens_lookup = troi.listenbrainz.fetch_listens.FetchListensElement(
-
+        listens_lookup = troi.listenbrainz.fetch_listens.FetchListensElement()
+        listens_lookup.set_sources(user_lookup)
 
         jam_date = datetime.utcnow()
         jam_date = jam_date.strftime("%Y-%m-%d %a")
@@ -68,7 +61,7 @@ class DialySimilarUsersPatch(troi.patch.Patch):
         pl_maker = PlaylistMakerElement(name="Similar users playlist %s, %s" % (user_name, jam_date),
                                         desc="Similar users playlist!",
                                         patch_slug=self.slug())
-        pl_maker.set_sources(listens)
+        pl_maker.set_sources(listens_lookup)
 
         reducer = PlaylistRedundancyReducerElement()
         reducer.set_sources(pl_maker)

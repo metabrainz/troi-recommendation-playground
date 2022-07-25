@@ -9,7 +9,7 @@ class SimilarUserLookupElement(Element):
         Look up musicbrainz tag and genres for a list of recordings recordings, based on recording mbid.
     """
 
-    SERVER_URL = "https://api.listenbrainz.org/1/%s/similar-users"
+    SERVER_URL = "https://api.listenbrainz.org/1/user/%s/similar-users"
 
     def __init__(self, user_name):
         Element.__init__(self)
@@ -29,4 +29,8 @@ class SimilarUserLookupElement(Element):
         if r.status_code != 200:
             raise PipelineError("Cannot fetch recording tags from MusicBrainz: HTTP code %d" % r.status_code)
 
-        return r.json()["payload"]
+        users = []
+        for user in r.json()["payload"]:
+            users.append(User(user_name=user["user_name"], metadata={ "user_similarity": user["similarity"] }))
+
+        return users
