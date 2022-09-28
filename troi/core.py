@@ -40,7 +40,7 @@ def generate_playlist(patch, debug=False, echo=True, save=False, token=None, upl
     if patch not in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
               file=sys.stderr)
-        return False
+        return None
 
     patch = patches[patch](debug)
 
@@ -73,16 +73,16 @@ def generate_playlist(patch, debug=False, echo=True, save=False, token=None, upl
         print("done.")
     except troi.PipelineError as err:
         print("Failed to generate playlist: %s" % err, file=sys.stderr)
-        return False
+        return None
 
     if upload and not token:
         print("In order to upload a playlist, you must provide an auth token. Use option --token.")
-        return False
+        return None
 
     if min_recordings is not None and \
         (len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings):
         print("Playlist does not have at least %d recordings, stopping." % min_recordings)
-        return False
+        return None
 
     if result is not None and token and upload:
         for url, _ in playlist.submit(token, created_for):
@@ -106,7 +106,7 @@ def generate_playlist(patch, debug=False, echo=True, save=False, token=None, upl
         else:
             print("%d playlists were generated." % len(playlist.playlists))
 
-    return True
+    return playlist
 
 
 def list_patches():
