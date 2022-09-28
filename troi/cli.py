@@ -5,6 +5,7 @@ import click
 
 from troi.utils import discover_patches
 from troi.core import generate_playlist, list_patches, patch_info
+from troi.playlist import SpotifyParams
 
 
 @click.group()
@@ -12,9 +13,7 @@ def cli():
     pass
 
 
-@cli.command(context_settings=dict(
-    ignore_unknown_options=True,
-))
+@cli.command(context_settings=dict(ignore_unknown_options=True,))
 @click.argument('patch', type=str)
 @click.option('--debug/--no-debug')
 @click.option('--print', '-p', 'echo', required=False, is_flag=True)
@@ -25,8 +24,11 @@ def cli():
 @click.option('--name', '-n', required=False)
 @click.option('--desc', '-d', required=False)
 @click.option('--min-recordings', '-m', type=int, required=False)
+@click.option('--spotify-user-id', type=str, required=False)
+@click.option('--spotify-token', type=str, required=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings):
+def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings,
+             spotify_user_id, spotify_token):
     """
     Generate a playlist using a patch
 
@@ -43,7 +45,9 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
     DESC: Override the algorithms that generate a playlist description and use this description instead.
     MIN-RECORDINGS: The minimum number of recordings that must be present in a playlist to consider it complete.
                     If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
-                    Default: Off, a playlist with at least one track will be considere complete.
+                    Default: Off, a playlist with at least one track will be considered complete.
+    SPOTIFY-USER-ID: the spotify id of the user to create a playlist for
+    SPOTIFY-TOKEN: an auth token with appropriate permissions to create a playlist on behalf of the user
     """
     patchname = patch
     patches = discover_patches()
@@ -67,7 +71,13 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
         "upload": upload,
         "name": name,
         "desc": desc,
-        "min_recordings": min_recordings
+        "min_recordings": min_recordings,
+        "spotify": {
+            "user_id": spotify_user_id,
+            "token": spotify_token,
+            "is_public": True,
+            "is_collaborative": False
+        }
     }
     patch_args.update(pipelineargs)
     ret = generate_playlist(patch, patch_args)
