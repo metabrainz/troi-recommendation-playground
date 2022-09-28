@@ -25,12 +25,15 @@ class DailyJamsPatch(troi.patch.Patch):
     @staticmethod
     @cli.command(no_args_is_help=True)
     @click.argument('user_name')
+    @click.argument('jam_date', required=False)
     def parse_args(**kwargs):
         """
         Generate a daily playlist from the ListenBrainz recommended recordings.
 
         \b
         USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
+        JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
+        can be on different dates). Recommended formatting for the date is 'YYYY-MM-DD DAY_OF_WEEK'.
         """
 
         return kwargs
@@ -49,6 +52,9 @@ class DailyJamsPatch(troi.patch.Patch):
 
     def create(self, inputs, patch_args):
         user_name = inputs['user_name']
+        jam_date = inputs.get('jam_date')
+        if jam_date is None:
+            jam_date = datetime.utcnow().strftime("%Y-%m-%d %a")
 
         raw_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                               artist_type="raw",
@@ -58,9 +64,6 @@ class DailyJamsPatch(troi.patch.Patch):
 
         latest_filter = troi.filters.LatestListenedAtFilterElement(14)
         latest_filter.set_sources(raw_recs_lookup)
-
-        jam_date = datetime.utcnow()
-        jam_date = jam_date.strftime("%Y-%m-%d %a")
 
         pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
