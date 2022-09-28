@@ -46,6 +46,9 @@ def generate_playlist(patch: Patch, args: Dict):
         min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete.
                         If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
                         Default: Off, a playlist with at least one track will be considere complete.
+        spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the
+            spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public,
+            private or collaborative
     """
     patch_args = {**default_patch_args, **args}
     pipeline = patch.create(patch_args)
@@ -70,7 +73,8 @@ def generate_playlist(patch: Patch, args: Dict):
 
     upload = patch_args["upload"]
     token = patch_args["token"]
-    if upload and not token:
+    spotify = patch_args.get("spotify")
+    if upload and not token and not spotify:
         print("In order to upload a playlist, you must provide an auth token. Use option --token.")
         return None
 
@@ -86,6 +90,10 @@ def generate_playlist(patch: Patch, args: Dict):
             print("Submitted playlist: %s" % url)
 
     save = patch_args["save"]
+    if result is not None and spotify and upload:
+        for url, _ in playlist.submit_to_spotify(spotify):
+            print("Submitted playlist to spotify: %s" % url)
+
     if result is not None and save:
         playlist.save()
         print("playlist saved.")

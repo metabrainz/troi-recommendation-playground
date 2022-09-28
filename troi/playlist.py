@@ -1,7 +1,9 @@
 from collections import defaultdict
-from operator import attrgetter
 import json
+from typing import TypedDict, Optional
+
 import requests
+import spotipy
 
 from troi import Recording, Playlist, PipelineError, Element
 from troi.operations import is_homogeneous
@@ -16,6 +18,14 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
+
+
+class SpotifyParams(TypedDict):
+    user_id: str
+    token: str
+    is_public: Optional[bool]
+    is_collaborative: Optional[bool]
+
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_metadata=None):
     """
@@ -186,7 +196,7 @@ class PlaylistElement(Element):
 
             print("submit %d tracks" % len(playlist.recordings))
             if algorithm_metadata is None and playlist.patch_slug is not None:
-                algorithm_metadata = { "source_patch": playlist.patch_slug }
+                algorithm_metadata = {"source_patch": playlist.patch_slug}
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for, algorithm_metadata=algorithm_metadata),
                               headers={"Authorization": "Token " + str(token)})
@@ -208,6 +218,36 @@ class PlaylistElement(Element):
             playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
         return playlist_mbids
+
+    def submit_to_spotify(self, params: SpotifyParams):
+        sp = spotipy.Spotify(auth=params["token"])
+        submitted = []
+
+        for playlist in self.playlists:
+
+            if len(playlist.recordings) == 0:
+                continue
+
+            # TODO: Lookup spotify track ids here
+
+            spotify_track_ids = [track.spotify_id for track in playlist.recordings if track.spotify_id]
+            if len(spotify_track_ids) == 0:
+                continue
+
+            print("submit %d tracks" % len(playlist.recordings))
+
+            spotify_playlist = sp.user_playlist_create(
+                user=params["user_id"],
+                name=playlist.name,
+                public=params.get("is_public", True),
+                collaborative=params.get("is_collaborative", False),
+                description=playlist.description
+            )
+
+            result = sp.playlist_add_items(spotify_playlist["id"], spotify_track_ids)
+            submitted.append((spotify_playlist["external_urls"]["spotify"], spotify_playlist["id"]))
+
+        return submitted
 
 
 class PlaylistRedundancyReducerElement(Element):

@@ -201,7 +201,6 @@ class DifferenceElement(troi.Element):
         return results
 
 
-
 class ZipperElement(troi.Element):
     '''
         Given two or more inputs, pick recordings from each alternatingly
