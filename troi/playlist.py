@@ -12,13 +12,13 @@ from troi.print_recording import PrintRecordingList
 LISTENBRAINZ_SERVER_URL = "https://listenbrainz.org"
 LISTENBRAINZ_API_URL = "https://api.listenbrainz.org"
 LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_API_URL + "/1/playlist/create"
+SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 PLAYLIST_TRACK_URI_PREFIX = "https://musicbrainz.org/recording/"
 PLAYLIST_ARTIST_URI_PREFIX = "https://musicbrainz.org/artist/"
 PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
-
 
 class SpotifyParams(TypedDict):
     user_id: str
@@ -219,6 +219,16 @@ class PlaylistElement(Element):
 
         return playlist_mbids
 
+    def _lookup_spotify_ids(self, recordings):
+        response = requests.post(
+            SPOTIFY_IDS_LOOKUP_URL,
+            json=[{"[recording_mbid]": recording.mbid} for recording in recordings]
+        )
+        response.raise_for_status()
+        spotify_data = response.json()
+        for recording, lookup in zip(recordings, spotify_data):
+            recording.spotify_id = lookup["spotify_track_id"]
+
     def submit_to_spotify(self, params: SpotifyParams):
         sp = spotipy.Spotify(auth=params["token"])
         submitted = []
@@ -228,7 +238,7 @@ class PlaylistElement(Element):
             if len(playlist.recordings) == 0:
                 continue
 
-            # TODO: Lookup spotify track ids here
+            self._lookup_spotify_ids(playlist.recordings)
 
             spotify_track_ids = [track.spotify_id for track in playlist.recordings if track.spotify_id]
             if len(spotify_track_ids) == 0:
