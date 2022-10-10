@@ -91,7 +91,12 @@ def generate_playlist(patch: Patch, args: Dict):
 
     save = patch_args["save"]
     if result is not None and spotify and upload:
-        for url, _ in playlist.submit_to_spotify(spotify):
+        for url, _ in playlist.submit_to_spotify(
+                spotify["user_id"],
+                spotify["token"],
+                spotify["is_public"],
+                spotify["is_collaborative"]
+        ):
             print("Submitted playlist to spotify: %s" % url)
 
     if result is not None and save:

@@ -1,6 +1,5 @@
 from collections import defaultdict
 import json
-from typing import TypedDict, Optional
 
 import requests
 import spotipy
@@ -19,12 +18,6 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
-
-class SpotifyParams(TypedDict):
-    user_id: str
-    token: str
-    is_public: Optional[bool]
-    is_collaborative: Optional[bool]
 
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_metadata=None):
@@ -220,6 +213,8 @@ class PlaylistElement(Element):
         return playlist_mbids
 
     def _lookup_spotify_ids(self, recordings):
+        """ Given a list of Recording elements, try to find spotify track ids from labs api spotify lookup using mbids
+        and add those to the recordings. """
         response = requests.post(
             SPOTIFY_IDS_LOOKUP_URL,
             json=[{"[recording_mbid]": recording.mbid} for recording in recordings]
@@ -229,8 +224,11 @@ class PlaylistElement(Element):
         for recording, lookup in zip(recordings, spotify_data):
             recording.spotify_id = lookup["spotify_track_id"]
 
-    def submit_to_spotify(self, params: SpotifyParams):
-        sp = spotipy.Spotify(auth=params["token"])
+    def submit_to_spotify(self, user_id: str, token: str, is_public: bool = True, is_collaborative: bool = False):
+        """ Given spotify user id, spotify auth token with appropriate permissions and playlist visibility
+         characteristics, upload the playlists generated in the current element to Spotify and return the
+         urls of submitted playlists."""
+        sp = spotipy.Spotify(auth=token)
         submitted = []
 
         for playlist in self.playlists:
@@ -247,10 +245,10 @@ class PlaylistElement(Element):
             print("submit %d tracks" % len(playlist.recordings))
 
             spotify_playlist = sp.user_playlist_create(
-                user=params["user_id"],
+                user=user_id,
                 name=playlist.name,
-                public=params.get("is_public", True),
-                collaborative=params.get("is_collaborative", False),
+                public=is_public,
+                collaborative=is_collaborative,
                 description=playlist.description
             )
 

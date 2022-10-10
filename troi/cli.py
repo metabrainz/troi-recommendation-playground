@@ -5,7 +5,6 @@ import click
 
 from troi.utils import discover_patches
 from troi.core import generate_playlist, list_patches, patch_info
-from troi.playlist import SpotifyParams
 
 
 @click.group()
