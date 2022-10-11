@@ -129,7 +129,7 @@ def list_patches():
     patches = troi.utils.discover_patches()
 
     print("Available patches:")
-    size = max([ len(k) for k in patches])
+    size = max([len(k) for k in patches])
     for slug in sorted(patches or []):
         print("%s:%s %s" % (slug, " " * (size - len(slug)), patches[slug]().description()))
 
@@ -143,5 +143,21 @@ def patch_info(patch):
         sys.exit(1)
 
     apatch = patches[patch]
-    context = click.Context(apatch.parse_args, info_name=patch)
-    click.echo(apatch.parse_args.get_help(context))
+
+    def f():
+        pass
+
+    f.__doc__ = apatch.get_documentation()
+
+    for arg in reversed(apatch.get_args()):
+        if arg["type"] == 'argument':
+            f = click.argument(*arg["args"], **arg["kwargs"])(f)
+        elif arg["type"] == 'option':
+            f = click.option(*arg["args"], **arg["kwargs"])(f)
+        else:
+            click.echo("Patch is invalid, contact patch writer to fix")
+
+    f = click.command(no_args_is_help=True)(f)
+
+    context = click.Context(f, info_name=patch)
+    click.echo(f.get_help(context))
