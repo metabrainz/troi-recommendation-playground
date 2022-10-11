@@ -3,6 +3,7 @@
 import sys
 import click
 
+from troi.utils import discover_patches
 from troi.core import generate_playlist, list_patches, patch_info
 
 
@@ -44,7 +45,32 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
                     If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
                     Default: Off, a playlist with at least one track will be considere complete.
     """
-    ret = generate_playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings)
+    patchname = patch
+    patches = discover_patches()
+    if patchname not in patches:
+        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname,
+              file=sys.stderr)
+        return None
+
+    patch = patches[patchname](debug)
+
+    if args is None:
+        args = []
+    context = patch.parse_args.make_context(patchname, list(args))
+    pipelineargs = context.forward(patch.parse_args)
+
+    patch_args = {
+        "echo": echo,
+        "save": save,
+        "token": token,
+        "created_for": created_for,
+        "upload": upload,
+        "name": name,
+        "desc": desc,
+        "min_recordings": min_recordings
+    }
+    ret = generate_playlist(patch, pipelineargs, patch_args)
+
     sys.exit(0 if ret else -1)
 
 
