@@ -143,13 +143,19 @@ def patch_info(patch):
         sys.exit(1)
 
     apatch = patches[patch]
+    cmd = convert_patch_to_command(apatch)
+    context = click.Context(cmd, info_name=patch)
+    click.echo(cmd.get_help(context))
 
-    def f():
-        pass
 
-    f.__doc__ = apatch.get_documentation()
+def convert_patch_to_command(patch):
+    """ Convert patch object to dummy click command to parse args and show help """
+    def f(**kwargs):
+        return kwargs
 
-    for arg in reversed(apatch.get_args()):
+    f.__doc__ = patch.get_documentation()
+
+    for arg in reversed(patch.get_args()):
         if arg["type"] == 'argument':
             f = click.argument(*arg["args"], **arg["kwargs"])(f)
         elif arg["type"] == 'option':
@@ -157,7 +163,4 @@ def patch_info(patch):
         else:
             click.echo("Patch is invalid, contact patch writer to fix")
 
-    f = click.command(no_args_is_help=True)(f)
-
-    context = click.Context(f, info_name=patch)
-    click.echo(f.get_help(context))
+    return click.command(no_args_is_help=True)(f)
