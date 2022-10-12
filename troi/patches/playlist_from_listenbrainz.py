@@ -15,12 +15,14 @@ class ResavePatch(troi.patch.Patch):
     @staticmethod
     @cli.command(no_args_is_help=True)
     @click.argument("mbid")
+    @click.argument("token", required=False)
     def parse_args(**kwargs):
         """
         A dummy patch that retrieves an existing playlist from ListenBrainz.
 
         \b
         MBID is the playlist mbid to save again.
+        TOKEN is the listenbrainz auth token to retrieve the playlist if its private.
         """
 
         return kwargs
@@ -38,5 +40,8 @@ class ResavePatch(troi.patch.Patch):
         return "Retrieve a playlist from the ListenBrainz"
 
     def create(self, inputs, patch_args):
-        playlist = PlaylistFromJSPFElement(inputs["mbid"], patch_args.get("token"))
+        token = inputs.get("token")
+        if not token:
+            token = patch_args.get("token")
+        playlist = PlaylistFromJSPFElement(inputs["mbid"], token)
         return playlist
