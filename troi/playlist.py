@@ -390,7 +390,6 @@ class PlaylistBPMSawtoothSortElement(Element):
 
         return sorted_recs
 
-
     def read(self, inputs):
         for playlist in inputs[0]:
             playlist.recordings = self.bpm_sawtooth_sort(playlist.recordings)
