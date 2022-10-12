@@ -275,6 +275,11 @@ class PlaylistElement(Element):
             fixup_spotify_playlist(sp, spotify_playlist["id"], mbid_spotify_index, spotify_mbid_index)
             submitted.append((spotify_playlist["external_urls"]["spotify"], spotify_playlist["id"]))
 
+            if playlist.external_urls:
+                playlist.external_urls.append(spotify_playlist["external_urls"]["spotify"])
+            else:
+                playlist.external_urls = [spotify_playlist["external_urls"]["spotify"]]
+
         return submitted
 
 
