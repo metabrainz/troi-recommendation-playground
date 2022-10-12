@@ -1,16 +1,18 @@
 from collections import defaultdict
 import json
+from typing import Dict, Tuple
 
 import requests
 import spotipy
 
-from troi import Recording, Playlist, PipelineError, Element
+from troi import Recording, Playlist, PipelineError, Element, Artist, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.spotify_lookup import lookup_spotify_ids, fixup_spotify_playlist
 
 LISTENBRAINZ_SERVER_URL = "https://listenbrainz.org"
 LISTENBRAINZ_API_URL = "https://api.listenbrainz.org"
+LISTENBRAINZ_PLAYLIST_FETCH_URL = LISTENBRAINZ_API_URL + "/1/playlist/"
 LISTENBRAINZ_PLAYLIST_CREATE_URL = LISTENBRAINZ_API_URL + "/1/playlist/create"
 PLAYLIST_TRACK_URI_PREFIX = "https://musicbrainz.org/recording/"
 PLAYLIST_ARTIST_URI_PREFIX = "https://musicbrainz.org/artist/"
@@ -77,6 +79,35 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
     data['track'] = tracks
 
     return { "playlist" : data }
+
+
+def _deserialize_from_jspf(data) -> Playlist:
+    """ Deserialize a ListenBrainz JSPF playlist to a Playlist entity. """
+    data = data["playlist"]
+    recordings = []
+
+    for track in data["track"]:
+        recording = Recording(name=track["title"], mbid=track["identifier"].split("/")[-1])
+        if track.get("creator"):
+            artist = Artist(name=track["creator"])
+            extension = track["extension"][PLAYLIST_TRACK_EXTENSION_URI]
+            if extension.get("artist_identifiers"):
+                artist_mbids = [url.split("/")[-1] for url in extension.get("artist_identifiers")]
+                artist.mbids = artist_mbids
+            recording.artist = artist
+
+        if track.get("album"):
+            recording.release = Release(name=track["album"])
+
+        recordings.append(recording)
+
+    playlist = Playlist(
+        name=data["title"],
+        description=data["annotation"],
+        mbid=data["identifier"].split("/")[-1],
+        recordings=recordings
+    )
+    return playlist
 
 
 class PlaylistElement(Element):
@@ -396,3 +427,32 @@ class PlaylistMakerElement(Element):
                     recordings=inputs[0],
                     patch_slug=self.patch_slug,
                     user_name=self.user_name)]
+
+
+class PlaylistFromJSPFElement(Element):
+    """ Create a troi.Playlist entity from a ListenBrainz JSPF playlist """
+
+    def __init__(self, playlist_mbid, token=None):
+        """
+            Args:
+                playlist_mbid: mbid of the ListenBrainz playlist to be used for creating the playlist element
+                token: the listenbrainz auth token to fetch the playlist, only needed for private playlists
+        """
+        super().__init__()
+        self.playlist_mbid = playlist_mbid
+        self.token = token
+
+    @staticmethod
+    def outputs():
+        return [Playlist]
+
+    def read(self, inputs):
+        headers = None
+        if self.token:
+            headers = {"Authorization": f"Token {self.token}"}
+        response = requests.get(LISTENBRAINZ_PLAYLIST_FETCH_URL + self.playlist_mbid, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        playlist = _deserialize_from_jspf(data)
+        return [playlist]
