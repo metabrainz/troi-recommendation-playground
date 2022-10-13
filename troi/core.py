@@ -24,13 +24,13 @@ default_patch_args = dict(
 )
 
 
-def generate_playlist(patch: Patch, pipeline_args: Dict, supplied_patch_args: Dict):
+def generate_playlist(patch: Patch, args: Dict):
     """
     Generate a playlist using a patch
 
     patch: the patch to run
-    pipeline_args: the arguments to pass to the entire pipeline
-    patch_args: the arguments passed to the topmost patch. this dict supports the following keys currently:
+    args: the arguments to pass to the patch. in addition to any arguments that the patch takes, the following
+     arguments are supported as well:
         debug: Print debug information or not
         args: Other parameters that might need to be passed to the patch [optional]
         print: This option causes the generated playlist to be printed to stdout.
@@ -47,8 +47,8 @@ def generate_playlist(patch: Patch, pipeline_args: Dict, supplied_patch_args: Di
                         If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
                         Default: Off, a playlist with at least one track will be considere complete.
     """
-    patch_args = {**default_patch_args, **supplied_patch_args}
-    pipeline = patch.create(pipeline_args, patch_args)
+    patch_args = {**default_patch_args, **args}
+    pipeline = patch.create(patch_args)
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)

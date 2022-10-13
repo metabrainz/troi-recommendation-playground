@@ -103,7 +103,7 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
     def description():
         return "Save the current recommended tracks for a given user and type (top, similar or raw)."
 
-    def create(self, inputs, patch_args):
+    def create(self, inputs):
         user_name = inputs['user_name']
         type = inputs['type']
 

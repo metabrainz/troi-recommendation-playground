@@ -163,7 +163,7 @@ class WorldTripPatch(troi.patch.Patch):
     def description():
         return "Generate a playlist for a given continent"
 
-    def create(self, inputs, patch_args):
+    def create(self, inputs):
 
         if inputs["sort"] not in ("longitude", "latitude"):
             raise PipelineError("Argument sort must be either 'longitude' or 'latitude'.")
