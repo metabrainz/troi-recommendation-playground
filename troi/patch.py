@@ -56,7 +56,7 @@ class Patch(ABC):
 
     @staticmethod
     def description():
-        ''' 
+        '''
             Return the description for this patch -- this short description (not more than a paragraph)
             should give the user an idea as to what the patch does.
 
@@ -66,13 +66,11 @@ class Patch(ABC):
         return None
 
     @abstractmethod
-    def create(self, input_args, patch_args):
-        '''
+    def create(self, input_args):
+        """
             The function creates the data pipeline and then returns it. 
 
             Params:
-               input_args: the passed arguments to the pipeline
-               patch_args: the arguments passed to the topmost patch.
-        '''
-
+               input_args: the arguments passed to the patch.
+        """
         return None

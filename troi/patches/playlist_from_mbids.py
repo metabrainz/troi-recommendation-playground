@@ -53,7 +53,7 @@ class PlaylistFromMBIDsPatch(troi.patch.Patch):
     def description():
         return "Generate a playlist from a list of MBIDSs"
 
-    def create(self, inputs, patch_args):
+    def create(self, inputs):
 
         source = MBIDReaderElement(inputs['file_name'])
 

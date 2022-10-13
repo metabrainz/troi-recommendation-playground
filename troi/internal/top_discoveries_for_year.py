@@ -80,7 +80,7 @@ class TopDiscoveries(troi.patch.Patch):
     def description():
         return "Generate a top discoveries playlist for a user."
 
-    def create(self, inputs, patch_args):
+    def create(self, inputs):
         recs = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-discoveries/json",
                                      json_post_data=[{ 'user_name': inputs['user_name'] }])
 

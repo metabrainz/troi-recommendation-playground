@@ -69,9 +69,8 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
     def description():
         return "Generate top sitewide recorings for year playlist"
 
-    def create(self, inputs, patch_args):
+    def create(self, inputs):
         file_name = inputs['file_name']
-        auth_token = patch_args["token"]
         year = datetime.now().year
 
         recs = troi.musicbrainz.mbid_reader.MBIDReaderElement(file_name)

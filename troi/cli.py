@@ -69,7 +69,8 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
         "desc": desc,
         "min_recordings": min_recordings
     }
-    ret = generate_playlist(patch, pipelineargs, patch_args)
+    patch_args.update(pipelineargs)
+    ret = generate_playlist(patch, patch_args)
 
     sys.exit(0 if ret else -1)
 

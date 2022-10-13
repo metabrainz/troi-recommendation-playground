@@ -21,10 +21,9 @@ class ForLoopElement(troi.Element):
                             apply to dynamically created pipelines inside the for loop
     '''
 
-    def __init__(self, patch_slugs, pipeline_args, patch_args=None):
+    def __init__(self, patch_slugs, patch_args):
         super().__init__()
         self.patch_slugs = patch_slugs
-        self.pipeline_args = pipeline_args
         self.patch_args = patch_args
 
     @staticmethod
@@ -46,9 +45,9 @@ class ForLoopElement(troi.Element):
 
             patch = patches[patch_slug](False)
             for user in inputs[0]:
-                args = copy(self.pipeline_args)
+                args = copy(self.patch_args)
                 args["user_name"] = user.user_name
-                pipeline = patch.create(args, self.patch_args)
+                pipeline = patch.create(args)
                 self.patch_args["created_for"] = user.user_name
 
                 try:

@@ -66,11 +66,9 @@ class UserRecordingElement(Element):
         Fetch recording statistics from ListenBrainz
     '''
 
-    def __init__(self, user_name, count=25, offset=0, time_range='all_time', auth_token=None):
+    def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
         super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
-        if auth_token:
-            self.client.set_auth_token(auth_token)
         self.user_name = user_name
         self.count = count
         self.offset = offset

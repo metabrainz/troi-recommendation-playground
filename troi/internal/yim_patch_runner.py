@@ -97,7 +97,7 @@ class YIMRunnerPatch(troi.patch.Patch):
     def description():
         return "Run a given patch for a given list users."
 
-    def create(self, inputs, patch_args):
+    def create(self, inputs):
         patch_slugs = [ slug for slug in inputs["patch_slugs"].split(",") ]
         print("Running the following patches:")
         for slug in patch_slugs:
@@ -105,7 +105,7 @@ class YIMRunnerPatch(troi.patch.Patch):
 
         u = YIMUserListElement()
         
-        for_loop = ForLoopElement(patch_slugs, inputs, patch_args)
+        for_loop = ForLoopElement(patch_slugs, inputs)
         for_loop.set_sources(u)
 
         y = YIMSubmitterElement()
