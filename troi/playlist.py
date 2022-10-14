@@ -212,7 +212,7 @@ class PlaylistElement(Element):
 
         return playlist_mbids
 
-    def _lookup_spotify_ids(self, recordings):
+    def _lookup_spotify_ids(self, recordings) -> tuple[dict, dict]:
         """ Given a list of Recording elements, try to find spotify track ids from labs api spotify lookup using mbids
         and add those to the recordings. """
         response = requests.post(
@@ -221,8 +221,64 @@ class PlaylistElement(Element):
         )
         response.raise_for_status()
         spotify_data = response.json()
+        mbid_spotify_ids_index = {}
+        spotify_id_mbid_index = {}
         for recording, lookup in zip(recordings, spotify_data):
-            recording.spotify_id = lookup["spotify_track_id"]
+            if len(lookup["spotify_track_ids"]) > 0:
+                recording.spotify_id = lookup["spotify_track_ids"][0]
+                mbid_spotify_ids_index[recording.mbid] = lookup["spotify_track_ids"]
+                for spotify_id in lookup["spotify_track_ids"]:
+                    spotify_id_mbid_index[spotify_id] = recording.mbid
+        return mbid_spotify_ids_index, spotify_id_mbid_index
+
+    def fixup_playlist(self, sp: spotipy.Spotify, playlist_id: str, recordings, index, reverse_index):
+        playlist = sp.playlist_items(playlist_id, fields="items(track(name,id,is_playable))", market="from_token")
+        correct_items = []
+        items_to_fixup = []
+        for idx, item in enumerate(playlist["items"]):
+            if item["track"]["is_playable"]:
+                correct_items.append((idx, item["track"]["id"]))
+            else:
+                items_to_fixup.append((idx, item["track"]["id"]))
+
+        if not items_to_fixup:
+            return
+
+        new_index = {}
+        new_reverse_index = defaultdict(list)
+        spotify_ids = []
+        for idx, spotify_id in items_to_fixup:
+            mbid = reverse_index[spotify_id]
+            other_spotify_ids = index[mbid]
+
+            for new_idx, new_spotify_id in enumerate(other_spotify_ids):
+                if new_spotify_id == spotify_id:
+                    continue
+                spotify_ids.append(new_spotify_id)
+                new_index[new_spotify_id] = (idx, new_idx)
+                new_reverse_index[idx].append(new_spotify_id)
+
+        new_tracks = sp.tracks(spotify_ids, market="from_token")
+        new_tracks_ids = set()
+        for item in new_tracks["tracks"]:
+            print(item)
+            if item["is_playable"]:
+                new_tracks_ids.add(item["id"])
+
+        fixed_up_items = []
+        for idx, spotify_ids in new_reverse_index.items():
+            for spotify_id in spotify_ids:
+                if spotify_id in new_tracks_ids:
+                    fixed_up_items.append((idx, spotify_id))
+                    break
+
+        all_items = []
+        all_items.extend(correct_items)
+        all_items.extend(fixed_up_items)
+        all_items.sort(key=lambda x: x[0])
+
+        finalized_ids = [x[1] for x in all_items]
+        result = sp.playlist_replace_items(playlist_id, finalized_ids)
 
     def submit_to_spotify(self, user_id: str, token: str, is_public: bool = True, is_collaborative: bool = False):
         """ Given spotify user id, spotify auth token with appropriate permissions and playlist visibility
@@ -236,7 +292,7 @@ class PlaylistElement(Element):
             if len(playlist.recordings) == 0:
                 continue
 
-            self._lookup_spotify_ids(playlist.recordings)
+            mbid_spotify_index, spotify_mbid_index = self._lookup_spotify_ids(playlist.recordings)
 
             spotify_track_ids = [track.spotify_id for track in playlist.recordings if track.spotify_id]
             if len(spotify_track_ids) == 0:
@@ -253,6 +309,7 @@ class PlaylistElement(Element):
             )
 
             result = sp.playlist_add_items(spotify_playlist["id"], spotify_track_ids)
+            self.fixup_playlist(sp, spotify_playlist["id"], playlist.recordings, mbid_spotify_index, spotify_mbid_index)
             submitted.append((spotify_playlist["external_urls"]["spotify"], spotify_playlist["id"]))
 
         return submitted
