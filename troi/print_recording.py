@@ -72,12 +72,6 @@ class PrintRecordingList():
             print(" %4d" % recording.listenbrainz['listen_count'], end='')
         if self.print_bpm or bpm:
             print(" %3d" % recording.acousticbrainz['bpm'], end='')
-        if self.print_moods or moods:
-            # TODO: make this print more than agg, but given the current state of moods/coverage...
-            print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
-        if self.print_genre or genre:
-            print(" %s" % ",".join(recording.musicbrainz['genres']), end='')
-            print(" %s" % ",".join(recording.musicbrainz['tags']), end='')
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
                 print(" never    ", end="")
@@ -85,6 +79,12 @@ class PrintRecordingList():
                 now = datetime.datetime.now()
                 td = now - recording.listenbrainz["latest_listened_at"]
                 print(" %3d days " % td.days, end="")
+        if self.print_moods or moods:
+            # TODO: make this print more than agg, but given the current state of moods/coverage...
+            print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
+        if self.print_genre or genre:
+            print(" %s" % ",".join(recording.musicbrainz.get("genres", [])), end='')
+            print(" %s" % ",".join(recording.musicbrainz.get("tags", [])), end='')
 
         print()
 
