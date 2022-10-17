@@ -87,7 +87,7 @@ class TestArtistCreditLimiterElement(unittest.TestCase):
         assert plist[1].recordings[1].mbid == "73a9d0db-0ec7-490e-9a85-0525a5ccef8e"
 
 
-class TestDuplicateRecordingFilterElement(unittest.TestCase):
+class TestDuplicateRecordingMBIDFilterElement(unittest.TestCase):
     def test_duplicate_recording_filter_element(self):
         rlist = [Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'),
                  Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'),
@@ -96,7 +96,7 @@ class TestDuplicateRecordingFilterElement(unittest.TestCase):
                  Recording(mbid='8756f690-18ca-488d-a456-680fdaf234bd'),
                  Recording(mbid='73a9d0db-0ec7-490e-9a85-0525a5ccef8e'),
                  Recording(mbid='139654ae-2c02-4e0f-aee0-c47da6e59ff1')]
-        e = troi.filters.DuplicateRecordingFilterElement()
+        e = troi.filters.DuplicateRecordingMBIDFilterElement()
         flist = e.read([rlist])
         assert len(flist) == 3
 

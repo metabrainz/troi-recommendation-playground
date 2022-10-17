@@ -1,8 +1,7 @@
-Flask==1.1.2
-Flask-Testing==0.8.0
-click==7.1.2
-ujson==2.0.3
-requests==2.24.0
-pytest==5.4.3
-countryinfo==0.1.2
-git+https://github.com/paramsingh/pylistenbrainz.git@v0.4.1#egg=pylistenbrainz
+click>=8.0
+ujson>=5.4.0
+requests
+psycopg2-binary>=2.9.3
+countryinfo>=0.1.2
+pylistenbrainz@git+https://github.com/metabrainz/pylistenbrainz.git@v0.5.2
+python-dateutil>=2.8.2

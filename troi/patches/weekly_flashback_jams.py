@@ -9,7 +9,7 @@ import troi.playlist
 import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
-import troi.musicbrainz.year_lookup
+import troi.musicbrainz.mbid_mapping
 
 
 @click.group()
@@ -74,8 +74,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
 
     @staticmethod
     @cli.command(no_args_is_help=True)
-    @click.argument('type')
     @click.argument('user_name')
+    @click.argument('type')
     def parse_args(**kwargs):
         """
         Generate weekly flashback playlists from the ListenBrainz recommended recordings.
@@ -108,6 +108,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
     def create(self, inputs):
         user_name = inputs['user_name']
         type = inputs['type']
+        print(type)
 
         if type not in ("top", "similar"):
             raise PipelineError("type must be either 'top' or 'similar'")
@@ -118,7 +119,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         r_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(skip_not_found=True)
         r_lookup.set_sources(recs)
 
-        y_lookup = troi.musicbrainz.year_lookup.YearLookupElement()
+        y_lookup = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement()
         y_lookup.set_sources(r_lookup)
 
         # Filter out tracks that do not fit into the given year range
@@ -128,7 +129,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         decade_splitter = DecadePlaylistSplitterElement()
         decade_splitter.set_sources(year_sort)
 
-        shaper = troi.playlist.PlaylistRedundancyReducerElement(artist_count=3)
+        shaper = troi.playlist.PlaylistRedundancyReducerElement(max_artist_occurrence=3)
         shaper.set_sources(decade_splitter)
 
         shuffle = troi.playlist.PlaylistShuffleElement()

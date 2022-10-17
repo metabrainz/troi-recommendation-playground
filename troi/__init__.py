@@ -3,6 +3,9 @@ import logging
 import random
 
 
+DEVELOPMENT_SERVER_URL = "https://datasets.listenbrainz.org"
+
+
 class Element(ABC):
     """
         Base class for elements
@@ -69,13 +72,20 @@ class Element(ABC):
         if self.sources:
             for source in self.sources:
                 result = source.generate()
-                if len(self.inputs()) > 0 and type(result[0]) not in self.inputs():
+                if result is None:
+                    return None
+
+                if len(self.inputs()) > 0 and \
+                    len(result) > 0 and type(result[0]) not in self.inputs() and \
+                    len(source.outputs()) > 0:
                     raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
                                        (type(source).__name__, source.outputs()[0], type(result[0])))
 
                 source_lists.append(result)
 
         items = self.read(source_lists)
+        if items is None:
+            return None
 
         if len(items) > 0 and type(items[0]) == Playlist:
             print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
@@ -249,14 +259,16 @@ class Playlist(Entity):
         and that filename is the suggested filename that this playlist should be saved as, if the user asked to 
         do that and didn't provide a different filename.
     """
-    def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None,
-                 ranking=None, year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None, ranking=None,
+                 year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None, user_name=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.filename = filename
         self.mbid = mbid
         self.recordings = recordings
         self.description = description
+        self.patch_slug = patch_slug
+        self.user_name = user_name
 
     def __str__(self):
         return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)
@@ -266,6 +278,19 @@ class Playlist(Entity):
             and their pesky concept of 'random'."""
 
         random.shuffle(self.recordings)
+
+
+class User(Entity):
+    """
+        The class that represents a ListenBrainz user.
+    """
+    def __init__(self, user_name=None, user_id=None):
+        Entity.__init__(self)
+        self.user_name = user_name
+        self.user_id = user_id
+
+    def __str__(self):
+        return "<User('%s', %d)>" % (self.user_name, self.user_id or -1)
 
 
 

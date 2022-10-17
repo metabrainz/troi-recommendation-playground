@@ -31,7 +31,7 @@ class DataSetFetcherElement(Element):
 
         r = requests.post(self.server_url, json=self.json_post_data)
         if r.status_code != 200:
-            raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s" % r.status_code)
+            raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" % (r.status_code, r.text))
 
         recordings = []
         for row in r.json():
@@ -40,7 +40,26 @@ class DataSetFetcherElement(Element):
 
             r = Recording(mbid=row['recording_mbid']) 
             if 'artist_credit_name' in row:
-                r.artist = Artist(name=row['artist_credit_name'])
+                if 'artist_credit_id' in row:
+                    r.artist.artist_credit_id = row['artist_credit_id']
+
+            artist = None
+            if 'artist_credit_name' in row:
+                artist = Artist(name=row['artist_credit_name'])
+
+            if 'artist_credit_id' in row:
+                if artist is None:
+                    artist = Artist(artist_credit_id=row['artist_credit_id'])
+                else:
+                    artist.artist_credit_id = row['artist_credit_id']
+
+            if 'artist_mbids' in row:
+                if artist is None:
+                    artist = Artist(mbids=row['artist_mbids'])
+                else:
+                    artist.mbids = row['artist_mbids']
+
+            r.artist = artist
 
             if 'recording_name' in row:
                 r.name = row['recording_name']

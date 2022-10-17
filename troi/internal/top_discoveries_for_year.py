@@ -24,24 +24,27 @@ class TopDiscoveries(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Top discoveries of %d for %s"
+    NAME = "Top Discoveries of %d for %s"
     DESC = """<p>
-              We generated this playlist from your <a href="https://listenbrainz.org/user/%s/reports?range=year">
-              listening statistics for %d</a>. We started with all the recordings that you first listened to in
-              %d and then selected the recordings that you listened to more than once. If we found recordings 
-              from more than 15 artists, we selected at most 2 recordings from each artist to make this playlist.
-              If we found 15 or fewer artists, we picked all the recordings. Finally, we returned at most 30 
-              recordings and ordered them by how many times you listened to them in %d.
+              This playlist highlights tracks that %s first listened to in %d and listened to more than once.
               </p>
               <p>
-              Double click on any recording to start playing it -- we'll do our best to find a matching recording
-              to play. If you have Spotify, we recommend connecting your account for a better playback experience.
+              We generated this playlist from %s's listens and chose all the recordings
+              that they first listened to this year and they listened to more than once. We removed
+              recordings from duplicate artists so that ideally no artist (or an artist in a collaboration) appears
+              more than twice in this playlist, although that may not always be possible. 
+              Finally we randomized the order of the recordings so that two of the same artists hopefully
+              won't appear in a row.
               </p>
               <p>
-              Please keep in mind that this is our first attempt at making playlists for our users. Our processes
-              are not fully debugged and you may find that things are not perfect. So, if this playlist isn't
-              very accurate, we apologize -- we'll continue to make them better. (e.g. some recordings may be missing
-              from this list because we were not able to find a match for it in MusicBrainz.)
+              Please remember that ListenBrainz may not know about all the times this user listened to a recording
+              before they started sharing their listening history with us, so we apologize if recordings appear that
+              this user listened to in the past. Also, we have attempted to match all of the listens to MusicBrainz
+              IDs in order for them to be included in this playlist, but we may not have been able to match them all,
+              so some recordings may be missing from this list.
+              </p>
+              <p>
+              This is a review playlist that we hope will give insights into the listening habits of the year.
               </p>
            """
 
@@ -86,7 +89,9 @@ class TopDiscoveries(troi.patch.Patch):
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
-                                                      self.DESC % (inputs['user_name'], year, year, year))
+                                                      self.DESC % (inputs['user_name'], year, inputs['user_name']),
+                                                      patch_slug=self.slug(),
+                                                      user_name=inputs['user_name'])
         pl_maker.set_sources(y_lookup)
 
         shaper = PlaylistRedundancyReducerElement()

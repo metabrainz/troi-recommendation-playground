@@ -1,5 +1,6 @@
 from troi import Element, Artist, Release, Recording
 import pylistenbrainz
+import pylistenbrainz.errors
 
 
 class UserArtistsElement(Element):
@@ -7,9 +8,11 @@ class UserArtistsElement(Element):
         Fetch artist statistics from ListenBrainz
     '''
 
-    def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
+    def __init__(self, user_name, count=25, offset=0, time_range='all_time', auth_token=None):
         super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
+        if auth_token:
+            self.client.set_auth_token(auth_token)
         self.user_name = user_name
         self.count = count
         self.offset = offset
@@ -33,9 +36,11 @@ class UserReleasesElement(Element):
         Fetch release statistics from ListenBrainz
     '''
 
-    def __init__(self, user_name, count=25, offset=0, time_range='all_time'):
+    def __init__(self, user_name, count=25, offset=0, time_range='all_time', auth_token=None):
         super().__init__()
         self.client = pylistenbrainz.ListenBrainz()
+        if auth_token:
+            self.client.set_auth_token(auth_token)
         self.user_name = user_name
         self.count = count
         self.offset = offset
@@ -74,7 +79,15 @@ class UserRecordingElement(Element):
 
     def read(self, inputs = []):
         recording_list = []
-        recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
+        try:
+            recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
+        except pylistenbrainz.errors.ListenBrainzAPIException as err:
+            print("Cannot fetch recording stats for user %s" % self.user_name)
+            return []
+
+        if recordings is None or "recordings" not in recordings['payload']:
+            return []
+
         for r in recordings['payload']['recordings']:
             artist = Artist(r['artist_name'], mbids=r['artist_mbids'], msid=r['artist_msid'])
             release = Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'])

@@ -199,3 +199,31 @@ class DifferenceElement(troi.Element):
                     results.append(e)
 
         return results
+
+
+
+class ZipperElement(troi.Element):
+    '''
+        Given two or more inputs, pick recordings from each alternatingly
+    '''
+
+    def __init__(self):
+        Element.__init__(self)
+
+    @staticmethod
+    def inputs():
+        return [Recording, Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs):
+        output = []
+        for rec0, rec1 in zip_longest(inputs[0], inputs[1]):
+            if rec0 is not None:
+                output.append(rec0)
+            if rec1 is not None:
+                output.append(rec1)
+
+        return output

@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import requests
 
-from troi import Element, Recording, PipelineError
+from troi import Element, Recording, PipelineError, DEVELOPMENT_SERVER_URL
 
 
 class RelatedArtistCreditsElement(Element):
@@ -11,7 +11,7 @@ class RelatedArtistCreditsElement(Element):
         Look up related artist_credits, given a list of artists_credits
     '''
 
-    SERVER_URL = "http://bono.metabrainz.org:8000/artist-credit-similarity/json"
+    SERVER_URL = DEVELOPMENT_SERVER_URL + "/artist-credit-similarity/json"
 
     def __init__(self, threshold=0):
         super().__init__()

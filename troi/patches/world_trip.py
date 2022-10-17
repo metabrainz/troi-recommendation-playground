@@ -6,7 +6,7 @@ import click
 import requests
 import countryinfo
 
-from troi import Element, Artist, Recording, Playlist, PipelineError
+from troi import Element, Artist, Recording, Playlist, PipelineError, DEVELOPMENT_SERVER_URL
 import troi.patch
 
 
@@ -36,7 +36,7 @@ def recording_from_row(row):
 
 class WorldTripElement(Element):
     '''
-        Given a continent (Africa, North America, South America, Asia, Europe, Oceania) and
+        Given a continent (africa, americas, asia, europe, oceania) and
         a sort order latitude or longitude, pick random tracks from each country and
         add tracks to a playlist sorted by latitude or longitude.
 
@@ -56,7 +56,7 @@ class WorldTripElement(Element):
 
     @staticmethod
     def outputs():
-        return [Playlist]
+        return [Recording]
 
     def read(self, inputs):
 
@@ -67,9 +67,13 @@ class WorldTripElement(Element):
             if 'region' not in country:
                 continue
 
-            continents[country['region']].append({'name': country['name'],
+            continents[country['region'].lower()].append({'name': country['name'],
                                                   'code': country['ISO']['alpha2'], 
                                                   'latlng': country['latlng'] })
+
+        if self.continent not in continents:
+            names = continents.keys()
+            raise RuntimeError(f"Cannot find continent {self.continent}. Must be one of {names}")
 
         print("Fetch tracks from countries:")
         if self.latitude:
@@ -78,14 +82,14 @@ class WorldTripElement(Element):
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][1])
 
         for i, country in enumerate(continent):
-            self.debug("   ", country["name"])
+            self.debug("   %s" % country["name"])
 
             r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % country['name'])
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
 
             country_code = r.json()['areas'][0]['id']
-            r = requests.post("https://bono.metabrainz.org/area-random-recordings/json", json=[{ "area_mbid": country_code,
+            r = requests.post(DEVELOPMENT_SERVER_URL + "/area-random-recordings/json", json=[{ "area_mbid": country_code,
                                 "start_year": 2012,
                                 "end_year": 2021 }])
             if r.status_code != 200:
@@ -133,7 +137,11 @@ class WorldTripPatch(troi.patch.Patch):
     @click.argument('sort')
     def parse_args(**kwargs):
         """
+        Generate a playlist that picks tracks for each country in a continent.
 
+        \b
+        CONTINENT: A name of a continent, all lower case.
+        SORT: Must be longitude or latitude
         """
 
         return kwargs
@@ -163,9 +171,11 @@ class WorldTripPatch(troi.patch.Patch):
         if inputs["sort"] == "longitude":
             latitude = False
             lat_string = "North -> South"
-        else:
+        elif inputs["sort"] == "latitude":
             latitude = True
             lat_string = "West -> East"
+        else:
+            raise RuntimeError("sort must be longitude or latitude")
 
         trip = WorldTripElement(inputs['continent'], latitude)
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (inputs["continent"], lat_string),

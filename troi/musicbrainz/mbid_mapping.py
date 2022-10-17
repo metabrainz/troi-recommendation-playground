@@ -1,7 +1,7 @@
 import requests
 import ujson
 
-from troi import Element, Recording, Release, PipelineError
+from troi import Element, Artist, Recording, Release, PipelineError
 
 
 class MBIDMappingLookupElement(Element):
@@ -28,8 +28,12 @@ class MBIDMappingLookupElement(Element):
 
         params = []
         for r in inputs[0]:
-            params.append({"[artist_credit_name]": r.artist.name,
-                           "[recording_name]": r.name})
+            if r.artist is not None and r.name is not None:
+                params.append({"[artist_credit_name]": r.artist.name,
+                               "[recording_name]": r.name})
+
+        if not params:
+            return []
 
         r = requests.post(self.SERVER_URL, json=params)
         if r.status_code != 200:
@@ -48,11 +52,15 @@ class MBIDMappingLookupElement(Element):
                 r.add_note("recording mbid %s overwritten by mbid_lookup" % (r.mbid))
             r.mbid = row['recording_mbid']
             r.name = row['recording_name']
+            r.year = row['year']
 
-            if r.artist.artist_credit_id:
-                r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id))
-            r.artist.artist_credit_id = row['artist_credit_id']
-            r.artist.name = row['artist_credit_name']
+            if r.artist is None:
+                r.artist = Artist(artist_credit_id=row['artist_credit_id'], name=row['artist_credit_name'])
+            else:
+                if r.artist.artist_credit_id:
+                    r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id))
+                r.artist.artist_credit_id = row['artist_credit_id']
+                r.artist.name = row['artist_credit_name']
 
             if r.release:
                 if r.release.mbid:

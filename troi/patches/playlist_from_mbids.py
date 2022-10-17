@@ -60,7 +60,7 @@ class PlaylistFromMBIDsPatch(troi.patch.Patch):
         rec_lookup = RecordingLookupElement()
         rec_lookup.set_sources(source)
 
-        pl_maker = PlaylistMakerElement("Playlist made from MBIDs", "")
+        pl_maker = PlaylistMakerElement("Playlist made from MBIDs", "", patch_slug=self.slug())
         pl_maker.set_sources(rec_lookup)
 
         return pl_maker
