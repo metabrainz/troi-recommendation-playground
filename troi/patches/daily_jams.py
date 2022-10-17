@@ -1,12 +1,11 @@
-from datetime import datetime, timedelta
-from itertools import zip_longest
-import random
+from datetime import datetime
 
 import click
 
-from troi import PipelineError, Recording, Playlist
+from troi import Playlist
 from troi.playlist import PlaylistRedundancyReducerElement, PlaylistMakerElement, PlaylistShuffleElement
 import troi.listenbrainz.recs
+import troi.listenbrainz.listens
 import troi.filters
 import troi.musicbrainz.recording_lookup
 
@@ -62,8 +61,11 @@ class DailyJamsPatch(troi.patch.Patch):
         raw_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         raw_recs_lookup.set_sources(raw_recs)
 
+        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
+        recent_listens_lookup.set_sources(raw_recs_lookup)
+
         latest_filter = troi.filters.LatestListenedAtFilterElement(14)
-        latest_filter.set_sources(raw_recs_lookup)
+        latest_filter.set_sources(recent_listens_lookup)
 
         pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
