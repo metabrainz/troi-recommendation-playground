@@ -20,7 +20,8 @@ default_patch_args = dict(
     created_for=None,
     name=None,
     desc=None,
-    min_recordings=10
+    min_recordings=10,
+    spotify=None
 )
 
 
@@ -73,7 +74,7 @@ def generate_playlist(patch: Patch, args: Dict):
 
     upload = patch_args["upload"]
     token = patch_args["token"]
-    spotify = patch_args.get("spotify")
+    spotify = patch_args["spotify"]
     if upload and not token and not spotify:
         print("In order to upload a playlist, you must provide an auth token. Use option --token.")
         return None
