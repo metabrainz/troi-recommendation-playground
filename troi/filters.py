@@ -292,19 +292,15 @@ class YearRangeFilterElement(troi.Element):
         return results
 
 
-class LatestListenedAtFilterElement(troi.Element):
+class GenreFilterElement(troi.Element):
     '''
-        Remove recordings if they have been played recently
+        Keep recorindgs that have at least one genre in commong
+        from the list passed in when this class is created.
     '''
 
-    def __init__(self, min_number_of_days=14):
-        '''
-            Filter the recordings according to latest_listened_at field in the lb metadata. 
-            If that field is None, treat it as if the user hasn't listened to this track
-            recently or at all and keep the track in the list.
-        '''
+    def __init__(self, genre_list):
         troi.Element.__init__(self)
-        self.min_number_of_days = min_number_of_days
+        self.genre_list = genre_list
 
     @staticmethod
     def inputs():
@@ -319,6 +315,31 @@ class LatestListenedAtFilterElement(troi.Element):
         recordings = inputs[0]
 
         results = []
+        for r in recordings:
+            if "tags" not in r.musicbrainz:
+                continue
+
+            for genre in self.genre_list:
+                if genre in r.musicbrainz["tags"]:
+                    results.append(r)
+                    break
+
+        return results
+
+
+class LatestListenedAtFilterElement(troi.Element):
+    '''
+        Remove recordings if they have been played recently
+    '''
+
+    def __init__(self, min_number_of_days=14):
+        '''
+            Filter the recordings according to latest_listened_at field in the lb metadata. 
+            If that field is None, treat it as if the user hasn't listened to this track
+            recently or at all and keep the track in the list.
+        '''
+        troi.Element.__init__(self)
+        self.min_number_of_days = min_number_of_days
         now = datetime.datetime.now()
         for r in recordings:
             if "latest_listened_at" in r.listenbrainz and r.listenbrainz["latest_listened_at"] is not None:
