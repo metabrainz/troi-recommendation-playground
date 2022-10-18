@@ -223,10 +223,10 @@ class PlaylistElement(Element):
 
             if len(playlist.recordings) == 0:
                 continue
+            filtered_recordings = [r for r in playlist.recordings if r.mbid]
 
-            _, mbid_spotify_index, spotify_mbid_index = lookup_spotify_ids(playlist.recordings)
-
-            spotify_track_ids = [track.spotify_id for track in playlist.recordings if track.spotify_id]
+            _, mbid_spotify_index, spotify_mbid_index = lookup_spotify_ids(filtered_recordings)
+            spotify_track_ids = [r.spotify_id for r in filtered_recordings if r.spotify_id]
             if len(spotify_track_ids) == 0:
                 continue
 
