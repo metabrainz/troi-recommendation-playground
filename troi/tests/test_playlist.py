@@ -191,3 +191,5 @@ class TestSpotifySubmission(unittest.TestCase):
                 "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
             ]
         })
+
+        self.assertEqual(playlist.playlists[0].external_urls, [playlist_url])
