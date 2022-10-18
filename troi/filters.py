@@ -340,6 +340,20 @@ class LatestListenedAtFilterElement(troi.Element):
         '''
         troi.Element.__init__(self)
         self.min_number_of_days = min_number_of_days
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+
+        recordings = inputs[0]
+
+        results = []
         now = datetime.datetime.now()
         for r in recordings:
             if "latest_listened_at" in r.listenbrainz and r.listenbrainz["latest_listened_at"] is not None:
