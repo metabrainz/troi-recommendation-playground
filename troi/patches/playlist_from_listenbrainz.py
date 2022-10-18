@@ -10,7 +10,7 @@ def cli():
     pass
 
 
-class ResavePatch(troi.patch.Patch):
+class TransferPlaylistPatch(troi.patch.Patch):
 
     @staticmethod
     @cli.command(no_args_is_help=True)
@@ -34,7 +34,7 @@ class ResavePatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "resave-playlist"
+        return "transfer-playlist"
 
     @staticmethod
     def description():

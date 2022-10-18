@@ -16,7 +16,7 @@ class TestPatches(unittest.TestCase):
         assert "playlist-from-mbids" in patches
         assert "world-trip" in patches
         assert "recs-to-playlist" in patches
-        assert "resave-playlist" in patches
+        assert "transfer-playlist" in patches
 
         for p in patches:
             assert issubclass(patches[p], Patch)
