@@ -41,8 +41,5 @@ class TransferPlaylistPatch(troi.patch.Patch):
         return "Retrieve a playlist from the ListenBrainz"
 
     def create(self, inputs):
-        token = inputs.get("read_only_token")
-        if not token:
-            token = inputs.get("token")
-        playlist = PlaylistFromJSPFElement(inputs["mbid"], token)
-        return playlist
+        token = inputs.get("read_only_token") or inputs.get("token")
+        return PlaylistFromJSPFElement(inputs["mbid"], token)

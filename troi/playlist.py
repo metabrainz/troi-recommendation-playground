@@ -457,6 +457,4 @@ class PlaylistFromJSPFElement(Element):
         response = requests.get(LISTENBRAINZ_PLAYLIST_FETCH_URL + self.playlist_mbid, headers=headers)
         response.raise_for_status()
         data = response.json()
-
-        playlist = _deserialize_from_jspf(data)
-        return [playlist]
+        return [_deserialize_from_jspf(data)]
