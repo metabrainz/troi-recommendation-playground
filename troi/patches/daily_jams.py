@@ -61,8 +61,12 @@ class DailyJamsPatch(troi.patch.Patch):
         raw_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                               artist_type="raw",
                                                                               count=100)
+
+        deduped_raw_recs = troi.filters.DuplicateRecordingMBIDFilterElement()
+        deduped_raw_recs.set_sources(raw_recs)
+
         raw_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        raw_recs_lookup.set_sources(raw_recs)
+        raw_recs_lookup.set_sources(deduped_raw_recs)
 
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
         recent_listens_lookup.set_sources(raw_recs_lookup)
