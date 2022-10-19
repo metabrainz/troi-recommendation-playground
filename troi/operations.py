@@ -1,10 +1,11 @@
 import copy
+from itertools import zip_longest
+
 import troi
 
+
 def is_homogeneous(entities):
-    '''
-        Check to see if all the items in a list of of the same type
-    '''
+    """ Check to see if all the items in a list of of the same type """
 
     if not entities:
         return True
@@ -17,9 +18,7 @@ def is_homogeneous(entities):
 
 
 def _ensure_conformity(entities_0, entities_1):
-    '''
-        Check that both entity lists are homogenous and of the same type.
-    '''
+    """ Check that both entity lists are homogenous and of the same type. """
 
     if not is_homogeneous(entities_0):
         raise TypeError("entities_0 list not homogenous")
@@ -33,12 +32,23 @@ def _ensure_conformity(entities_0, entities_1):
     return True
 
 
+def _check_key_for_set_op(entities, key):
+    """ Check the key based on which set operation is to be performed is valid for given entity """
+    if isinstance(entities[0], troi.Artist) and key not in ['mbids', 'name', 'artist_credit_id']:
+        raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
+    elif isinstance(entities[0], troi.Recording) and key not in ['mbid', 'msid', 'name']:
+        raise ValueError("key must be one of mbid/s, msid or name.")
+    elif key not in ['mbid', 'name']:
+        raise ValueError("key must be one of mbid/s or name.")
+
+
 class UniqueElement(troi.Element):
-    '''
+    """
         Make this passed list of entities unique base on the passed key
-        (must be one of name, mbid or msid) and return the unique list.
-        Currently the order of the list is not preserved. This should be improved on...
-    '''
+        (must be one of name or mbid) and return the unique list. recordings also allow
+        msid as key and artists allow artist_credit_id as key. Currently the order of the
+        list is not preserved. This should be improved on...
+    """
 
     def __init__(self, key = "mbid"):
         troi.Element.__init__(self)
@@ -56,13 +66,7 @@ class UniqueElement(troi.Element):
 
         if not is_homogeneous(entities):
             raise TypeError("entity list not homogenous")
-
-        if isinstance(entities[0], troi.Artist):
-            if self.key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
-                raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-        else:
-            if self.key not in ['mbid', 'msid', 'name']:
-                raise ValueError("key must be one of mbid/s, msid or name.")
+        _check_key_for_set_op(entities, self.key)
 
         entity_dict = {}
         for e in entities:
@@ -75,9 +79,7 @@ class UniqueElement(troi.Element):
 
 
 class UnionElement(troi.Element):
-    '''
-        Combine both entities lists into one
-    '''
+    """ Combine both entities lists into one """
 
     def __init__(self):
         troi.Element.__init__(self)
@@ -123,13 +125,7 @@ class IntersectionElement(troi.Element):
             return []
 
         _ensure_conformity(entities_0, entities_1)
-
-        if isinstance(entities_0[0], troi.Artist):
-            if self.key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
-                raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-        else:
-            if self.key not in ['mbid', 'msid', 'name']:
-                raise ValueError("key must be one of mbid/s, msid or name.")
+        _check_key_for_set_op(entities, self.key)
 
         entity_dict = {}
         for e in entities_1:
@@ -157,7 +153,7 @@ class DifferenceElement(troi.Element):
     '''
 
     def __init__(self, key = "mbid"):
-        super().__init__()
+        troi.Element.__init__(self)
         self.key = key
 
     def inputs(self):
@@ -174,13 +170,7 @@ class DifferenceElement(troi.Element):
             return entities_0
 
         _ensure_conformity(entities_0, entities_1)
-
-        if isinstance(entities_0[0], troi.Artist):
-            if self.key not in ['mbids', 'msid', 'name', 'artist_credit_id']:
-                raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-        else:
-            if self.key not in ['mbid', 'msid', 'name']:
-                raise ValueError("key must be one of mbid/s, msid or name.")
+        _check_key_for_set_op(entities, self.key)
 
         entity_dict = {}
         for e in entities_1:
@@ -207,15 +197,15 @@ class ZipperElement(troi.Element):
     '''
 
     def __init__(self):
-        Element.__init__(self)
+        troi.Element.__init__(self)
 
     @staticmethod
     def inputs():
-        return [Recording, Recording]
+        return [troi.Recording, troi.Recording]
 
     @staticmethod
     def outputs():
-        return [Recording]
+        return [troi.Recording]
 
     def read(self, inputs):
         output = []
