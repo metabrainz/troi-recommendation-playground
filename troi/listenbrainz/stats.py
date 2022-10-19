@@ -26,7 +26,7 @@ class UserArtistsElement(Element):
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
         for a in artists['payload']['artists']:
-            artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids'], msid=a['artist_msid']))
+            artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids']))
 
         return artist_list
 
@@ -54,9 +54,8 @@ class UserReleasesElement(Element):
         release_list = []
         releases = self.client.get_user_releases(self.user_name, self.count, self.offset, self.time_range)
         for r in releases['payload']['releases']:
-            artist = Artist(r['artist_name'], mbids=r['artist_mbids'], msid=r['artist_msid'])
-            release_list.append(Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'], 
-                                artist=artist))
+            artist = Artist(r['artist_name'], mbids=r['artist_mbids'])
+            release_list.append(Release(r['release_name'], mbid=r['release_mbid'], artist=artist))
 
         return release_list
 
@@ -89,8 +88,8 @@ class UserRecordingElement(Element):
             return []
 
         for r in recordings['payload']['recordings']:
-            artist = Artist(r['artist_name'], mbids=r['artist_mbids'], msid=r['artist_msid'])
-            release = Release(r['release_name'], mbid=r['release_mbid'], msid=r['release_msid'])
+            artist = Artist(r['artist_name'], mbids=r['artist_mbids'])
+            release = Release(r['release_name'], mbid=r['release_mbid'])
             recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], msid=r['recording_msid'], 
                                   artist=artist, release=release))
 

@@ -140,7 +140,7 @@ class Element(ABC):
 class Entity(ABC):
     """
         This is the base class for entity objects in troi. Each object will have
-        a name, mbid, msid attributes which are all optional. There will also be
+        a name, mbid attributes which are all optional. There will also be
         three dicts named musicbrainz, listenbrainz and acousticbrainz that will
         contain collected metadata respective of each project.
 
@@ -151,7 +151,6 @@ class Entity(ABC):
     def __init__(self, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         self.name = None
         self.mbid = None
-        self.msid = None
         self.musicbrainz = musicbrainz or {}
         self.listenbrainz = listenbrainz or {}
         self.acousticbrainz = acousticbrainz or {}
@@ -197,8 +196,8 @@ class Artist(Entity):
     """
         The class that represents an artist.
     """
-    def __init__(self, name=None, mbids=None, msid=None, artist_credit_id=None,
-                 ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, name=None, mbids=None, artist_credit_id=None, ranking=None,
+                 musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.artist_credit_id = artist_credit_id
@@ -208,26 +207,24 @@ class Artist(Entity):
             self.mbids = sorted(mbids)
         else:
             self.mbids = None
-        self.msid = msid
 
     def __str__(self):
-        return "<Artist('%s', [%s], %s, %s)>" % (self.name, ",".join(self.mbids or []), self.msid, self.artist_credit_id)
+        return "<Artist('%s', [%s], %s)>" % (self.name, ",".join(self.mbids or []), self.artist_credit_id)
 
 
 class Release(Entity):
     """
         The class that represents a release.
     """
-    def __init__(self, name=None, mbid=None, msid=None, artist=None,
-                 ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, name=None, mbid=None, artist=None, ranking=None,
+                 musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.artist = artist
         self.name = name
         self.mbid = mbid
-        self.msid = msid
 
     def __str__(self):
-        return "<Release('%s', %s, %s)>" % (self.name, self.mbid, self.msid)
+        return "<Release('%s', %s)>" % (self.name, self.mbid)
 
 
 class Recording(Entity):
