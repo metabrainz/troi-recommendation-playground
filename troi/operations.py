@@ -36,13 +36,13 @@ def _check_key_for_set_op(entities, key):
     """ Check the key based on which set operation is to be performed is valid for given entity """
     if isinstance(entities[0], troi.Artist):
         if key not in ['mbids', 'name', 'artist_credit_id']:
-            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
+            raise ValueError("key must be one of mbids, msid, name or artist_credit_id.")
     elif isinstance(entities[0], troi.Recording):
         if key not in ['mbid', 'msid', 'name']:
-            raise ValueError("key must be one of mbid/s, msid or name.")
+            raise ValueError("key must be one of mbid, msid or name.")
     else:
         if key not in ['mbid', 'name']:
-            raise ValueError("key must be one of mbid/s or name.")
+            raise ValueError("key must be one of mbid or name.")
 
 
 class UniqueElement(troi.Element):
@@ -53,7 +53,7 @@ class UniqueElement(troi.Element):
         list is not preserved. This should be improved on...
     """
 
-    def __init__(self, key = "mbid"):
+    def __init__(self, key="mbid"):
         troi.Element.__init__(self)
         self.key = key
 
@@ -113,7 +113,7 @@ class IntersectionElement(troi.Element):
         Return the list of entities that exist in both entities lists.
     """
 
-    def __init__(self, key = "mbid"):
+    def __init__(self, key="mbid"):
         troi.Element.__init__(self)
         self.key = key
 
@@ -128,7 +128,7 @@ class IntersectionElement(troi.Element):
             return []
 
         _ensure_conformity(entities_0, entities_1)
-        _check_key_for_set_op(entities, self.key)
+        _check_key_for_set_op(entities_0, self.key)
 
         entity_dict = {}
         for e in entities_1:
@@ -173,7 +173,7 @@ class DifferenceElement(troi.Element):
             return entities_0
 
         _ensure_conformity(entities_0, entities_1)
-        _check_key_for_set_op(entities, self.key)
+        _check_key_for_set_op(entities_0, self.key)
 
         entity_dict = {}
         for e in entities_1:

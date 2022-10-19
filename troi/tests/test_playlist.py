@@ -8,7 +8,7 @@ from troi import Recording, Element, Playlist
 from troi.tools.spotify_lookup import SPOTIFY_IDS_LOOKUP_URL
 
 
-class TestElement(Element):
+class DummyElement(Element):
     """ Dummy element that returns a fixed playlist for testing """
 
     @staticmethod
@@ -32,7 +32,7 @@ class TestElement(Element):
         ]
 
 
-class TestPatch(Patch):
+class DummyPatch(Patch):
     """ Dummy patch that always returns a fixed set of recordings for testing """
 
     @staticmethod
@@ -40,7 +40,7 @@ class TestPatch(Patch):
         return "test-patch"
 
     def create(self, inputs):
-        return TestElement()
+        return DummyElement()
 
     @staticmethod
     def outputs():
@@ -139,7 +139,7 @@ class TestSpotifySubmission(unittest.TestCase):
         )
         mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "bar"})
 
-        playlist = generate_playlist(TestPatch(), {
+        playlist = generate_playlist(DummyPatch(), {
             "min_recordings": 1,
             "spotify": {
                 "token": "spotify-auth-token",
