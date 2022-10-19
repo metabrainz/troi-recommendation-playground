@@ -69,7 +69,6 @@ class TestStats(unittest.TestCase):
         assert len(entities) == 1
         assert isinstance(entities[0], Artist)
         assert entities[0].mbids is None
-        assert entities[0].msid == '7f65aec5-e7a7-4cfa-a6e5-e93e66a04990'
         assert entities[0].name == 'Pretty Lights'
 
     @patch('pylistenbrainz.ListenBrainz.get_user_releases')
@@ -82,7 +81,6 @@ class TestStats(unittest.TestCase):
         assert len(entities) == 1
         assert isinstance(entities[0], Release)
         assert entities[0].artist.name == 'Saltillo'
-        assert entities[0].msid == '8408449c-e3bb-4d32-8391-0e4ebbacb041'
         assert entities[0].name == 'Ganglion'
 
     @patch('pylistenbrainz.ListenBrainz.get_user_recordings')

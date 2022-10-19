@@ -34,12 +34,15 @@ def _ensure_conformity(entities_0, entities_1):
 
 def _check_key_for_set_op(entities, key):
     """ Check the key based on which set operation is to be performed is valid for given entity """
-    if isinstance(entities[0], troi.Artist) and key not in ['mbids', 'name', 'artist_credit_id']:
-        raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
-    elif isinstance(entities[0], troi.Recording) and key not in ['mbid', 'msid', 'name']:
-        raise ValueError("key must be one of mbid/s, msid or name.")
-    elif key not in ['mbid', 'name']:
-        raise ValueError("key must be one of mbid/s or name.")
+    if isinstance(entities[0], troi.Artist):
+        if key not in ['mbids', 'name', 'artist_credit_id']:
+            raise ValueError("key must be one of mbid/s, msid, name or artist_credit_id.")
+    elif isinstance(entities[0], troi.Recording):
+        if key not in ['mbid', 'msid', 'name']:
+            raise ValueError("key must be one of mbid/s, msid or name.")
+    else:
+        if key not in ['mbid', 'name']:
+            raise ValueError("key must be one of mbid/s or name.")
 
 
 class UniqueElement(troi.Element):
