@@ -62,7 +62,7 @@ class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
 
     NAME = "Recordings Similar to your top Recordings"
     DESC = """<p>
-               Given your top recordings for the last %s, 
+               Given %s's top recordings for time range: %s. 
               </p>
            """
 
@@ -126,7 +126,7 @@ class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
         ac_limiter.set_sources(recs_lookup)
 
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME,
-                                                      self.DESC,
+                                                      self.DESC % (user_name, time_range),
                                                       max_num_recordings=50)
         pl_maker.set_sources(ac_limiter)
 
