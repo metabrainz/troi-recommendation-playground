@@ -69,7 +69,7 @@ class RecordingLookupElement(Element):
                 r.artist = a
             else:
                 r.artist.name = row['artist_credit_name']
-                r.artist.mbids = row.get('[artist_credit_mbids]', []),
+                r.artist.mbids = row.get('[artist_credit_mbids]', [])
                 r.artist.artist_credit_id = row['artist_credit_id']
 
             r.name = row['recording_name']
