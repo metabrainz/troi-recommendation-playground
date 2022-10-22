@@ -26,6 +26,10 @@ class DailyJamsPatch(troi.patch.Patch):
         the chunk for the given day of the week.
     """
 
+    def __init__(self, debug=False):
+        super().__init__(debug)
+        self.recent_listens_lookup = None
+
     @staticmethod
     @cli.command(no_args_is_help=True)
     @click.argument('user_name')
@@ -61,11 +65,14 @@ class DailyJamsPatch(troi.patch.Patch):
         raw_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         raw_recs_lookup.set_sources(deduped_raw_recs)
 
-        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
-        recent_listens_lookup.set_sources(raw_recs_lookup)
+        # looking up recent listens is slow so reuse this element
+        # (the element caches lookup internally so reusing it avoids slow api calls)
+        if self.recent_listens_lookup is None:
+            self.recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
+        self.recent_listens_lookup.set_sources(raw_recs_lookup)
 
         latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
-        latest_filter.set_sources(recent_listens_lookup)
+        latest_filter.set_sources(self.recent_listens_lookup)
 
         return latest_filter
 
