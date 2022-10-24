@@ -1,21 +1,20 @@
-from datetime import datetime 
-from collections import defaultdict
-from urllib.parse import quote
-import requests
+import logging
 
 import click
+import requests
 
-from troi import Element, Artist, Recording, Playlist, PipelineError
-import troi.listenbrainz.stats
 import troi.filters
-import troi.sorts
-import troi.musicbrainz.recording_lookup
+import troi.listenbrainz.stats
 import troi.musicbrainz.mbid_mapping
+import troi.musicbrainz.recording_lookup
+import troi.sorts
+from troi import Element, Recording
 
 
 @click.group()
 def cli():
     pass
+
 
 class LookupSimilarRecordingsElement(Element):
     """ Lookup similar recordings.
@@ -25,6 +24,7 @@ class LookupSimilarRecordingsElement(Element):
 
     def __init__(self):
         super().__init__()
+        self.logger = logging.getLogger(type(self).__name__)
 
     @staticmethod
     def inputs():
@@ -35,24 +35,29 @@ class LookupSimilarRecordingsElement(Element):
         return [Recording]
 
     def read(self, inputs):
+        data = [
+            {
+                "recording_mbid": recording.mbid,
+                "algorithm": "session_based_days_7_session_300_threshold_0"
+            }
+            for recording in inputs[0]
+        ]
 
-        sim = []
-        for recording in inputs[0]:
-            url = f"https://labs.api.listenbrainz.org/similar-recordings/json"
-            r = requests.get(url, { "recording_mbid": recording.mbid, "algorithm": "session_based_days_7_session_300" })
-            if r.status_code != 200:
-                logger.info("Fetching similar recordings failed: %d. Skipping." % r.status_code)
-                continue
+        url = f"https://labs.api.listenbrainz.org/similar-recordings/json"
+        # the count in this case denotes the per-item count
+        # i.e. for each mbid passed to this endpoint return at most 2 similar mbids
+        r = requests.post(url, json=data, params={"count": 2})
+        if r.status_code != 200:
+            self.logger.info("Fetching similar recordings failed: %d. Skipping." % r.status_code)
 
-            data = r.json()
-            try:
-                sim.append(Recording(mbid=data[3]["data"][0]["recording_mbid"]))
-                sim.append(Recording(mbid=data[3]["data"][1]["recording_mbid"]))
-            except IndexError:
-                pass
-
-        return sim
-             
+        data = r.json()
+        try:
+            return [
+                Recording(mbid=item["recording_mbid"])
+                for item in data[3]["data"]
+            ]
+        except IndexError:
+            return []
 
 
 class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
