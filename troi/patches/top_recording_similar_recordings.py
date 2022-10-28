@@ -1,63 +1,17 @@
-import logging
-
 import click
-import requests
 
 import troi.filters
 import troi.listenbrainz.stats
 import troi.musicbrainz.mbid_mapping
 import troi.musicbrainz.recording_lookup
 import troi.sorts
-from troi import Element, Recording
+from troi import Recording
+from troi.listenbrainz.similar_recordings import LookupSimilarRecordingsElement
 
 
 @click.group()
 def cli():
     pass
-
-
-class LookupSimilarRecordingsElement(Element):
-    """ Lookup similar recordings.
-
-        Given a list of recordings, this element will output recordings that are similar to the ones passed in.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.logger = logging.getLogger(type(self).__name__)
-
-    @staticmethod
-    def inputs():
-        return [Recording]
-
-    @staticmethod
-    def outputs():
-        return [Recording]
-
-    def read(self, inputs):
-        data = [
-            {
-                "recording_mbid": recording.mbid,
-                "algorithm": "session_based_days_7_session_300_threshold_0"
-            }
-            for recording in inputs[0]
-        ]
-
-        url = f"https://labs.api.listenbrainz.org/similar-recordings/json"
-        # the count in this case denotes the per-item count
-        # i.e. for each mbid passed to this endpoint return at most 2 similar mbids
-        r = requests.post(url, json=data, params={"count": 2})
-        if r.status_code != 200:
-            self.logger.info("Fetching similar recordings failed: %d. Skipping." % r.status_code)
-
-        data = r.json()
-        try:
-            return [
-                Recording(mbid=item["recording_mbid"])
-                for item in data[3]["data"]
-            ]
-        except IndexError:
-            return []
 
 
 class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
@@ -118,7 +72,10 @@ class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
         remove_empty = troi.filters.EmptyRecordingFilterElement()
         remove_empty.set_sources(stats)
 
-        similar = LookupSimilarRecordingsElement()
+        similar = LookupSimilarRecordingsElement(
+            algorithm="session_based_days_730_session_300_threshold_2_limit_200",
+            count=2
+        )
         similar.set_sources(remove_empty)
 
         dedup = troi.filters.DuplicateRecordingMBIDFilterElement()

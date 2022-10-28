@@ -58,6 +58,44 @@ class ArtistCreditFilterElement(troi.Element):
         return results
 
 
+class FirstArtistCreditFilterElement(troi.Element):
+    '''
+        Remove all recordings by the artist credit of the FIRST recording in the stream.
+    '''
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs):
+
+        recording = inputs[0][0]
+        acs = recording.artist.mbids
+
+        results = []
+        for i, r in enumerate(inputs[0]):
+            if i == 0:
+                results.append(r)
+                continue
+
+            skip = False
+            for rec_artist in r.artist.mbids:
+                if rec_artist in acs:
+                    skip = True
+                    break
+
+            if skip:
+                continue
+
+            results.append(r)
+
+        return results
+
+
 class ArtistCreditLimiterElement(troi.Element):
 
     def __init__(self, count=2, exclude_lower_ranked=True):
