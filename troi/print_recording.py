@@ -18,7 +18,7 @@ class PrintRecordingList():
         self.print_latest_listened_at = False
 
     def _examine_recording_for_headers(self, recording):
-        # Look at the first item and decide which columns to show
+        # Look at the given recording and decide which columns to show
         if recording.year is not None:
             self.print_year = True
 

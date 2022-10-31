@@ -5,6 +5,7 @@ import troi.listenbrainz.stats
 import troi.musicbrainz.mbid_mapping
 import troi.musicbrainz.recording
 import troi.musicbrainz.recording_lookup
+import troi.musicbrainz.genre_lookup
 import troi.sorts
 from troi import Recording
 from troi.listenbrainz.similar_recordings import LookupSimilarRecordingsElement
@@ -78,9 +79,12 @@ class SimilarRecordingsPatch(troi.patch.Patch):
         ac_filter = FirstArtistCreditFilterElement()
         ac_filter.set_sources(recs_lookup) 
 
+        genre_lookup = troi.musicbrainz.genre_lookup.GenreLookupElement(count_threshold=0)
+        genre_lookup.set_sources(ac_filter)
+
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (mbid, alg),
                                                       self.DESC,
-                                                      max_num_recordings=50)
-        pl_maker.set_sources(ac_filter)
+                                                      max_num_recordings=100)
+        pl_maker.set_sources(genre_lookup)
 
         return pl_maker

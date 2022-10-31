@@ -105,7 +105,7 @@ def generate_playlist(patch: Patch, args: Dict):
         print("playlist saved.")
 
     echo = patch_args["echo"]
-    if result is not None and (echo or not token):
+    if result is not None and echo:
         print()
         playlist.print()
 

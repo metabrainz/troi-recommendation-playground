@@ -44,7 +44,7 @@ class LookupSimilarRecordingsElement(Element):
         data = r.json()
         try:
             return [
-                Recording(mbid=item["recording_mbid"])
+                    Recording(mbid=item["recording_mbid"], musicbrainz={"score": item["score"]})
                 for item in data[3]["data"]
             ]
         except IndexError:

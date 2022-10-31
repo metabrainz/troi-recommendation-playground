@@ -1,10 +1,11 @@
 import requests
 
-from troi import Element, Recording, PipelineError
+from troi import Element, Recording, PipelineError, Release
 
 MAX_MBIDS_PER_CALL = 20
 
 
+# TODO: Make this into a generic MB Metadata lookup element
 class GenreLookupElement(Element):
     """
         Look up musicbrainz tags for a list of recordings recordings, based on recording mbid.
@@ -45,7 +46,7 @@ class GenreLookupElement(Element):
 
         data = {}
         for mbid_set in mbid_sets:
-            r = requests.get(self.SERVER_URL, params={ "recording_mbids" : ",".join(mbid_set), "inc": "tag" })
+            r = requests.get(self.SERVER_URL, params={ "recording_mbids" : ",".join(mbid_set), "inc": "artist release tag" })
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch tags from ListenBrainz: HTTP code %d" % r.status_code)
 
@@ -70,6 +71,8 @@ class GenreLookupElement(Element):
 
             r.musicbrainz["genre"] = genres
             r.musicbrainz["tag"] = tags
+            print(r.musicbrainz["genre"])
+            print(r.musicbrainz["tag"])
 
             if r.artist is not None and "artist" in data[r.mbid]["tag"]:
                 artist_genres = []
@@ -83,6 +86,23 @@ class GenreLookupElement(Element):
 
                 r.artist.musicbrainz["genre"] = artist_genres
                 r.artist.musicbrainz["tag"] = artist_tags
+
+            # We should use this class as the source for MB metadata now
+            if r.release is None:
+                r.release = Release(mbid=data[r.mbid]["release"]["mbid"], name=data[r.mbid]["release"]["name"])
+
+            if "release" in data[r.mbid]["tag"]:
+                release_genres = []
+                release_tags = []
+                for genre in data[r.mbid]["tag"]["release_group"]:
+                    if genre["count"] >= self.count_threshold:
+                        if "genre_mbid" in genre:
+                            release_genres.append(genre["tag"])
+                        else:
+                            release_tags.append(genre["tag"])
+
+                r.release.musicbrainz["genre"] = release_genres
+                r.release.musicbrainz["tag"] = release_tags
 
             output.append(r)
 
