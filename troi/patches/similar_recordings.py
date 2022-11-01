@@ -70,7 +70,7 @@ class SimilarRecordingsPatch(troi.patch.Patch):
 
         recording = troi.musicbrainz.recording.RecordingListElement([Recording(mbid=mbid)])
 
-        similar = LookupSimilarRecordingsElement(algorithm=alg, count=100)
+        similar = LookupSimilarRecordingsElement(algorithm=alg, count=100, keep_seed=True)
         similar.set_sources(recording)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()

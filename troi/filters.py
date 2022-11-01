@@ -60,7 +60,8 @@ class ArtistCreditFilterElement(troi.Element):
 
 class FirstArtistCreditFilterElement(troi.Element):
     '''
-        Remove all recordings by the artist credit of the FIRST recording in the stream.
+        Remove all recordings by the artist credit of the FIRST recording in the stream and keep
+        that first recording. (Normally used to make playlists with a seed track at the beginning)
     '''
 
     @staticmethod

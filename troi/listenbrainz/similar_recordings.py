@@ -11,11 +11,12 @@ class LookupSimilarRecordingsElement(Element):
         Given a list of recordings, this element will output recordings that are similar to the ones passed in.
     """
 
-    def __init__(self, algorithm, count):
+    def __init__(self, algorithm, count, keep_seed=False):
         super().__init__()
         self.logger = logging.getLogger(type(self).__name__)
         self.algorithm = algorithm
         self.count = count
+        self.keep_seed = keep_seed
 
     @staticmethod
     def inputs():
@@ -42,8 +43,12 @@ class LookupSimilarRecordingsElement(Element):
             self.logger.info("Fetching similar recordings failed: %d. Skipping." % r.status_code)
 
         data = r.json()
+        results = []
+        if self.keep_seed:
+            results.append(inputs[0][0])
+
         try:
-            return [
+            return results + [
                     Recording(mbid=item["recording_mbid"], musicbrainz={"score": item["score"]})
                 for item in data[3]["data"]
             ]

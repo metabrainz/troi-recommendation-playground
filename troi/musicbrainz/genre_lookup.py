@@ -71,8 +71,6 @@ class GenreLookupElement(Element):
 
             r.musicbrainz["genre"] = genres
             r.musicbrainz["tag"] = tags
-            print(r.musicbrainz["genre"])
-            print(r.musicbrainz["tag"])
 
             if r.artist is not None and "artist" in data[r.mbid]["tag"]:
                 artist_genres = []
@@ -89,9 +87,12 @@ class GenreLookupElement(Element):
 
             # We should use this class as the source for MB metadata now
             if r.release is None:
-                r.release = Release(mbid=data[r.mbid]["release"]["mbid"], name=data[r.mbid]["release"]["name"])
+                try:
+                    r.release = Release(mbid=data[r.mbid]["release"]["mbid"], name=data[r.mbid]["release"]["name"])
+                except KeyError:
+                    pass
 
-            if "release" in data[r.mbid]["tag"]:
+            if r.release is not None and "release" in data[r.mbid]["tag"]:
                 release_genres = []
                 release_tags = []
                 for genre in data[r.mbid]["tag"]["release_group"]:
