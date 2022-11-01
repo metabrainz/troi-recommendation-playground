@@ -22,15 +22,17 @@ class SimilarRecordingsPatch(troi.patch.Patch):
         See below for description
     """
 
-    NAME = "Recordings similar to recording %s from %s"
+    NAME = "Recordings similar to '%s' by '%s'"
     DESC = """<p>
-                Given a seed track, return a playlist of tracks that are similar.
+                This test playlist contains recordings that are similar to the seed track
+                '%s' by '%s'. Similarity algorithm used: %s
               </p>
            """
 
     def __init__(self, debug=False, max_num_recordings=50):
         troi.patch.Patch.__init__(self, debug)
         self.max_num_recordings = max_num_recordings
+        self.algorithm = None
 
     @staticmethod
     @cli.command(no_args_is_help=True)
@@ -38,7 +40,8 @@ class SimilarRecordingsPatch(troi.patch.Patch):
     @click.argument('algorithm')
     def parse_args(**kwargs):
         """
-        Generate a year in review playlist.
+        Generate a playlist from similar track data, keeping the seed track and removing
+        more tracks by the seed artist.
 
         \b
         RECORDING_MBID: Seed track for similarity search.
@@ -49,8 +52,17 @@ class SimilarRecordingsPatch(troi.patch.Patch):
 
     @staticmethod
     def inputs():
-        return [{ "type": str, "name": "recording_mbid", "desc": "Seed recording", "optional": False },
-                { "type": str, "name": "algorithm", "desc": "Which index algorithm to use", "optional": False }]
+        return [{
+            "type": str,
+            "name": "recording_mbid",
+            "desc": "Seed recording",
+            "optional": False
+        }, {
+            "type": str,
+            "name": "algorithm",
+            "desc": "Which index algorithm to use",
+            "optional": False
+        }]
 
     @staticmethod
     def outputs():
@@ -64,27 +76,33 @@ class SimilarRecordingsPatch(troi.patch.Patch):
     def description():
         return "Generate a playlist from the similar tracks for a given tack."
 
+    def set_playlist_metadata(self, playlist):
+        try:
+            seed_recording = playlist.recordings[0]
+        except (IndexError, KeyError):
+            return
+        playlist.name = self.NAME % (seed_recording.name, seed_recording.artist.name)
+        playlist.description = self.DESC % (seed_recording.name, seed_recording.artist.name, self.algorithm)
+
     def create(self, inputs):
         mbid = inputs['recording_mbid']
-        alg = inputs['algorithm']
+        self.algorithm = inputs['algorithm']
 
         recording = troi.musicbrainz.recording.RecordingListElement([Recording(mbid=mbid)])
 
-        similar = LookupSimilarRecordingsElement(algorithm=alg, count=100, keep_seed=True)
+        similar = LookupSimilarRecordingsElement(algorithm=self.algorithm, count=100, keep_seed=True)
         similar.set_sources(recording)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(similar)
 
         ac_filter = FirstArtistCreditFilterElement()
-        ac_filter.set_sources(recs_lookup) 
+        ac_filter.set_sources(recs_lookup)
 
         genre_lookup = troi.musicbrainz.genre_lookup.GenreLookupElement(count_threshold=0)
         genre_lookup.set_sources(ac_filter)
 
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (mbid, alg),
-                                                      self.DESC,
-                                                      max_num_recordings=100)
+        pl_maker = troi.playlist.PlaylistMakerElement(max_num_recordings=100, source_patch=self)
         pl_maker.set_sources(genre_lookup)
 
         return pl_maker

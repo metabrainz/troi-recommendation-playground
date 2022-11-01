@@ -33,13 +33,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
                          all tracks will be serialized.
     """
 
-    data = { "creator": "ListenBrainz Troi",
-             "extension": {
-                 PLAYLIST_EXTENSION_URI: {
-                     "public": True
-                 }
-           }
-    }
+    data = {"creator": "ListenBrainz Troi", "extension": {PLAYLIST_EXTENSION_URI: {"public": True}}}
 
     if playlist.name:
         data["title"] = playlist.name
@@ -62,7 +56,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
         track = {}
         artist_mbids = []
         if e.artist is not None:
-            artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
+            artist_mbids = [str(mbid) for mbid in e.artist.mbids or []]
             track["creator"] = e.artist.name if e.artist else ""
 
         track["album"] = e.release.name if e.release else ""
@@ -78,7 +72,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
 
     data['track'] = tracks
 
-    return { "playlist" : data }
+    return {"playlist": data}
 
 
 def _deserialize_from_jspf(data) -> Playlist:
@@ -101,12 +95,10 @@ def _deserialize_from_jspf(data) -> Playlist:
 
         recordings.append(recording)
 
-    playlist = Playlist(
-        name=data["title"],
-        description=data["annotation"],
-        mbid=data["identifier"].split("/")[-1],
-        recordings=recordings
-    )
+    playlist = Playlist(name=data["title"],
+                        description=data["annotation"],
+                        mbid=data["identifier"].split("/")[-1],
+                        recordings=recordings)
     return playlist
 
 
@@ -192,13 +184,11 @@ class PlaylistElement(Element):
             if not file_obj:
                 filename = playlist.filename or "playlist_%03d.jspf" % i
                 with open(filename, "w") as f:
-                    f.write(json.dumps(_serialize_to_jspf(playlist,
-                                                          track_count=track_count,
+                    f.write(json.dumps(_serialize_to_jspf(playlist, track_count=track_count,
                                                           algorithm_metadata=algorithm_metadata)))
             else:
-                file_obj.write(json.dumps(_serialize_to_jspf(playlist,
-                                                             track_count=track_count,
-                                                             algorithm_metadata=algorithm_metadata)))
+                file_obj.write(
+                    json.dumps(_serialize_to_jspf(playlist, track_count=track_count, algorithm_metadata=algorithm_metadata)))
 
     def submit(self, token, created_for=None, algorithm_metadata=None):
         """
@@ -230,8 +220,7 @@ class PlaylistElement(Element):
                 except json.decoder.JSONDecodeError:
                     err = r.text
 
-                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %
-                                    (r.status_code, err))
+                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" % (r.status_code, err))
 
             try:
                 result = json.loads(r.text)
@@ -263,13 +252,11 @@ class PlaylistElement(Element):
 
             print("submit %d tracks" % len(spotify_track_ids))
 
-            spotify_playlist = sp.user_playlist_create(
-                user=user_id,
-                name=playlist.name,
-                public=is_public,
-                collaborative=is_collaborative,
-                description=playlist.description
-            )
+            spotify_playlist = sp.user_playlist_create(user=user_id,
+                                                       name=playlist.name,
+                                                       public=is_public,
+                                                       collaborative=is_collaborative,
+                                                       description=playlist.description)
 
             result = sp.playlist_add_items(spotify_playlist["id"], spotify_track_ids)
             fixup_spotify_playlist(sp, spotify_playlist["id"], mbid_spotify_index, spotify_mbid_index)
@@ -402,13 +389,14 @@ class PlaylistMakerElement(Element):
         This element takes in Recordings and spits out a Playlist.
     '''
 
-    def __init__(self, name, desc, patch_slug=None, user_name=None, max_num_recordings=None):
+    def __init__(self, name=None, desc=None, patch_slug=None, user_name=None, max_num_recordings=None, source_patch=None):
         super().__init__()
         self.name = name
         self.desc = desc
         self.patch_slug = patch_slug
         self.user_name = user_name
         self.max_num_recordings = max_num_recordings
+        self.source_patch = source_patch
 
     @staticmethod
     def inputs():
@@ -420,17 +408,22 @@ class PlaylistMakerElement(Element):
 
     def read(self, inputs):
         if self.max_num_recordings is not None:
-            return [Playlist(name=self.name,
-                    description=self.desc,
-                    recordings=inputs[0][:self.max_num_recordings],
-                    patch_slug=self.patch_slug,
-                    user_name=self.user_name)]
+            playlist = Playlist(name=self.name,
+                                description=self.desc,
+                                recordings=inputs[0][:self.max_num_recordings],
+                                patch_slug=self.patch_slug,
+                                user_name=self.user_name)
         else:
-            return [Playlist(name=self.name,
-                    description=self.desc,
-                    recordings=inputs[0],
-                    patch_slug=self.patch_slug,
-                    user_name=self.user_name)]
+            playlist = Playlist(name=self.name,
+                                description=self.desc,
+                                recordings=inputs[0],
+                                patch_slug=self.patch_slug,
+                                user_name=self.user_name)
+
+        if self.source_patch is not None:
+            self.source_patch.set_playlist_metadata(playlist)
+
+        return [playlist]
 
 
 class PlaylistFromJSPFElement(Element):

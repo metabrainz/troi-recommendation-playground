@@ -12,20 +12,17 @@ class Patch(ABC):
         logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
-
     def log(self, msg):
         '''
             Log a message with the info log level, which is the default for troi.
         '''
         self.logger.info(msg)
 
-
     def debug(self, msg):
         '''
             Log a message with debug log level. These messages will only be shown when debugging is enabled.
         '''
         self.logger.debug(msg)
-
 
     @staticmethod
     def inputs():
@@ -74,3 +71,10 @@ class Patch(ABC):
                input_args: the arguments passed to the patch.
         """
         return None
+
+    def set_playlist_metadata(self, playlist):
+        """ The PlaylistMakerElement will call this method to allow the patch to set the resultant
+            metadata for the playlist. This makes it easier to set the name and desc of the playist
+            in same cases, where the results of the playlist are not known until it is generated. """
+
+        pass

@@ -27,13 +27,7 @@ class LookupSimilarRecordingsElement(Element):
         return [Recording]
 
     def read(self, inputs):
-        data = [
-            {
-                "recording_mbid": recording.mbid,
-                "algorithm": self.algorithm
-            }
-            for recording in inputs[0]
-        ]
+        data = [{"recording_mbid": recording.mbid, "algorithm": self.algorithm} for recording in inputs[0]]
 
         url = f"https://labs.api.listenbrainz.org/similar-recordings/json"
         # the count in this case denotes the per-item count
@@ -49,8 +43,7 @@ class LookupSimilarRecordingsElement(Element):
 
         try:
             return results + [
-                    Recording(mbid=item["recording_mbid"], musicbrainz={"score": item["score"]})
-                for item in data[3]["data"]
+                Recording(mbid=item["recording_mbid"], musicbrainz={"score": item["score"]}) for item in data[3]["data"]
             ]
         except IndexError:
             return []
