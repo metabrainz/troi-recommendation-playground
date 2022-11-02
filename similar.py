@@ -24,14 +24,9 @@ for i, recording in enumerate(playlist.playlists[0].recordings):
     if i == 1:
         print("\nSimilar recordings")
 
-    genres = set(recording.musicbrainz.get("tag", []) +
-                 recording.artist.musicbrainz.get("tag", []) +
-                 recording.release.musicbrainz.get("tag", []))
-    genres = ",".join(sorted(list(genres)))
-
     print("  %-30s %-30s %5d %s" % (
         recording.name[:29],
         recording.artist.name[:29],
-        recording.musicbrainz["score"],
-        genres
+        recording.listenbrainz["score"],
+        recording.listenbrainz["spotify_id"]
     ))
