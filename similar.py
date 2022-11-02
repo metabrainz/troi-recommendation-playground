@@ -19,6 +19,10 @@ args = {"name": "Test", "recording_mbid": seed_mbid, "algorithm": alg, "desc": "
 
 playlist = troi.core.generate_playlist(SimilarRecordingsPatch(), args)
 
+if playlist.playlists[0].recordings[0].mbid != seed_mbid:
+    print("Seed track is not the first track. Could be because Spotify id was not found.")
+    sys.exit(-1)
+
 print("\nSeed recording:")
 for i, recording in enumerate(playlist.playlists[0].recordings):
     if i == 1:
