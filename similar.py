@@ -32,5 +32,5 @@ for i, recording in enumerate(playlist.playlists[0].recordings):
         recording.name[:29],
         recording.artist.name[:29],
         recording.listenbrainz["score"],
-        recording.listenbrainz["spotify_id"]
+        recording.listenbrainz["similarity_score"]
     ))

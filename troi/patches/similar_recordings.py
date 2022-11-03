@@ -2,10 +2,10 @@ import click
 
 import troi.filters
 import troi.listenbrainz.spotify_id_lookup
+import troi.listenbrainz.spotify_audio_features
 import troi.musicbrainz.mbid_mapping
 import troi.musicbrainz.recording
 import troi.musicbrainz.recording_lookup
-import troi.musicbrainz.genre_lookup
 import troi.sorts
 from troi import Recording
 from troi.listenbrainz.similar_recordings import LookupSimilarRecordingsElement
@@ -102,7 +102,10 @@ class SimilarRecordingsPatch(troi.patch.Patch):
         spotify_lookup = troi.listenbrainz.spotify_id_lookup.SpotifyIdLookupElement()
         spotify_lookup.set_sources(ac_filter)
 
+        spotify_features = troi.listenbrainz.spotify_audio_features.SpotifyAudioFeaturesElement()
+        spotify_features.set_sources(spotify_lookup)
+
         pl_maker = troi.playlist.PlaylistMakerElement(max_num_recordings=100, source_patch=self)
-        pl_maker.set_sources(spotify_lookup)
+        pl_maker.set_sources(spotify_features)
 
         return pl_maker
