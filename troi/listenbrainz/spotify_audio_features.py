@@ -52,9 +52,12 @@ class SpotifyAudioFeaturesElement(Element):
         for feature in self.FEATURE_WEIGHTS:
             v1 = features_0[feature]
             v2 = features_1[feature]
-            score += self.weights[feature] * (fabs(v2 - v1) / ((v1 + v2) / 2.0))
+            s = 1.0 - (self.weights[feature] * (fabs(v2 - v1) / ((v1 + v2) / 2.0)))
+            score += s
+            print("%.3f %.3f = %.3f" % (v1, v2, s))
 
-        return score
+        print("")
+        return score / len(self.weights)
 
     def read(self, inputs):
 
