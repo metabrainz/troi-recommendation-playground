@@ -16,7 +16,7 @@ def cli():
     pass
 
 
-DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 14  # Exclude tracks listened in last X days from the daily jams playlist
+DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist
 DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
 
 
