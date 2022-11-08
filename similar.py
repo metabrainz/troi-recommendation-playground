@@ -28,9 +28,9 @@ for i, recording in enumerate(playlist.playlists[0].recordings):
     if i == 1:
         print("\nSimilar recordings")
 
-    print("  %-30s %-30s %5d %s" % (
+    print("  %-30s %-30s %5d %d%%" % (
         recording.name[:29],
         recording.artist.name[:29],
         recording.listenbrainz["score"],
-        recording.listenbrainz["similarity_score"]
+        int(recording.listenbrainz["similarity_score"] * 100)
     ))

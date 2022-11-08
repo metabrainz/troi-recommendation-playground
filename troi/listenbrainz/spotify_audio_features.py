@@ -20,8 +20,7 @@ class SpotifyAudioFeaturesElement(Element):
         "speechiness": 1,
         "acousticness": 1,
         "instrumentalness": 1,
-        "valence": 1,
-        "tempo": 1
+        "valence": 1
     }
 
     def __init__(self):
@@ -52,12 +51,10 @@ class SpotifyAudioFeaturesElement(Element):
         for feature in self.FEATURE_WEIGHTS:
             v1 = features_0[feature]
             v2 = features_1[feature]
-            s = 1.0 - (self.weights[feature] * (fabs(v2 - v1) / ((v1 + v2) / 2.0)))
+            s = self.weights[feature] * (1.0 - fabs(v2 - v1))
             score += s
-            print("%.3f %.3f = %.3f" % (v1, v2, s))
 
-        print("")
-        return score / len(self.weights)
+        return score
 
     def read(self, inputs):
 
