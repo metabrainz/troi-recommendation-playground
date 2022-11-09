@@ -51,6 +51,7 @@ class TestSpotifySubmission(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_submit_to_spotify(self, mock_requests):
+        self.maxDiff = None
         playlist_id = "33DUxaq2HQI7PDFODpFWJV"
         playlist_url = f"https://open.spotify.com/playlist/{playlist_id}"
 
@@ -92,7 +93,7 @@ class TestSpotifySubmission(unittest.TestCase):
             }
         })
 
-        mock_requests.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "foo"})
+        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "foo"})
 
         mock_requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={
             "items": [
@@ -171,11 +172,13 @@ class TestSpotifySubmission(unittest.TestCase):
         # we had 4 tracks with mbids, out of those no matching spotify id was found for the last track id.
         # so we submitted the first spotify track id for the remaining tracks preserving the order in which
         # occur in the original playlist
-        self.assertEqual(history[2].json(), [
-            "spotify:track:47BBI51FKFwOMlIiX6m8ya",
-            "spotify:track:7y9bltr6hV3CsbqXWgwVZv",
-            "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
-        ])
+        self.assertEqual(history[2].json(), {
+            "uris": [
+                "spotify:track:47BBI51FKFwOMlIiX6m8ya",
+                "spotify:track:7y9bltr6hV3CsbqXWgwVZv",
+                "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
+            ]
+        })
 
         # history[3] is the request to retrieve tracks for checking whether the playlist has unplayable tracks
         # history[4] is the request to retrieve info for alternative spotify ids of unplayable tracks, only thing

@@ -25,9 +25,10 @@ def cli():
 @click.option('--min-recordings', '-m', type=int, required=False)
 @click.option('--spotify-user-id', type=str, required=False)
 @click.option('--spotify-token', type=str, required=False)
+@click.option('--spotify-url', type=str, required=False, multiple=True)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings,
-             spotify_user_id, spotify_token):
+             spotify_user_id, spotify_token, spotify_url):
     """
     Generate a playlist using a patch
 
@@ -47,6 +48,7 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
                     Default: Off, a playlist with at least one track will be considered complete.
     SPOTIFY-USER-ID: the spotify id of the user to create a playlist for
     SPOTIFY-TOKEN: an auth token with appropriate permissions to create a playlist on behalf of the user
+    SPOTIFY-URL: instead of creating a new spotify playlist, update the existing playlist at this url
     """
     patchname = patch
     patches = discover_patches()
@@ -75,7 +77,8 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
             "user_id": spotify_user_id,
             "token": spotify_token,
             "is_public": True,
-            "is_collaborative": False
+            "is_collaborative": False,
+            "existing_urls": spotify_url
         }
     }
     patch_args.update(pipelineargs)

@@ -49,7 +49,8 @@ def generate_playlist(patch: Patch, args: Dict):
                         Default: Off, a playlist with at least one track will be considere complete.
         spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the
             spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public,
-            private or collaborative
+            private or collaborative. it can also optionally have the existing urls to update playlists instead of
+            creating new ones.
     """
     patch_args = {**default_patch_args, **args}
     pipeline = patch.create(patch_args)
@@ -91,7 +92,8 @@ def generate_playlist(patch: Patch, args: Dict):
                 spotify["user_id"],
                 spotify["token"],
                 spotify["is_public"],
-                spotify["is_collaborative"]
+                spotify["is_collaborative"],
+                spotify.get("existing_urls", [])
         ):
             print("Submitted playlist to spotify: %s" % url)
 
