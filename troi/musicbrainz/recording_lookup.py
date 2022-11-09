@@ -37,7 +37,7 @@ class RecordingLookupElement(Element):
 
         r = requests.post(self.SERVER_URL % len(recordings), json=data)
         if r.status_code != 200:
-            raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d" % r.status_code)
+            raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
 
         try:
             rows = ujson.loads(r.text)

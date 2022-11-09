@@ -34,7 +34,7 @@ class LookupSimilarRecordingsElement(Element):
         # i.e. for each mbid passed to this endpoint return at most 2 similar mbids
         r = requests.post(url, json=data, params={"count": self.count})
         if r.status_code != 200:
-            self.logger.info("Fetching similar recordings failed: %d. Skipping." % r.status_code)
+            self.logger.info("Fetching similar recordings failed: %d. Skipping. (%s)" % (r.status_code, r.text))
 
         data = r.json()
         results = []
@@ -43,9 +43,14 @@ class LookupSimilarRecordingsElement(Element):
             seed.listenbrainz["score"] = 0
             results.append(seed)
 
+
         try:
-            return results + [
-                Recording(mbid=item["recording_mbid"], listenbrainz={"score": item["score"]}) for item in data[3]["data"]
-            ]
+            for item in data[3]["data"]:
+                    if item["recording_mbid"] is None:
+                        continue
+
+                    results.append(Recording(mbid=item["recording_mbid"], listenbrainz={"score": item["score"]}))
         except IndexError:
-            return []
+            pass
+
+        return results
