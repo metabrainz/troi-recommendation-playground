@@ -22,7 +22,7 @@ PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
 
 
-def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_metadata=None):
+def _serialize_to_jspf(playlist, created_for=None, track_count=None, additional_metadata=None):
     """
         Serialize a playlist to JSPF.
 
@@ -51,8 +51,8 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None, algorithm_m
         # TODO: This element is in the wrong location!
         data["created_for"] = created_for
 
-    if algorithm_metadata:
-        data["extension"][PLAYLIST_EXTENSION_URI]["algorithm_metadata"] = algorithm_metadata
+    if additional_metadata:
+        data["extension"][PLAYLIST_EXTENSION_URI]["additional_metadata"] = additional_metadata
 
     if not track_count or track_count < 0 or track_count > len(playlist.recordings):
         track_count = len(playlist.recordings)
@@ -175,12 +175,12 @@ class PlaylistElement(Element):
                     continue
                 self.print_recording.print(recording)
 
-    def save(self, track_count=None, algorithm_metadata=None, file_obj=None):
+    def save(self, track_count=None, additional_metadata=None, file_obj=None):
         """Save each playlist to disk, giving each playlist a unique name if none was provided.
 
            Arguments:
               track_count: If provided, write out only this many tracks to the playlist/
-              algorithm_metadata: If provided, submit this dict of data with the playlist
+              additional_metadata: If provided, submit this dict of data with the playlist
                                   as part of the playlist metadata. 
               file_obj: If provided, write the JSPF file to this file_object
         """
@@ -194,13 +194,13 @@ class PlaylistElement(Element):
                 with open(filename, "w") as f:
                     f.write(json.dumps(_serialize_to_jspf(playlist,
                                                           track_count=track_count,
-                                                          algorithm_metadata=algorithm_metadata)))
+                                                          additional_metadata=additional_metadata)))
             else:
                 file_obj.write(json.dumps(_serialize_to_jspf(playlist,
                                                              track_count=track_count,
-                                                             algorithm_metadata=algorithm_metadata)))
+                                                             additional_metadata=additional_metadata)))
 
-    def submit(self, token, created_for=None, algorithm_metadata=None):
+    def submit(self, token, created_for=None, additional_metadata=None):
         """
             Submit the playlist to ListenBrainz.
 
@@ -219,10 +219,10 @@ class PlaylistElement(Element):
                 continue
 
             print("submit %d tracks" % len(playlist.recordings))
-            if algorithm_metadata is None and playlist.patch_slug is not None:
-                algorithm_metadata = {"source_patch": playlist.patch_slug}
+            if additional_metadata is None and playlist.patch_slug is not None:
+                additional_metadata = {"algorithm_metadata": {"source_patch": playlist.patch_slug}}
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                              json=_serialize_to_jspf(playlist, created_for, algorithm_metadata=algorithm_metadata),
+                              json=_serialize_to_jspf(playlist, created_for, additional_metadata=additional_metadata),
                               headers={"Authorization": "Token " + str(token)})
             if r.status_code != 200:
                 try:

@@ -64,7 +64,7 @@ class ForLoopElement(troi.Element):
                     if self.patch_args["echo"]:
                         playlist.print()
 
-                    metadata = { "source_patch": patch_slug }
+                    metadata = {"algorithm_metadata": {"source_patch": patch_slug }}
                     if self.patch_args["upload"]:
                         if not self.patch_args["token"] or self.patch_args["token"] == "":
                             raise PipelineError("In order to upload a playlist an auth token must be provided. Use --token")
@@ -73,10 +73,10 @@ class ForLoopElement(troi.Element):
                             if self.patch_args["created_for"] and self.patch_args["created_for"] != "":
                                 playlist.submit(self.patch_args["token"],
                                                 self.patch_args["created_for"],
-                                                algorithm_metadata=metadata)
+                                                additional_metadata=metadata)
                             else:
                                 playlist.submit(self.patch_args["token"],
-                                                algorithm_metadata=metadata)
+                                                additional_metadata=metadata)
                         except troi.PipelineError as err:
                             print("Failed to submit playlist: %s, continuing..." % err, file=sys.stderr)
                             continue

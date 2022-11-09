@@ -34,7 +34,7 @@ class YIMSubmitterElement(Element):
             return None
 
         slug = inputs[0][0].patch_slug
-        metadata = { "source_patch": slug }
+        metadata = {"algorithm_metadata": {"source_patch": slug}}
         with open("%s-playlists.json" % slug, "w") as f:
             print("YIMSubmitter:")
             for playlist in inputs[0]:
@@ -48,7 +48,7 @@ class YIMSubmitterElement(Element):
                 # This is hacky and should be moved to playlist
                 playlist_element = PlaylistElement()
                 playlist_element.playlists = [ playlist ]
-                playlist_element.save(track_count=5, algorithm_metadata=metadata, file_obj=f)
+                playlist_element.save(track_count=5, additional_metadata=metadata, file_obj=f)
                 f.write("\n")
 
             print("")
