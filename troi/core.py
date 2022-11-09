@@ -85,11 +85,6 @@ def generate_playlist(patch: Patch, args: Dict):
         print("Playlist does not have at least %d recordings, stopping." % min_recordings)
         return None
 
-    created_for = patch_args["created_for"]
-    if result is not None and token and upload:
-        for url, _ in playlist.submit(token, created_for):
-            print("Submitted playlist: %s" % url)
-
     save = patch_args["save"]
     if result is not None and spotify and upload:
         for url, _ in playlist.submit_to_spotify(
@@ -99,6 +94,11 @@ def generate_playlist(patch: Patch, args: Dict):
                 spotify["is_collaborative"]
         ):
             print("Submitted playlist to spotify: %s" % url)
+
+    created_for = patch_args["created_for"]
+    if result is not None and token and upload:
+        for url, _ in playlist.submit(token, created_for):
+            print("Submitted playlist: %s" % url)
 
     if result is not None and save:
         playlist.save()

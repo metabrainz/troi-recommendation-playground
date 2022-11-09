@@ -45,10 +45,12 @@ class YIMSubmitterElement(Element):
                 f.write("%s\n" % playlist.user_name)
                 f.write("%s\n" % playlist.mbid)
 
+                playlist.add_metadata(metadata)
+
                 # This is hacky and should be moved to playlist
                 playlist_element = PlaylistElement()
-                playlist_element.playlists = [ playlist ]
-                playlist_element.save(track_count=5, additional_metadata=metadata, file_obj=f)
+                playlist_element.playlists = [playlist]
+                playlist_element.save(track_count=5, file_obj=f)
                 f.write("\n")
 
             print("")

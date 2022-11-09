@@ -94,8 +94,10 @@ def fixup_spotify_playlist(sp: spotipy.Spotify, playlist_id: str, mbid_spotify_i
         return
 
     alternative_ids, index = _get_alternative_track_ids(unplayable, mbid_spotify_id_idx, spotify_id_mbid_idx)
-    fixed_up = _get_fixed_up_tracks(sp, alternative_ids, index)
+    if not alternative_ids:
+        return
 
+    fixed_up = _get_fixed_up_tracks(sp, alternative_ids, index)
     all_items = []
     all_items.extend(playable)
     all_items.extend(fixed_up)
