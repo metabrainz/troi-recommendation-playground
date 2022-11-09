@@ -237,14 +237,18 @@ class PlaylistElement(Element):
 
         return playlist_mbids
 
-    def submit_to_spotify(self, user_id: str, token: str, is_public: bool = True, is_collaborative: bool = False):
+    def submit_to_spotify(self, user_id: str, token: str, is_public: bool = True, is_collaborative: bool = False,
+                          existing_urls: str = None):
         """ Given spotify user id, spotify auth token with appropriate permissions and playlist visibility
          characteristics, upload the playlists generated in the current element to Spotify and return the
-         urls of submitted playlists."""
+         urls of submitted playlists.
+
+        If existing urls are specified then is_public and is_collaborative arguments are ignored.
+        """
         sp = spotipy.Spotify(auth=token)
         submitted = []
 
-        for playlist in self.playlists:
+        for idx, playlist in enumerate(self.playlists):
 
             if len(playlist.recordings) == 0:
                 continue
@@ -257,20 +261,33 @@ class PlaylistElement(Element):
 
             print("submit %d tracks" % len(spotify_track_ids))
 
-            spotify_playlist = sp.user_playlist_create(
-                user=user_id,
-                name=playlist.name,
-                public=is_public,
-                collaborative=is_collaborative,
-                description=playlist.description
-            )
+            if existing_urls and idx < len(existing_urls):
+                # update existing playlist
+                playlist_url = existing_urls[idx]
+                playlist_id = playlist_url.split("/")[-1]
 
-            result = sp.playlist_add_items(spotify_playlist["id"], spotify_track_ids)
-            fixup_spotify_playlist(sp, spotify_playlist["id"], mbid_spotify_index, spotify_mbid_index)
-            submitted.append((spotify_playlist["external_urls"]["spotify"], spotify_playlist["id"]))
+                sp.playlist_change_details(
+                    playlist_id=playlist_id,
+                    name=playlist.name,
+                    description=playlist.description
+                )
+            else:
+                # create new playlist
+                spotify_playlist = sp.user_playlist_create(
+                    user=user_id,
+                    name=playlist.name,
+                    public=is_public,
+                    collaborative=is_collaborative,
+                    description=playlist.description
+                )
+                playlist_id = spotify_playlist["id"]
+                playlist_url = spotify_playlist["external_urls"]["spotify"]
 
-            spotify_url = spotify_playlist["external_urls"]["spotify"]
-            playlist.add_metadata({"external_urls": {"spotify": spotify_url}})
+            result = sp.playlist_replace_items(playlist_id, spotify_track_ids)
+            fixup_spotify_playlist(sp, playlist_id, mbid_spotify_index, spotify_mbid_index)
+            submitted.append((playlist_url, playlist_id))
+
+            playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
 
         return submitted
 
