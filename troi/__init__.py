@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import logging
 import random
+from typing import Dict
 
+from troi.utils import recursively_update_dict
 
 DEVELOPMENT_SERVER_URL = "https://datasets.listenbrainz.org"
 
@@ -259,7 +261,7 @@ class Playlist(Entity):
     """
     def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None, ranking=None,
                  year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None, user_name=None,
-                 external_urls=None):
+                 additional_metadata=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.filename = filename
@@ -268,10 +270,17 @@ class Playlist(Entity):
         self.description = description
         self.patch_slug = patch_slug
         self.user_name = user_name
-        self.external_urls = external_urls
+        self.additional_metadata = additional_metadata
 
     def __str__(self):
         return "<Playlist('%s', %s, %s)>" % (self.name, self.description, self.mbid)
+
+    def add_metadata(self, metadata: Dict):
+        """ Update the playlist's additional metadata recursively """
+        if self.additional_metadata is None:
+            self.additional_metadata = {}
+
+        recursively_update_dict(self.additional_metadata, metadata)
 
     def shuffle(self, index=None):
         """ Shuffle the playlists randomly, making no effort to make it "nice" for humans. Screw humans

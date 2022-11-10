@@ -4,9 +4,7 @@ import os
 import traceback
 import sys
 
-from troi import Element, Artist, Recording, Playlist
 import troi.patch
-from troi.print_recording import PrintRecordingList
 
 
 def discover_patches():
@@ -59,53 +57,19 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
     return patch_dict
 
 
-def print_entity_list(entities, count=0):
+def recursively_update_dict(source, overrides):
+    """ Updates the `source` dictionary in place and in a recursive fashion. That is unlike
+    dict1.update(dict2) which would simply replace values of keys even in case one of the
+    values is dict, this method will attempt to merge the nested dicts.
+
+    Eg: dict1 - {"a": {"b": 1}}, dict2 - {"a": {"c": 2}}
+    dict1.update(dict2) - {"a": {"c": 2}}
+    recursively_update_dict(dict1, dict2) - {"a": {"b": 1, "c": 2}}
     """
-        Print the given entities in a readble fashion. If count is specified,
-        print only count number of entities.
-    """
+    for key, value in overrides.items():
+        if isinstance(value, dict) and value:
+            source[key] = recursively_update_dict(source.get(key, {}), value)
+        else:
+            source[key] = overrides[key]
+    return source
 
-    if len(entities) == 0:
-        print("[ empty entity list ]")
-        return
-
-    if count == 0:
-        count = len(entities)
-
-    if isinstance(entities[0], Artist): 
-        print("artist list")
-        for e in entities[:count]:
-            print("  %s %s" % (e.mbid)[:5], e.name)
-    elif isinstance(entities[0], Recording): 
-        print("recording list")
-        for e in entities[:count]:
-            if e.artist:
-                print("  %s %-41s %s" % (e.mbid[:5], e.name[:80], e.artist.name[:60]))
-            else:
-                print("  %s %-41s" % (e.mbid[:5], e.name[:80] if e.name else ""))
-
-    print()
-
-
-class DumpElement(Element):
-    """
-        Accept whatever and print it out in a reasonably sane manner.
-    """
-
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def inputs():
-        return [Recording, Playlist]
-
-    @staticmethod
-    def outputs():
-        return [Recording, Playlist]
-
-    def read(self, inputs):
-        for input in inputs:
-            pr = PrintRecordingList()
-            pr.print(input)
-
-        return inputs[0]

@@ -192,4 +192,4 @@ class TestSpotifySubmission(unittest.TestCase):
             ]
         })
 
-        self.assertEqual(playlist.playlists[0].external_urls, [playlist_url])
+        self.assertEqual(playlist.playlists[0].additional_metadata["external_urls"]["spotify"], playlist_url)
