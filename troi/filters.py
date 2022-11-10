@@ -62,6 +62,8 @@ class FirstArtistCreditFilterElement(troi.Element):
     '''
         Remove all recordings by the artist credit of the FIRST recording in the stream and keep
         that first recording. (Normally used to make playlists with a seed track at the beginning)
+
+        Return max 99 items, because for a testing playlist we don't need more than that.
     '''
 
     @staticmethod
@@ -94,7 +96,7 @@ class FirstArtistCreditFilterElement(troi.Element):
 
             results.append(r)
 
-        return results
+        return results[:99]
 
 
 class ArtistCreditLimiterElement(troi.Element):

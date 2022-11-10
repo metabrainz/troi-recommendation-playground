@@ -5,21 +5,24 @@ import troi.core
 from troi.patches.similar_recordings import SimilarRecordingsPatch
 
 DATASETS = [
-    "session_based_days_365_session_300_threshold_2_limit_200",
-    "session_based_days_1095_session_400_threshold_5_limit_200",
-    "session_based_days_730_session_100_threshold_5_limit_200",
-    "session_based_days_1095_session_200_threshold_5_limit_200",
-    "session_based_days_730_session_400_threshold_5_limit_200",
-    "session_based_days_180_session_300_threshold_2_limit_200",
-    "session_based_days_90_session_300_threshold_2_limit_200",
-    "session_based_days_1095_session_300_threshold_2_limit_200",
-    "session_based_days_1095_session_100_threshold_5_limit_200",
-    "session_based_days_1095_session_300_contribution_3_threshold_5_limit_200",
-    "session_based_days_730_session_300_contribution_3_threshold_5_limit_200",
-    "session_based_days_730_session_300_threshold_2_limit_200",
-    "session_based_days_365_session_300_contribution_3_threshold_5_limit_200",
-    "session_based_days_730_session_200_threshold_5_limit_200",
-    "session_based_days_31_session_300_contribution_5_threshold_0_limit_200"
+    "session_based_days_730_session_200_contribution_3_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_400_contribution_5_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_400_contribution_1_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_400_contribution_3_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_200_contribution_3_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_400_contribution_1_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_200_contribution_5_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_300_contribution_1_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_400_contribution_3_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_400_contribution_5_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_200_contribution_1_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_200_contribution_5_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_300_contribution_5_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_300_contribution_5_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_200_contribution_1_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_300_contribution_3_threshold_5_limit_100_filter_True",
+    "session_based_days_365_session_300_contribution_1_threshold_5_limit_100_filter_True",
+    "session_based_days_730_session_300_contribution_3_threshold_5_limit_100_filter_True"
 ]
 
 RECORDING_MBIDS = [
@@ -35,7 +38,10 @@ RECORDING_MBIDS = [
     "a8daf397-53e3-41af-aad5-ab7e50fb438a",
     "ffb6e773-2d24-420c-90ce-36b6025f31e2",
     "bd0ef97e-edb6-4479-95ad-0c1957edf77b",
-    "13d3bf6a-63ff-449f-873c-dcf279801d36"
+    "13d3bf6a-63ff-449f-873c-dcf279801d36",
+    "a423504f-8919-43be-9bdc-aaa3a1585868",
+    "71209300-34e5-491d-81ad-76237d167604",
+    "6d418e64-c194-47d4-9172-306919a6fc9f"
 ]
 
 
@@ -74,6 +80,10 @@ for alg in DATASETS:
         s = generate_playlist(args)
         if s is None:
             continue
+
+        lowest_score = 100
+        for recording in playlist.playlists[0].recordings:
+            lowest_score = min(lowest_score, recording.listenbrainz["similarity_score"])
 
     results[alg] = s
 

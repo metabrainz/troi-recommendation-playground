@@ -7,21 +7,13 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from troi import Element, Artist, Recording, PipelineError
 import config
 
-        #{'danceability': 0.335, 'energy': 0.68, 'key': 0, 'loudness': -9.1, 'mode': 1, 'speechiness': 0.0343, 'acousticness': 0.153, 'instrumentalness': 0.00272, 'liveness': 0.222, 'valence': 0.377, 'tempo': 137.152, 'type': 'audio_features', 'id': '7Gibnzqw9vXDBu5zfFLQxE', 'uri': 'spotify:track:7Gibnzqw9vXDBu5zfFLQxE', 'track_href': 'https://api.spotify.com/v1/tracks/7Gibnzqw9vXDBu5zfFLQxE', 'analysis_url': 'https://api.spotify.com/v1/audio-analysis/7Gibnzqw9vXDBu5zfFLQxE', 'duration_ms': 292846, 'time_signature': 4}
 
 class SpotifyAudioFeaturesElement(Element):
     '''
         Lookup recordings' spotify audio features
     '''
 
-    FEATURE_WEIGHTS = {
-        "danceability": 1,
-        "energy": 1,
-        "speechiness": 1,
-        "acousticness": 1,
-        "instrumentalness": 1,
-        "valence": 1
-    }
+    FEATURE_WEIGHTS = {"danceability": 1, "energy": 4, "speechiness": 1, "acousticness": 1, "instrumentalness": 1, "valence": 2}
 
     def __init__(self):
         super().__init__()
@@ -64,7 +56,7 @@ class SpotifyAudioFeaturesElement(Element):
             auth_manager=SpotifyClientCredentials(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET))
 
         features = sp.audio_features(spotify_ids)
-        feature_index = { f["id"]: f for f in features }
+        feature_index = {f["id"]: f for f in features}
 
         for i, recording in enumerate(inputs[0]):
             if i == 0:
@@ -72,5 +64,6 @@ class SpotifyAudioFeaturesElement(Element):
             else:
                 score = self.compare_tracks(feature_index, inputs[0][0], recording)
             recording.listenbrainz["similarity_score"] = score
+            recording.listenbrainz["spotify_features"] = feature_index[recording.listenbrainz["spotify_id"]]
 
         return inputs[0]
