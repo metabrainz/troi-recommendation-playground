@@ -58,11 +58,17 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
 
 
 def recursively_update_dict(source, overrides):
-    """ Update a nested dictionary recursively in place. """
+    """ Updates the `source` dictionary in place and in a recursive fashion. That is unlike
+    dict1.update(dict2) which would simply replace values of keys even in case one of the
+    values is dict, this method will attempt to merge the nested dicts.
+
+    Eg: dict1 - {"a": {"b": 1}}, dict2 - {"a": {"c": 2}}
+    dict1.update(dict2) - {"a": {"c": 2}}
+    recursively_update_dict(dict1, dict2) - {"a": {"b": 1, "c": 2}}
+    """
     for key, value in overrides.items():
         if isinstance(value, dict) and value:
-            updated = recursively_update_dict(source.get(key, {}), value)
-            source[key] = updated
+            source[key] = recursively_update_dict(source.get(key, {}), value)
         else:
             source[key] = overrides[key]
     return source
