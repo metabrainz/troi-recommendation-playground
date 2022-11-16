@@ -96,7 +96,7 @@ class SimilarRecordingsPatch(troi.patch.Patch):
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(similar)
 
-        ac_filter = FirstArtistCreditFilterElement()
+        ac_filter = FirstArtistCreditFilterElement(max_num_recordings=16)
         ac_filter.set_sources(recs_lookup)
 
         spotify_lookup = troi.listenbrainz.spotify_id_lookup.SpotifyIdLookupElement()

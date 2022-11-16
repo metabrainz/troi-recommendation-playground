@@ -44,7 +44,7 @@ def generate_playlist(patch: Patch, args: Dict):
                      listenbrainz.org .
         name: Override the algorithms that generate a playlist name and use this name instead.
         desc: Override the algorithms that generate a playlist description and use this description instead.
-        min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete.
+        min_recordings: The minimum number of recordings that must be present in a playlist to consider it complete.
                         If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
                         Default: Off, a playlist with at least one track will be considere complete.
         spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the

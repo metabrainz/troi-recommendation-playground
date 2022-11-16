@@ -66,6 +66,10 @@ class FirstArtistCreditFilterElement(troi.Element):
         Return max 99 items, because for a testing playlist we don't need more than that.
     '''
 
+    def __init__(self, max_num_recordings=100):
+        super().__init__()
+        self.max_num_recordings = max_num_recordings
+
     @staticmethod
     def inputs():
         return [Recording]
@@ -96,7 +100,7 @@ class FirstArtistCreditFilterElement(troi.Element):
 
             results.append(r)
 
-        return results[:99]
+        return results[:self.max_num_recordings]
 
 
 class ArtistCreditLimiterElement(troi.Element):
