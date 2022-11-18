@@ -409,3 +409,24 @@ class LatestListenedAtFilterElement(troi.Element):
                 results.append(r)
 
         return results
+
+
+class RandomizeElement(troi.Element):
+    '''
+        Take in recordings and output them in random order.
+    '''
+
+    def __init__(self):
+        troi.Element.__init__(self)
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        shuffle(inputs[0])
+        return inputs[0]

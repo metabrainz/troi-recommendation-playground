@@ -5,24 +5,51 @@ import troi.core
 from troi.patches.similar_recordings import SimilarRecordingsPatch
 
 DATASETS = [
-    "session_based_days_730_session_200_contribution_3_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_400_contribution_5_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_400_contribution_1_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_400_contribution_3_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_200_contribution_3_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_400_contribution_1_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_200_contribution_5_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_300_contribution_1_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_400_contribution_3_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_400_contribution_5_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_200_contribution_1_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_200_contribution_5_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_300_contribution_5_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_300_contribution_5_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_200_contribution_1_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_300_contribution_3_threshold_5_limit_100_filter_True",
-    "session_based_days_365_session_300_contribution_1_threshold_5_limit_100_filter_True",
-    "session_based_days_730_session_300_contribution_3_threshold_5_limit_100_filter_True"
+    "session_based_days_730_session_400_contribution_1_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_100_contribution_1_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_400_contribution_9_threshold_75_limit_50_filter_True",
+    "session_based_days_1460_session_300_contribution_5_threshold_75_limit_50_filter_True",
+    "session_based_days_365_session_200_contribution_5_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_400_contribution_1_threshold_75_limit_50_filter_True",
+    "session_based_days_1460_session_200_contribution_9_threshold_75_limit_50_filter_True",
+    "session_based_days_1460_session_100_contribution_1_threshold_75_limit_50_filter_True",
+    "session_based_days_365_session_50_contribution_5_threshold_25_limit_50_filter_True",
+    "session_based_days_730_session_300_contribution_1_threshold_50_limit_50_filter_True",
+    "session_based_days_1460_session_50_contribution_1_threshold_75_limit_50_filter_True",
+    "session_based_days_730_session_50_contribution_9_threshold_50_limit_50_filter_True",
+    "session_based_days_730_session_100_contribution_9_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_300_contribution_5_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_100_contribution_9_threshold_75_limit_50_filter_True",
+    "session_based_days_730_session_200_contribution_1_threshold_50_limit_50_filter_True",
+    "session_based_days_730_session_300_contribution_5_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_300_contribution_1_threshold_25_limit_50_filter_True",
+    "session_based_days_730_session_200_contribution_5_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_100_contribution_5_threshold_25_limit_50_filter_True",
+    "session_based_days_730_session_100_contribution_1_threshold_50_limit_50_filter_True",
+    "session_based_days_730_session_200_contribution_9_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_300_contribution_9_threshold_25_limit_50_filter_True",
+    "session_based_days_365_session_400_contribution_9_threshold_25_limit_50_filter_True",
+    "session_based_days_730_session_100_contribution_5_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_100_contribution_9_threshold_25_limit_50_filter_True",
+    "session_based_days_365_session_400_contribution_5_threshold_25_limit_50_filter_True",
+    "session_based_days_365_session_50_contribution_1_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_300_contribution_1_threshold_75_limit_50_filter_True",
+    "session_based_days_730_session_50_contribution_1_threshold_50_limit_50_filter_True",
+    "session_based_days_1460_session_200_contribution_5_threshold_75_limit_50_filter_True",
+    "session_based_days_365_session_200_contribution_1_threshold_25_limit_50_filter_True",
+    "session_based_days_730_session_400_contribution_9_threshold_50_limit_50_filter_True",
+    "session_based_days_1460_session_400_contribution_5_threshold_75_limit_50_filter_True",
+    "session_based_days_1460_session_50_contribution_9_threshold_75_limit_50_filter_True",
+    "session_based_days_730_session_50_contribution_5_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_50_contribution_9_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_100_contribution_5_threshold_75_limit_50_filter_True",
+    "session_based_days_730_session_300_contribution_9_threshold_50_limit_50_filter_True",
+    "session_based_days_365_session_400_contribution_1_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_300_contribution_9_threshold_75_limit_50_filter_True",
+    "session_based_days_730_session_400_contribution_5_threshold_50_limit_50_filter_True",
+    "session_based_days_1460_session_50_contribution_5_threshold_75_limit_50_filter_True",
+    "session_based_days_365_session_200_contribution_9_threshold_25_limit_50_filter_True",
+    "session_based_days_1460_session_200_contribution_1_threshold_75_limit_50_filter_True",
 ]
 
 RECORDING_MBIDS = [
@@ -80,9 +107,10 @@ for alg in DATASETS:
             scores[int(recording.listenbrainz["similarity_score"] * 10)] += 1
 
     avg_score = 0.0
-    for r in playlist.playlists[0].recordings[1:]:
-        avg_score += r.listenbrainz["similarity_score"]
-    avg_score /= (len(playlist.playlists[0].recordings) - 1)
+    if len(playlist.playlists[0].recordings) > 1:
+        for r in playlist.playlists[0].recordings[1:]:
+            avg_score += r.listenbrainz["similarity_score"]
+        avg_score /= (len(playlist.playlists[0].recordings) - 1)
 
     scores = [ int(100 * s / (len(playlist.playlists[0].recordings)+1)) for s in scores ]
 

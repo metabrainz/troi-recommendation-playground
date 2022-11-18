@@ -73,7 +73,7 @@ class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
         remove_empty.set_sources(stats)
 
         similar = LookupSimilarRecordingsElement(
-            algorithm="session_based_days_730_session_300_threshold_2_limit_200",
+            algorithm="session_based_days_365_session_200_contribution_3_threshold_5_limit_100_filter_True",
             count=2
         )
         similar.set_sources(remove_empty)
@@ -84,12 +84,18 @@ class TopRecordingsSimilarRecordingsPatch(troi.patch.Patch):
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(dedup)
 
+        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=7)
+        recent_listens_lookup.set_sources(recs_lookup)
+
         ac_limiter = troi.filters.ArtistCreditLimiterElement(count=2)
-        ac_limiter.set_sources(recs_lookup)
+        ac_limiter.set_sources(recent_listens_lookup)
+
+        randomize = troi.filters.RandomizeElement()
+        randomize.set_sources(ac_limiter)
 
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME,
                                                       self.DESC % (user_name, time_range),
                                                       max_num_recordings=50)
-        pl_maker.set_sources(ac_limiter)
+        pl_maker.set_sources(randomize)
 
         return pl_maker
