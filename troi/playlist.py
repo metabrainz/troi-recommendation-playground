@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 
 import requests
 import spotipy
+from spotipy import SpotifyException
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, Release
 from troi.operations import is_homogeneous
@@ -261,17 +262,23 @@ class PlaylistElement(Element):
 
             print("submit %d tracks" % len(spotify_track_ids))
 
+            playlist_id, playlist_url = None, None
             if existing_urls and idx < len(existing_urls):
                 # update existing playlist
                 playlist_url = existing_urls[idx]
                 playlist_id = playlist_url.split("/")[-1]
+                try:
+                    sp.playlist_change_details(
+                        playlist_id=playlist_id,
+                        name=playlist.name,
+                        description=playlist.description
+                    )
+                except SpotifyException as err:
+                    # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
+                    print("provided playlist url has been unfollowed/deleted by the user, creating a new one")
+                    playlist_id, playlist_url = None, None
 
-                sp.playlist_change_details(
-                    playlist_id=playlist_id,
-                    name=playlist.name,
-                    description=playlist.description
-                )
-            else:
+            if not playlist_id:
                 # create new playlist
                 spotify_playlist = sp.user_playlist_create(
                     user=user_id,
