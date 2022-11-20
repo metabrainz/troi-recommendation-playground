@@ -263,7 +263,7 @@ class PlaylistElement(Element):
             print("submit %d tracks" % len(spotify_track_ids))
 
             playlist_id, playlist_url = None, None
-            if existing_urls and idx < len(existing_urls):
+            if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
                 # update existing playlist
                 playlist_url = existing_urls[idx]
                 playlist_id = playlist_url.split("/")[-1]
