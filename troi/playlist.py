@@ -194,7 +194,7 @@ class PlaylistElement(Element):
             else:
                 file_obj.write(json.dumps(_serialize_to_jspf(playlist, track_count=track_count)))
 
-    def submit(self, token, created_for=None, additional_metadata=None):
+    def submit(self, token, created_for=None):
         """
             Submit the playlist to ListenBrainz.
 
@@ -213,7 +213,7 @@ class PlaylistElement(Element):
                 continue
 
             print("submit %d tracks" % len(playlist.recordings))
-            if additional_metadata is None and playlist.patch_slug is not None:
+            if playlist.patch_slug is not None:
                 playlist.add_metadata({"algorithm_metadata": {"source_patch": playlist.patch_slug}})
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
                               json=_serialize_to_jspf(playlist, created_for),
