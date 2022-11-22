@@ -76,27 +76,37 @@ class DailyJamsPatch(troi.patch.Patch):
 
         return latest_filter
 
-    def check_and_add_more_recordings(self, user_name, recordings):
+    def get_recordings(self, user_name):
         # get the list of recordings we have so far, users who regularly listen to daily jams will have
         # most of their tracks get filtered out because the recs don't change a lot on daily basis. so
         # if there is a shortfall of tracks, move on the next 100 recommendations of the user. we could
         # fetch top 200 directly in first place but then there would be an equal chance of recommending
         # someone from their 101-200 range as from 1-100. we don't want that, we want to prefer the top
         # 100 over the next 100. so only ask for more recommendations if there is a shortfall.
-        if len(recordings) < DAILY_JAMS_MIN_RECORDINGS:
+
+        # we have top 1000 recordings available in ListenBrainz. so move on to next 100 in this same manner
+        # till we exhaust all recommendations available in ListenBrainz for the user or we have obtained the
+        # minimum of recordings we require for daily jams.
+
+        offset = 0
+        all_recs = []
+        while len(all_recs) < DAILY_JAMS_MIN_RECORDINGS and offset <= 900:
             more_raw_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(
                 user_name=user_name,
                 artist_type="raw",
                 count=100,
-                offset=100
+                offset=offset
             )
-            further_recs = more_raw_recs.generate()
-            recordings.extend(further_recs)
+            recordings = more_raw_recs.generate()
 
-            all_recs = RecordingListElement(recordings)
-            return self.apply_filters(user_name, all_recs)
-        else:
-            return RecordingListElement(recordings)
+            element = RecordingListElement(recordings)
+            filtered = self.apply_filters(user_name, element)
+            recs = filtered.generate()
+
+            all_recs.extend(recs)
+            offset += 100
+            print()
+        return RecordingListElement(all_recs)
 
     def create(self, inputs):
         user_name = inputs['user_name']
@@ -104,15 +114,7 @@ class DailyJamsPatch(troi.patch.Patch):
         if jam_date is None:
             jam_date = datetime.utcnow().strftime("%Y-%m-%d %a")
 
-        raw_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(
-            user_name=user_name,
-            artist_type="raw",
-            count=100
-        )
-        filtered_raw_recs = self.apply_filters(user_name, raw_recs)
-
-        recordings = filtered_raw_recs.generate()
-        recordings_element = self.check_and_add_more_recordings(user_name, recordings)
+        recordings_element = self.get_recordings(user_name)
 
         pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
