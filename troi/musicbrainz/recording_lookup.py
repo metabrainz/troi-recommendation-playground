@@ -76,6 +76,8 @@ class RecordingLookupElement(Element):
             r.length = row['length']
             r.mbid = row['recording_mbid']
 
+            r.listenbrainz["canonical_recording_mbid"] = row["canonical_recording_mbid"]
+
             output.append(r)
 
         return output

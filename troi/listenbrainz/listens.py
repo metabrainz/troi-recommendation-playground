@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Optional
 
 import requests
 
@@ -15,7 +16,7 @@ class RecentListensTimestampLookup(Element):
         super().__init__()
         self.user_name = user_name
         self.days = days
-        self.index = None
+        self.index: Optional[dict[str, int]] = None
 
     @staticmethod
     def inputs():
@@ -24,19 +25,6 @@ class RecentListensTimestampLookup(Element):
     @staticmethod
     def outputs():
         return [Recording]
-
-    @staticmethod
-    def get_recording_mbid(listen):
-        """ Retrieve recording_mbid of the listen, prefer user submitted mbid to mbid mapping one """
-        additional_info = listen["track_metadata"]["additional_info"]
-        mbid = additional_info.get("recording_mbid")
-
-        if mbid:
-            return mbid
-
-        mbid_mapping = listen["track_metadata"].get("mbid_mapping")
-        if mbid_mapping:
-            return mbid_mapping.get("recording_mbid")
 
     def _fetch_recent_listens_index(self):
         """ Return an index of recording mbids as key and the latest listened_at time of the corresponding
@@ -58,14 +46,43 @@ class RecentListensTimestampLookup(Element):
 
             for listen in data["listens"]:
                 listened_at = listen["listened_at"]
-                mbid = self.get_recording_mbid(listen)
 
-                if mbid:
-                    index[mbid] = max(index[mbid], listened_at)
+                # add both user submitted mbid and mapped mbid to index
+
+                additional_info = listen["track_metadata"]["additional_info"]
+                user_submitted_mbid = additional_info.get("recording_mbid")
+                if user_submitted_mbid:
+                    index[user_submitted_mbid] = max(index[user_submitted_mbid], listened_at)
+
+                mbid_mapping = listen["track_metadata"].get("mbid_mapping")
+                if mbid_mapping:
+                    mapped_mbid = mbid_mapping.get("recording_mbid")
+                    index[mapped_mbid] = max(index[mapped_mbid], listened_at)
 
             min_ts = data["listens"][0]["listened_at"]
 
         return index
+
+    def _get_latest_listened_ts(self, r: Recording):
+        # check latest listened timestamp for original mbid
+        ts1 = self.index.get(r.mbid)
+
+        # check latest listened timstamp for canonical mbid
+        ts2 = None
+        if r.listenbrainz is not None and r.listenbrainz.get("canonical_recording_mbid"):
+            canonical_mbid = r.listenbrainz.get("canonical_recording_mbid")
+            ts2 = self.index.get(canonical_mbid)
+
+        # if we have timestamp for both canonical and normal mbid take the maximum of two else whichever
+        # one is available. if none is available continue ahead
+        if ts1 and ts2:
+            return max(ts1, ts2)
+        elif ts1:
+            return ts1
+        elif ts2:
+            return ts2
+        else:
+            return None
 
     def read(self, inputs):
         recordings = inputs[0]
@@ -76,15 +93,11 @@ class RecentListensTimestampLookup(Element):
             self.index = self._fetch_recent_listens_index()
 
         for r in recordings:
-            if r.mbid not in self.index:
+            ts = self._get_latest_listened_ts(r)
+            if ts is None:
                 continue
 
-            ts = self.index[r.mbid]
             latest_listened_at = datetime.fromtimestamp(ts).replace(tzinfo=None)
-
-            if r.listenbrainz is not None:
-                r.listenbrainz["latest_listened_at"] = latest_listened_at
-            else:
-                r.listenbrainz = {"latest_listened_at": latest_listened_at}
+            r.listenbrainz["latest_listened_at"] = latest_listened_at
 
         return recordings
