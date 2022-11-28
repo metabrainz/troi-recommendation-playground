@@ -18,6 +18,8 @@ def cli():
 
 DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist
 DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
+BATCH_SIZE_RECS = 100  # the number of recommendations fetched in 1 go
+MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
 
 class DailyJamsPatch(troi.patch.Patch):
@@ -90,11 +92,11 @@ class DailyJamsPatch(troi.patch.Patch):
 
         offset = 0
         all_recs = []
-        while len(all_recs) < DAILY_JAMS_MIN_RECORDINGS and offset <= 900:
+        while len(all_recs) < DAILY_JAMS_MIN_RECORDINGS and (offset + BATCH_SIZE_RECS) <= MAX_RECS_LIMIT:
             more_raw_recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(
                 user_name=user_name,
                 artist_type="raw",
-                count=100,
+                count=BATCH_SIZE_RECS,
                 offset=offset
             )
             recordings = more_raw_recs.generate()
@@ -104,7 +106,7 @@ class DailyJamsPatch(troi.patch.Patch):
             recs = filtered.generate()
 
             all_recs.extend(recs)
-            offset += 100
+            offset += BATCH_SIZE_RECS
             print()
         return RecordingListElement(all_recs)
 
