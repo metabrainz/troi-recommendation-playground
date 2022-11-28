@@ -21,7 +21,8 @@ return_json = [
         "length": 253000,
         "recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
         "recording_name": "Sour Times",
-        "original_recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e"
+        "original_recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
+        "canonical_recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
     },
     {
         "[artist_credit_mbids]": [
@@ -33,9 +34,11 @@ return_json = [
         "length": 275333,
         "recording_mbid": "cfa47c9b-f12f-4f9c-a6da-22a9355d6125",
         "recording_name": "Blue Angel",
-        "original_recording_mbid": "ec5b8aa9-7483-4791-a185-1f599a0cdc35"
+        "original_recording_mbid": "ec5b8aa9-7483-4791-a185-1f599a0cdc35",
+        "canonical_recording_mbid": "cfa47c9b-f12f-4f9c-a6da-22a9355d6125",
     }
 ]
+
 
 class TestRecordingLookup(unittest.TestCase):
 
