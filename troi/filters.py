@@ -364,3 +364,24 @@ class LatestListenedAtFilterElement(troi.Element):
                 results.append(r)
 
         return results
+
+
+class HatedRecordingsFilterElement(troi.Element):
+    """ Remove recordings that have been hated by the user """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+        results = []
+        for r in inputs[0]:
+            score = r.listenbrainz.get("score", 0)
+            if score < 0:
+                continue
+            results.append(r)
+        return results
