@@ -7,6 +7,7 @@ from troi.musicbrainz.recording import RecordingListElement
 from troi.playlist import PlaylistRedundancyReducerElement, PlaylistMakerElement, PlaylistShuffleElement
 import troi.listenbrainz.recs
 import troi.listenbrainz.listens
+import troi.listenbrainz.feedback
 import troi.filters
 import troi.musicbrainz.recording_lookup
 
@@ -76,7 +77,13 @@ class DailyJamsPatch(troi.patch.Patch):
         latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
         latest_filter.set_sources(self.recent_listens_lookup)
 
-        return latest_filter
+        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name=self)
+        feedback_lookup.set_sources(latest_filter)
+
+        hate_filter = troi.filters.HatedRecordingsFilterElement()
+        hate_filter.set_sources(self.recent_listens_lookup)
+
+        return hate_filter
 
     def get_recordings(self, user_name):
         # get the list of recordings we have so far, users who regularly listen to daily jams will have

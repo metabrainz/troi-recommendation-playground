@@ -1,7 +1,11 @@
 import unittest
 
+import requests_mock
+
 from troi import Artist, Recording, Playlist
-import troi.filters 
+import troi.filters
+from troi.musicbrainz.recording import RecordingListElement
+from troi.listenbrainz.feedback import ListensFeedbackLookup
 
 
 class TestArtistCreditFilterElement(unittest.TestCase):
@@ -156,3 +160,49 @@ class TestYearRangeFilterElement(unittest.TestCase):
         assert len(flist) == 1
 
         assert flist[0].mbid == '8756f690-18ca-488d-a456-680fdaf234bd'
+
+
+class TestHatedRecordingsFilterElement(unittest.TestCase):
+
+    @requests_mock.Mocker()
+    def test_hated_recordings_filter(self, mock_requests):
+        mock_requests.get("https://api.listenbrainz.org/1/feedback/user/lucifer/get-feedback-for-recordings", json={
+            "feedback": [
+                {
+                    "created": None,
+                    "recording_mbid": "53969964-673a-4407-9396-3087be9245f6",
+                    "recording_msid": None,
+                    "score": 1,
+                    "track_metadata": None,
+                    "user_id": "lucifer"
+                },
+                {
+                    "created": None,
+                    "recording_mbid": "70c75409-4224-4bab-836a-eb5f3a9c31d3",
+                    "recording_msid": None,
+                    "score": -1,
+                    "track_metadata": None,
+                    "user_id": "lucifer"
+                }
+            ]
+        })
+
+        recordings = RecordingListElement([
+            Recording(mbid="53969964-673a-4407-9396-3087be9245f6"),
+            Recording(mbid="70c75409-4224-4bab-836a-eb5f3a9c31d3"),
+            Recording(mbid="8e7a9ff8-c31d-4ac0-a01d-20a7fcc28c8f")
+        ])
+        feedback_lookup = ListensFeedbackLookup(user_name="lucifer")
+        feedback_lookup.set_sources(recordings)
+        filter_element = troi.filters.HatedRecordingsFilterElement()
+        filter_element.set_sources(feedback_lookup)
+
+        received = filter_element.generate()
+        expected = [
+            Recording(mbid="53969964-673a-4407-9396-3087be9245f6", listenbrainz={"score": 1}),
+            Recording(mbid="8e7a9ff8-c31d-4ac0-a01d-20a7fcc28c8f", listenbrainz={"score": 0})
+        ]
+        self.assertEqual(expected[0].mbid, received[0].mbid)
+        self.assertEqual(expected[0].listenbrainz, received[0].listenbrainz)
+        self.assertEqual(expected[1].mbid, received[1].mbid)
+        self.assertEqual(expected[1].listenbrainz, received[1].listenbrainz)
