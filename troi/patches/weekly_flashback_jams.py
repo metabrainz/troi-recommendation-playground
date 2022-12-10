@@ -1,20 +1,14 @@
-from collections import defaultdict
 import random
+from collections import defaultdict
 
-import click
-
-from troi import Element, Recording, Playlist, PipelineError
-import troi.listenbrainz.recs
-import troi.playlist
 import troi.filters
-import troi.sorts
-import troi.musicbrainz.recording_lookup
+import troi.listenbrainz.recs
 import troi.musicbrainz.mbid_mapping
+import troi.musicbrainz.recording_lookup
+import troi.playlist
+import troi.sorts
+from troi import Element, Recording, Playlist, PipelineError
 
-
-@click.group()
-def cli():
-    pass
 
 class DecadePlaylistSplitterElement(Element):
     '''
@@ -73,11 +67,23 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('user_name')
-    @click.argument('type')
-    def parse_args(**kwargs):
-        """
+    def get_args():
+        return [
+            {
+                "type": "argument",
+                "args": ["user_name"],
+                "kwargs": {}
+            },
+            {
+                "type": "argument",
+                "args": ["type"],
+                "kwargs": {}
+            }
+        ]
+
+    @staticmethod
+    def get_documentation():
+        return """
         Generate weekly flashback playlists from the ListenBrainz recommended recordings.
 
         \b
@@ -86,12 +92,12 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         TOKEN: is the user token from the LB user into whose account you wish to post this playlist
         """
 
-        return kwargs
-
     @staticmethod
     def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False },
-                { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False }]
+        return [
+            {"type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False},
+            {"type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False}
+        ]
 
     @staticmethod
     def outputs():

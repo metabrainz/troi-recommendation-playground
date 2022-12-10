@@ -1,23 +1,30 @@
-import click
-
 from troi import Playlist
 from troi.playlist import PlaylistFromJSPFElement
 import troi.musicbrainz.recording_lookup
 
 
-@click.group()
-def cli():
-    pass
-
-
 class TransferPlaylistPatch(troi.patch.Patch):
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument("mbid")
-    @click.argument("read_only_token", required=False)
-    def parse_args(**kwargs):
-        """
+    def get_args():
+        return [
+            {
+                "type": "argument",
+                "args": ["mbid"],
+                "kwargs": {}
+            },
+            {
+                "type": "argument",
+                "args": ["read_only_token"],
+                "kwargs": {
+                    "required": False,
+                }
+            }
+        ]
+
+    @staticmethod
+    def get_documentation():
+        return """
         A dummy patch that retrieves an existing playlist from ListenBrainz.
 
         \b
@@ -26,7 +33,6 @@ class TransferPlaylistPatch(troi.patch.Patch):
         fallback to TOKEN. Both arguments take the same value but specifying TOKEN may also upload the playlist
         to LB again which is many times not desirable.
         """
-        return kwargs
 
     @staticmethod
     def outputs():
