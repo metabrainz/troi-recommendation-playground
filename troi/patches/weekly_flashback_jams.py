@@ -77,16 +77,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         TOKEN: is the user token from the LB user into whose account you wish to post this playlist
         """
         return [
-            {
-                "type": "argument",
-                "args": ["user_name"],
-                "kwargs": {}
-            },
-            {
-                "type": "argument",
-                "args": ["type"],
-                "kwargs": {}
-            }
+            {"type": "argument", "args": ["user_name"]},
+            {"type": "argument", "args": ["type"]}
         ]
 
     @staticmethod

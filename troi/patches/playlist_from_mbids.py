@@ -20,13 +20,7 @@ class PlaylistFromMBIDsPatch(troi.patch.Patch):
         \b
         FILE_NAME: filename that contains MBIDS
         """
-        return [
-            {
-                "type": "argument",
-                "args": ["file_name"],
-                "kwargs": {}
-            }
-        ]
+        return [{"type": "argument", "args": ["file_name"]}]
 
     @staticmethod
     def outputs():

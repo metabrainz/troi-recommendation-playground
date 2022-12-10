@@ -17,18 +17,8 @@ class TransferPlaylistPatch(troi.patch.Patch):
         to LB again which is many times not desirable.
         """
         return [
-            {
-                "type": "argument",
-                "args": ["mbid"],
-                "kwargs": {}
-            },
-            {
-                "type": "argument",
-                "args": ["read_only_token"],
-                "kwargs": {
-                    "required": False,
-                }
-            }
+            {"type": "argument", "args": ["mbid"]},
+            {"type": "argument", "args": ["read_only_token"], "kwargs": {"required": False}}
         ]
 
     @staticmethod

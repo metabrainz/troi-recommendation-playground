@@ -71,16 +71,8 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
         TYPE: is The type of daily jam. Must be 'top' or 'similar' or 'raw'.
         """
         return [
-            {
-                "type": "argument",
-                "args": ["user_name"],
-                "kwargs": {}
-            },
-            {
-                "type": "argument",
-                "args": ["type"],
-                "kwargs": {}
-            }
+            {"type": "argument", "args": ["user_name"]},
+            {"type": "argument", "args": ["type"]}
         ]
 
     @staticmethod

@@ -27,25 +27,9 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         END_YEAR is the end year.
         """
         return [
-            {
-                "type": "argument",
-                "args": ["area"],
-                "kwargs": {}
-            },
-            {
-                "type": "argument",
-                "args": ["start_year"],
-                "kwargs": {
-                    "type": int,
-                }
-            },
-            {
-                "type": "argument",
-                "args": ["end_year"],
-                "kwargs": {
-                    "type": int,
-                }
-            }
+            {"type": "argument", "args": ["area"]},
+            {"type": "argument", "args": ["start_year"], "kwargs": {"type": int}},
+            {"type": "argument", "args": ["end_year"], "kwargs": {"type": int}}
         ]
 
     @staticmethod

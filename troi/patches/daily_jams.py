@@ -36,18 +36,8 @@ class DailyJamsPatch(troi.patch.Patch):
         can be on different dates). Recommended formatting for the date is 'YYYY-MM-DD DAY_OF_WEEK'.
         """
         return [
-            {
-                "type": "argument",
-                "args": ["user_name"],
-                "kwargs": {}
-            },
-            {
-                "type": "argument",
-                "args": ["jam_date"],
-                "kwargs": {
-                    "required": False,
-                }
-            }
+            {"type": "argument", "args": ["user_name"]},
+            {"type": "argument", "args": ["jam_date"], "kwargs": {"required": False}}
         ]
 
     @staticmethod

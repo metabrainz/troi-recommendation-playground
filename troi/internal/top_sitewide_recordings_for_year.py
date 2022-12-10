@@ -38,13 +38,7 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
         \b
         FILE_NAME: The filename that contains the recording_mbids for this playlist.
         """
-        return [
-            {
-                "type": "argument",
-                "args": ["file_name"],
-                "kwargs": {}
-            }
-        ]
+        return [{"type": "argument", "args": ["file_name"]}]
 
     @staticmethod
     def outputs():

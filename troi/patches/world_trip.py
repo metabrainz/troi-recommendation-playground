@@ -135,16 +135,8 @@ class WorldTripPatch(troi.patch.Patch):
         SORT: Must be longitude or latitude
         """
         return [
-            {
-                "type": "argument",
-                "args": ["continent"],
-                "kwargs": {}
-            },
-            {
-                "type": "argument",
-                "args": ["sort"],
-                "kwargs": {}
-            }
+            {"type": "argument", "args": ["continent"]},
+            {"type": "argument", "args": ["sort"]}
         ]
 
     @staticmethod

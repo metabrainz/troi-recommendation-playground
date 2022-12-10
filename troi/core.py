@@ -150,16 +150,18 @@ def patch_info(patch):
 
 def convert_patch_to_command(patch):
     """ Convert patch object to dummy click command to parse args and show help """
-    def f(**kwargs):
-        return kwargs
+    def f(**data):
+        return data
 
     f.__doc__ = patch.inputs.__doc__
 
-    for arg in reversed(patch.inputs()):
-        if arg["type"] == "argument":
-            f = click.argument(*arg["args"], **arg["kwargs"])(f)
-        elif arg["type"] == "option":
-            f = click.option(*arg["args"], **arg["kwargs"])(f)
+    for _input in reversed(patch.inputs()):
+        args = _input.get("args", [])
+        kwargs = _input.get("kwargs", {})
+        if _input["type"] == "argument":
+            f = click.argument(*args, **kwargs)(f)
+        elif _input["type"] == "option":
+            f = click.option(*args, **kwargs)(f)
         else:
             click.echo("Patch is invalid, contact patch writer to fix")
 

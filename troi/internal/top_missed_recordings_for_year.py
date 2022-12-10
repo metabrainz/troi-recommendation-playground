@@ -49,13 +49,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         """
-        return [
-            {
-                "type": "argument",
-                "args": ["user_name"],
-                "kwargs": {}
-            }
-        ]
+        return [{"type": "argument", "args": ["user_name"]}]
 
     @staticmethod
     def outputs():
