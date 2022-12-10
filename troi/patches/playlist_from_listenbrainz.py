@@ -6,7 +6,16 @@ import troi.musicbrainz.recording_lookup
 class TransferPlaylistPatch(troi.patch.Patch):
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        A dummy patch that retrieves an existing playlist from ListenBrainz.
+
+        \b
+        MBID is the playlist mbid to save again.
+        READ_ONLY_TOKEN is the listenbrainz auth token to retrieve the playlist if its private. If not specified,
+        fallback to TOKEN. Both arguments take the same value but specifying TOKEN may also upload the playlist
+        to LB again which is many times not desirable.
+        """
         return [
             {
                 "type": "argument",
@@ -21,18 +30,6 @@ class TransferPlaylistPatch(troi.patch.Patch):
                 }
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        A dummy patch that retrieves an existing playlist from ListenBrainz.
-
-        \b
-        MBID is the playlist mbid to save again.
-        READ_ONLY_TOKEN is the listenbrainz auth token to retrieve the playlist if its private. If not specified,
-        fallback to TOKEN. Both arguments take the same value but specifying TOKEN may also upload the playlist
-        to LB again which is many times not desirable.
-        """
 
     @staticmethod
     def outputs():

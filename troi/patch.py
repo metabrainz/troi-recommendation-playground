@@ -12,13 +12,11 @@ class Patch(ABC):
         logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
-
     def log(self, msg):
         '''
             Log a message with the info log level, which is the default for troi.
         '''
         self.logger.info(msg)
-
 
     def debug(self, msg):
         '''
@@ -26,21 +24,23 @@ class Patch(ABC):
         '''
         self.logger.debug(msg)
 
-
     @staticmethod
     def inputs():
-        '''
-            This function should return a list of dicts that defined the type, name, description and if the 
-            argument is optional. MusicBrainz entities and python base types can all be used. Example:
+        """
+            This function should return a list of dicts that defined the type (argument or option), args,
+            and kwargs to be passed to the click function. MusicBrainz entities and python base types can
+            all be used. The documentation of the method is used as the help returned by the command. Example:
+
             [
                 {
-                    "type" : int,
-                    "name": "num_recordings",
-                    "optional" : True,
-                    "desc" : "number of recorings"
+                    "type" : "argument",
+                    "args": ["num_recordings"],
+                    "kwargs": {
+                        "optional": True
+                    }
                 }
             ]
-        '''
+        """
         return None
 
     @staticmethod

@@ -13,7 +13,13 @@ class PlaylistFromMBIDsPatch(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Make a playlist from a file containing one MBID per line.
+
+        \b
+        FILE_NAME: filename that contains MBIDS
+        """
         return [
             {
                 "type": "argument",
@@ -21,19 +27,6 @@ class PlaylistFromMBIDsPatch(troi.patch.Patch):
                 "kwargs": {}
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Make a playlist from a file containing one MBID per line.
-
-        \b
-        FILE_NAME: filename that contains MBIDS
-        """
-
-    @staticmethod
-    def inputs():
-        return [{"type": str, "name": "file_name", "desc": "MBID filename", "optional": False}]
 
     @staticmethod
     def outputs():

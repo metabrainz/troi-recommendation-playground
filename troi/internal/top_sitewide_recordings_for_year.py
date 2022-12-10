@@ -31,7 +31,13 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
         self.max_num_recordings = max_num_recordings
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Generate the ListenBrainz site wide top recordings for year playlist.
+
+        \b
+        FILE_NAME: The filename that contains the recording_mbids for this playlist.
+        """
         return [
             {
                 "type": "argument",
@@ -39,19 +45,6 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
                 "kwargs": {}
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Generate the ListenBrainz site wide top recordings for year playlist.
-
-        \b
-        FILE_NAME: The filename that contains the recording_mbids for this playlist.
-        """
-
-    @staticmethod
-    def inputs():
-        return [{"type": str, "name": "file_name", "desc": "Recoding MBID file", "optional": False}]
 
     @staticmethod
     def outputs():
@@ -77,8 +70,8 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
         remove_empty = troi.filters.EmptyRecordingFilterElement()
         remove_empty.set_sources(rec_lookup)
 
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year),
-                                                      self.DESC % (year),
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year,),
+                                                      self.DESC % (year,),
                                                       patch_slug=self.slug())
         pl_maker.set_sources(remove_empty)
 
