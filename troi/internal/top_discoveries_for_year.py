@@ -50,17 +50,7 @@ class TopDiscoveries(troi.patch.Patch):
         \b
         USER_NAME: is a MusicBrainz username that has an account on ListenBrainz.
         """
-        return [
-            {
-                "type": "argument",
-                "args": ["user_name"],
-                "kwargs": {}
-            }
-        ]
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False }]
+        return [{"type": "argument", "args": ["user_name"]}]
 
     @staticmethod
     def outputs():
