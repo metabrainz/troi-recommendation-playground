@@ -126,7 +126,14 @@ class WorldTripPatch(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Generate a playlist that picks tracks for each country in a continent.
+
+        \b
+        CONTINENT: A name of a continent, all lower case.
+        SORT: Must be longitude or latitude
+        """
         return [
             {
                 "type": "argument",
@@ -139,21 +146,6 @@ class WorldTripPatch(troi.patch.Patch):
                 "kwargs": {}
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Generate a playlist that picks tracks for each country in a continent.
-
-        \b
-        CONTINENT: A name of a continent, all lower case.
-        SORT: Must be longitude or latitude
-        """
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "continent", "desc": "continent to generate playlist for", "optional": False },
-                { "type": str, "name": "sort", "desc": "Sort by latitude (north->south), longitude (west->east)", "optional": False }]
 
     @staticmethod
     def outputs():

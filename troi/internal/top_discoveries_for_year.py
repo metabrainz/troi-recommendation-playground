@@ -43,7 +43,13 @@ class TopDiscoveries(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Generate a top discoveries playlist for a user.
+
+        \b
+        USER_NAME: is a MusicBrainz username that has an account on ListenBrainz.
+        """
         return [
             {
                 "type": "argument",
@@ -51,15 +57,6 @@ class TopDiscoveries(troi.patch.Patch):
                 "kwargs": {}
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Generate a top discoveries playlist for a user.
-
-        \b
-        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
-        """
 
     @staticmethod
     def inputs():

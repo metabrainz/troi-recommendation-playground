@@ -26,7 +26,15 @@ class DailyJamsPatch(troi.patch.Patch):
         self.recent_listens_lookup = None
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Generate a daily playlist from the ListenBrainz recommended recordings.
+
+        \b
+        USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
+        JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
+        can be on different dates). Recommended formatting for the date is 'YYYY-MM-DD DAY_OF_WEEK'.
+        """
         return [
             {
                 "type": "argument",
@@ -41,17 +49,6 @@ class DailyJamsPatch(troi.patch.Patch):
                 }
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Generate a daily playlist from the ListenBrainz recommended recordings.
-
-        \b
-        USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
-        JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
-        can be on different dates). Recommended formatting for the date is 'YYYY-MM-DD DAY_OF_WEEK'.
-        """
 
     @staticmethod
     def outputs():

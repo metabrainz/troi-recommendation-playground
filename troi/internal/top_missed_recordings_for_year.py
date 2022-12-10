@@ -42,7 +42,13 @@ class TopMissedTracksPatch(troi.patch.Patch):
         self.max_num_recordings = max_num_recordings
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Generate a top missed tracks playlists for a given user.
+
+        \b
+        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
+        """
         return [
             {
                 "type": "argument",
@@ -50,19 +56,6 @@ class TopMissedTracksPatch(troi.patch.Patch):
                 "kwargs": {}
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Generate a top missed tracks playlists for a given user.
-
-        \b
-        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
-        """
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False }]
 
     @staticmethod
     def outputs():

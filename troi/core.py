@@ -153,12 +153,12 @@ def convert_patch_to_command(patch):
     def f(**kwargs):
         return kwargs
 
-    f.__doc__ = patch.get_documentation()
+    f.__doc__ = patch.inputs.__doc__
 
-    for arg in reversed(patch.get_args()):
-        if arg["type"] == 'argument':
+    for arg in reversed(patch.inputs()):
+        if arg["type"] == "argument":
             f = click.argument(*arg["args"], **arg["kwargs"])(f)
-        elif arg["type"] == 'option':
+        elif arg["type"] == "option":
             f = click.option(*arg["args"], **arg["kwargs"])(f)
         else:
             click.echo("Patch is invalid, contact patch writer to fix")

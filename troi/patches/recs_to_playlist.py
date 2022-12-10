@@ -62,7 +62,14 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Save the current recommended tracks for a given user and type (top or similar).
+
+        \b
+        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
+        TYPE: is The type of daily jam. Must be 'top' or 'similar' or 'raw'.
+        """
         return [
             {
                 "type": "argument",
@@ -74,23 +81,6 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
                 "args": ["type"],
                 "kwargs": {}
             }
-        ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Save the current recommended tracks for a given user and type (top or similar).
-
-        \b
-        USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE: is The type of daily jam. Must be 'top' or 'similar' or 'raw'.
-        """
-
-    @staticmethod
-    def inputs():
-        return [
-            {"type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False},
-            {"type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False}
         ]
 
     @staticmethod

@@ -17,7 +17,15 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         super().__init__(debug)
 
     @staticmethod
-    def get_args():
+    def inputs():
+        """
+        Generate a list of random recordings from a given area.
+
+        \b
+        AREA is a MusicBrainz area from which to choose tracks.
+        START_YEAR is the start year.
+        END_YEAR is the end year.
+        """
         return [
             {
                 "type": "argument",
@@ -39,17 +47,6 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
                 }
             }
         ]
-
-    @staticmethod
-    def get_documentation():
-        return """
-        Generate a list of random recordings from a given area.
-
-        \b
-        AREA is a MusicBrainz area from which to choose tracks.
-        START_YEAR is the start year.
-        END_YEAR is the end year.
-        """
 
     @staticmethod
     def outputs():
