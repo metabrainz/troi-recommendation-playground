@@ -74,7 +74,6 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         TYPE: is The type of daily jam. Must be 'top' or 'similar'.
-        TOKEN: is the user token from the LB user into whose account you wish to post this playlist
         """
         return [
             {"type": "argument", "args": ["user_name"]},
