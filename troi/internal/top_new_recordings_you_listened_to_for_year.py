@@ -78,7 +78,7 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         return "Generate a playlist of tracks released this year that you've listened to."
 
     def create(self, inputs):
-        recs = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-new-tracks/json",
+        recs = DataSetFetcherElement(server_url="https://datasets.listenbrainz.org/top-new-tracks/json",
                                      json_post_data=[{ 'user_name': inputs['user_name'] }])
 
         y_lookup = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)

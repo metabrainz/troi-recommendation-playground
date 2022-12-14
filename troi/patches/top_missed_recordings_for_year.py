@@ -81,7 +81,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
         return "Generate a playlist from the top tracks that the most similar users listened to, but the user didn't listen to."
 
     def create(self, inputs):
-        source = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-missed-tracks/json",
+        source = DataSetFetcherElement(server_url="https://datasets.listenbrainz.org/top-missed-tracks/json",
                                        json_post_data=[{ 'user_name': inputs['user_name'] }])
 
         year = datetime.now().year

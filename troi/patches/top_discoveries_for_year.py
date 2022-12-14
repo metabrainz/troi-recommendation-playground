@@ -81,18 +81,15 @@ class TopDiscoveries(troi.patch.Patch):
         return "Generate a top discoveries playlist for a user."
 
     def create(self, inputs):
-        recs = DataSetFetcherElement(server_url="https://bono.metabrainz.org/top-discoveries/json",
+        recs = DataSetFetcherElement(server_url="https://datasets.listenbrainz.org/top-discoveries/json",
                                      json_post_data=[{ 'user_name': inputs['user_name'] }])
-
-        y_lookup = troi.musicbrainz.year_lookup.YearLookupElement(skip_not_found=False)
-        y_lookup.set_sources(recs)
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
                                                       self.DESC % (inputs['user_name'], year, inputs['user_name']),
                                                       patch_slug=self.slug(),
                                                       user_name=inputs['user_name'])
-        pl_maker.set_sources(y_lookup)
+        pl_maker.set_sources(recs)
 
         shaper = PlaylistRedundancyReducerElement()
         shaper.set_sources(pl_maker)
