@@ -1,7 +1,5 @@
 import datetime
 
-import click
-
 from troi import PipelineError, Recording, DEVELOPMENT_SERVER_URL 
 import troi.tools.area_lookup
 import troi.musicbrainz.recording_lookup
@@ -9,11 +7,6 @@ import troi.patch
 import troi.filters
 from troi.playlist import PlaylistRedundancyReducerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-
-
-@click.group()
-def cli():
-    pass
 
 
 class AreaRandomRecordingsPatch(troi.patch.Patch):
@@ -24,11 +17,7 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         super().__init__(debug)
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('area')
-    @click.argument('start_year', type=int)
-    @click.argument('end_year', type=int)
-    def parse_args(**kwargs):
+    def inputs():
         """
         Generate a list of random recordings from a given area.
 
@@ -37,8 +26,11 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
         START_YEAR is the start year.
         END_YEAR is the end year.
         """
-
-        return kwargs
+        return [
+            {"type": "argument", "args": ["area"]},
+            {"type": "argument", "args": ["start_year"], "kwargs": {"type": int}},
+            {"type": "argument", "args": ["end_year"], "kwargs": {"type": int}}
+        ]
 
     @staticmethod
     def outputs():
@@ -72,7 +64,6 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
                                      json_post_data=[{ 'start_year': start_year,
                                                        'end_year': end_year,
                                                        'area_mbid': area_id }])
-
 
         name = "Random recordings from %s between %d and %d." % (area_name, start_year, end_year)
         pl_maker = troi.playlist.PlaylistMakerElement(name=name, desc=name)

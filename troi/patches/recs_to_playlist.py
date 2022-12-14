@@ -1,8 +1,3 @@
-from collections import defaultdict
-import random
-
-import click
-
 from troi import Element, Recording, Playlist, PipelineError
 import troi.listenbrainz.recs
 import troi.playlist
@@ -10,11 +5,6 @@ import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.mbid_mapping
-
-
-@click.group()
-def cli():
-    pass
 
 
 class RecsPlaylistMakerElement(Element):
@@ -72,10 +62,7 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('user_name')
-    @click.argument('type')
-    def parse_args(**kwargs):
+    def inputs():
         """
         Save the current recommended tracks for a given user and type (top or similar).
 
@@ -83,13 +70,10 @@ class RecommendationsToPlaylistPatch(troi.patch.Patch):
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         TYPE: is The type of daily jam. Must be 'top' or 'similar' or 'raw'.
         """
-
-        return kwargs
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False },
-                { "type": str, "name": "type", "desc": "The type of daily jam. Must be 'top' or 'similar'.", "optional": False }]
+        return [
+            {"type": "argument", "args": ["user_name"]},
+            {"type": "argument", "args": ["type"]}
+        ]
 
     @staticmethod
     def outputs():

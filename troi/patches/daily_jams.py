@@ -1,21 +1,13 @@
 from datetime import datetime
 
-import click
-
+import troi.filters
+import troi.listenbrainz.feedback
+import troi.listenbrainz.listens
+import troi.listenbrainz.recs
+import troi.musicbrainz.recording_lookup
 from troi import Playlist
 from troi.musicbrainz.recording import RecordingListElement
 from troi.playlist import PlaylistRedundancyReducerElement, PlaylistMakerElement, PlaylistShuffleElement
-import troi.listenbrainz.recs
-import troi.listenbrainz.listens
-import troi.listenbrainz.feedback
-import troi.filters
-import troi.musicbrainz.recording_lookup
-
-
-@click.group()
-def cli():
-    pass
-
 
 DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist
 DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
@@ -34,10 +26,7 @@ class DailyJamsPatch(troi.patch.Patch):
         self.recent_listens_lookup = None
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('user_name')
-    @click.argument('jam_date', required=False)
-    def parse_args(**kwargs):
+    def inputs():
         """
         Generate a daily playlist from the ListenBrainz recommended recordings.
 
@@ -46,8 +35,10 @@ class DailyJamsPatch(troi.patch.Patch):
         JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
         can be on different dates). Recommended formatting for the date is 'YYYY-MM-DD DAY_OF_WEEK'.
         """
-
-        return kwargs
+        return [
+            {"type": "argument", "args": ["user_name"]},
+            {"type": "argument", "args": ["jam_date"], "kwargs": {"required": False}}
+        ]
 
     @staticmethod
     def outputs():

@@ -1,20 +1,8 @@
-from datetime import datetime 
-from collections import defaultdict
-from urllib.parse import quote
-import requests
-
-import click
-
 import troi
-from troi import Element, Artist, Recording, Playlist, PipelineError
+from troi import Recording
 from troi.musicbrainz.mbid_reader import MBIDReaderElement
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
 from troi.playlist import PlaylistMakerElement
-
-
-@click.group()
-def cli():
-    pass
 
 
 class PlaylistFromMBIDsPatch(troi.patch.Patch):
@@ -25,21 +13,14 @@ class PlaylistFromMBIDsPatch(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('file_name')
-    def parse_args(**kwargs):
+    def inputs():
         """
         Make a playlist from a file containing one MBID per line.
 
         \b
         FILE_NAME: filename that contains MBIDS
         """
-
-        return kwargs
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "file_name", "desc": "MBID filename", "optional": False }]
+        return [{"type": "argument", "args": ["file_name"]}]
 
     @staticmethod
     def outputs():

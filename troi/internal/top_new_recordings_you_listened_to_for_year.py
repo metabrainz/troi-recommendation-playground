@@ -1,22 +1,13 @@
-from datetime import datetime 
-from collections import defaultdict
-import requests
+from datetime import datetime
 
-import click
-
-from troi import Element, Artist, Recording, Playlist, PipelineError
-import troi.listenbrainz.stats
 import troi.filters
-import troi.sorts
-from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
+import troi.listenbrainz.stats
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.year_lookup
-
-
-@click.group()
-def cli():
-    pass
+import troi.sorts
+from troi import Recording
+from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
+from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
 
 
 class TopTracksYouListenedToPatch(troi.patch.Patch):
@@ -48,9 +39,7 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         self.max_num_recordings = max_num_recordings
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('user_name')
-    def parse_args(**kwargs):
+    def inputs():
         """
         Generate a playlist that contains a mix of tracks released this year that you've
         listened to.
@@ -58,12 +47,7 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         """
-
-        return kwargs
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False }]
+        return [{"type": "argument", "args": ["user_name"]}]
 
     @staticmethod
     def outputs():

@@ -1,18 +1,12 @@
-from collections import defaultdict 
-from operator import attrgetter
+from collections import defaultdict
 from urllib.parse import quote
 
-import click
-import requests
 import countryinfo
+import requests
 
-from troi import Element, Artist, Recording, Playlist, PipelineError, DEVELOPMENT_SERVER_URL
 import troi.patch
+from troi import Element, Artist, Recording, Playlist, PipelineError, DEVELOPMENT_SERVER_URL
 
-
-@click.group()
-def cli():
-    pass
 
 def recording_from_row(row):
     if row['recording_mbid'] is None:
@@ -132,10 +126,7 @@ class WorldTripPatch(troi.patch.Patch):
         troi.patch.Patch.__init__(self, debug)
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('continent')
-    @click.argument('sort')
-    def parse_args(**kwargs):
+    def inputs():
         """
         Generate a playlist that picks tracks for each country in a continent.
 
@@ -143,13 +134,10 @@ class WorldTripPatch(troi.patch.Patch):
         CONTINENT: A name of a continent, all lower case.
         SORT: Must be longitude or latitude
         """
-
-        return kwargs
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "continent", "desc": "continent to generate playlist for", "optional": False },
-                { "type": str, "name": "sort", "desc": "Sort by latitude (north->south), longitude (west->east)", "optional": False }]
+        return [
+            {"type": "argument", "args": ["continent"]},
+            {"type": "argument", "args": ["sort"]}
+        ]
 
     @staticmethod
     def outputs():

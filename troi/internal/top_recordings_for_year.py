@@ -41,21 +41,14 @@ class TopTracksYearPatch(troi.patch.Patch):
         self.max_num_recordings = max_num_recordings
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('user_name')
-    def parse_args(**kwargs):
+    def inputs():
         """
         Generate a year in review playlist.
 
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         """
-
-        return kwargs
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "user_name", "desc": "ListenBrainz user name", "optional": False }]
+        return [{"type": "argument", "args": ["user_name"]}]
 
     @staticmethod
     def outputs():

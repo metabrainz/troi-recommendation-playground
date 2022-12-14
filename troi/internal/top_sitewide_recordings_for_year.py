@@ -1,22 +1,12 @@
-from datetime import datetime 
-from collections import defaultdict
-from urllib.parse import quote
-import requests
+from datetime import datetime
 
-import click
-
-from troi import Element, Artist, Recording, Playlist, PipelineError
+from troi import Recording
 import troi.listenbrainz.stats
 import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.mbid_reader
 import troi.playlist
-
-
-@click.group()
-def cli():
-    pass
 
 
 class TopSitewideRecordingsPatch(troi.patch.Patch):
@@ -41,21 +31,14 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
         self.max_num_recordings = max_num_recordings
 
     @staticmethod
-    @cli.command(no_args_is_help=True)
-    @click.argument('file_name')
-    def parse_args(**kwargs):
+    def inputs():
         """
         Generate the ListenBrainz site wide top recordings for year playlist.
 
         \b
         FILE_NAME: The filename that contains the recording_mbids for this playlist.
         """
-
-        return kwargs
-
-    @staticmethod
-    def inputs():
-        return [{ "type": str, "name": "file_name", "desc": "Recoding MBID file", "optional": False }]
+        return [{"type": "argument", "args": ["file_name"]}]
 
     @staticmethod
     def outputs():
@@ -81,8 +64,8 @@ class TopSitewideRecordingsPatch(troi.patch.Patch):
         remove_empty = troi.filters.EmptyRecordingFilterElement()
         remove_empty.set_sources(rec_lookup)
 
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year),
-                                                      self.DESC % (year),
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year,),
+                                                      self.DESC % (year,),
                                                       patch_slug=self.slug())
         pl_maker.set_sources(remove_empty)
 
