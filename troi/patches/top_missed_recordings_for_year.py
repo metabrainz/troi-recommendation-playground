@@ -1,9 +1,63 @@
 from datetime import datetime
 
+import psycopg2
+import psycopg2.extras
+
 import troi
-from troi import Recording
-from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
+from troi import Recording, Element
 from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
+from troi.musicbrainz.recording_lookup import RecordingLookupElement
+
+
+
+class MissedRecordingsElement(Element):
+
+    def __init__(self, user_id, similar_user_ids, db_connect_str):
+        Element.__init__(self)
+        self.user_id = user_id
+        self.similar_user_ids = similar_user_ids
+        self.db_connect_str = db_connect_str
+
+    @staticmethod
+    def inputs():
+        return [ ]
+
+    @staticmethod
+    def outputs():
+        return [ Recording ]
+
+    def read(self, inputs):
+
+        output = []
+        with psycopg2.connect(self.db_connect_str) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
+ 
+                query = """WITH exclude_tracks AS (
+                           SELECT recording_mbid
+                             FROM mapping.tracks_of_the_year t
+                            WHERE user_id = %s
+                       ) SELECT recording_mbid
+                              , recording_name
+                              , sum(listen_count) AS listen_count
+                             FROM mapping.tracks_of_the_year t
+                            WHERE user_id IN (%s, %s, %s)
+                              AND recording_mbid NOT IN (SELECT * FROM exclude_tracks)
+                         GROUP BY recording_mbid, recording_name, artist_credit_name, artist_mbids
+                         ORDER BY listen_count DESC
+                            LIMIT 100"""
+ 
+                users = [ self.user_id ] 
+                users.extend(self.similar_user_ids)
+                curs.execute(query, tuple(users))
+                output = []
+                while True:
+                    row = curs.fetchone()
+                    if not row:
+                        break
+
+                    output.append(Recording(mbid=row["recording_mbid"]))
+
+                return output
 
 
 class TopMissedTracksPatch(troi.patch.Patch):
@@ -13,27 +67,10 @@ class TopMissedTracksPatch(troi.patch.Patch):
 
     NAME = "Top Missed Recordings of %d for %s"
     DESC = """<p>
-              This playlist is made from recordings that %s's most similar users listened to this year, but that
-              %s didn't listen to this year.
+                There were too many words, so let keep it short: Here is your playlist."
               </p>
               <p>
-              We determined the top 3 most similar users to %s and selected all of the recordings
-              they listened to this year. We then removed all of the recordings that %s listened to from
-              this list of recordings, leaving only those that they didn't listen to. We removed recordings from
-              duplicate artists so that ideally no artist (or an artist in a collaboration) appears
-              more than twice in this playlist, although that may not always be possible. Finally we
-              randomized the order of the recordings so that two of the same artists hopefully won't appear
-              in a row.
-              </p>
-              <p>
-              We have attempted to match all of the listens to MusicBrainz
-              IDs in order for them to be included in this playlist, but we may not have been able to match them all,
-              so some recordings may be missing from this list.
-              </p>
-              <p>
-              This is a discovery playlist that will hopefully introduce the user to some new recordings
-              that other similar users love. Because this is a discovery playlist, it may require
-              more active listening since it may contain tracks that are not fully to the taste of the user.
+                Your peeps: %s
               </p>
            """
 
@@ -49,7 +86,10 @@ class TopMissedTracksPatch(troi.patch.Patch):
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
         """
-        return [{"type": "argument", "args": ["user_name"]}]
+        return [{"type": "argument", "args": ["user_id"]},
+                {"type": "argument", "args": ["user_name"]},
+                {"type": "argument", "args": ["lb_db_connect_str"]},
+                {"type": "argument", "args": ["mb_db_connect_str"]}]
 
     @staticmethod
     def outputs():
@@ -64,15 +104,46 @@ class TopMissedTracksPatch(troi.patch.Patch):
         return "Generate a playlist from the top tracks that the most similar users listened to, but the user didn't listen to."
 
     def create(self, inputs):
-        source = DataSetFetcherElement(server_url="https://datasets.listenbrainz.org/top-missed-tracks/json",
-                                       json_post_data=[{ 'user_name': inputs['user_name'] }])
+        user_id = inputs['user_id'] 
+        user_name = inputs['user_name'] 
+        lb_db_connect_str = inputs['lb_db_connect_str'] 
+        mb_db_connect_str = inputs['mb_db_connect_str'] 
+
+        similar_users = None
+        with psycopg2.connect(lb_db_connect_str) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
+                curs.execute("""SELECT similar_users
+                                  FROM recommendation.similar_user
+                                 WHERE user_id = %s""", (user_id,))
+                similar_users = curs.fetchone()
+
+                if similar_users is None:
+                    return []
+
+                similar_users = [ (i, similar_users[0][i][0]) for i in similar_users[0] ]
+
+                similar_user_ids = []
+                for user in sorted(similar_users, key=lambda item: item[1], reverse=True)[:3]:
+                    similar_user_ids.append(int(user[0]))
+
+                curs.execute("""SELECT id
+                                     , musicbrainz_id
+                                  FROM "user"
+                                 WHERE id IN %s""", (tuple(similar_user_ids),))
+                your_peeps = ", ".join([ r["musicbrainz_id"] for r in curs.fetchall() ])
+
+
+        missed = MissedRecordingsElement(user_id, similar_user_ids, mb_db_connect_str)
+
+        rec_lookup = RecordingLookupElement()
+        rec_lookup.set_sources(missed)
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
-                                                      self.DESC % (inputs['user_name'], inputs['user_name'], inputs['user_name'], inputs['user_name']),
+                                                      self.DESC % (your_peeps),
                                                       patch_slug=self.slug(),
                                                       user_name=inputs['user_name'])
-        pl_maker.set_sources(source)
+        pl_maker.set_sources(rec_lookup)
 
         reducer = PlaylistRedundancyReducerElement(max_num_recordings=self.max_num_recordings)
         reducer.set_sources(pl_maker)
