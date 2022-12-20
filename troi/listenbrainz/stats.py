@@ -90,7 +90,6 @@ class UserRecordingElement(Element):
         for r in recordings['payload']['recordings']:
             artist = Artist(r['artist_name'], mbids=r['artist_mbids'])
             release = Release(r['release_name'], mbid=r['release_mbid'])
-            recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], msid=r['recording_msid'], 
-                                  artist=artist, release=release))
+            recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], artist=artist, release=release))
 
         return recording_list

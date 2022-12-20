@@ -48,9 +48,11 @@ class TopDiscoveries(troi.patch.Patch):
         Generate a top discoveries playlist for a user.
 
         \b
+        USER_ID: is a MusicBrainz userid that has an account on ListenBrainz.
         USER_NAME: is a MusicBrainz username that has an account on ListenBrainz.
         """
-        return [{"type": "argument", "args": ["user_name"]}]
+        return [{"type": "argument", "args": ["user_id"]},
+                {"type": "argument", "args": ["user_name"]}]
 
     @staticmethod
     def outputs():
@@ -66,7 +68,7 @@ class TopDiscoveries(troi.patch.Patch):
 
     def create(self, inputs):
         recs = DataSetFetcherElement(server_url="https://datasets.listenbrainz.org/top-discoveries/json",
-                                     json_post_data=[{ 'user_name': inputs['user_name'] }])
+                                     json_post_data=[{ 'user_id': inputs['user_id'] }])
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
