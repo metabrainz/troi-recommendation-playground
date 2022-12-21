@@ -12,6 +12,9 @@ from troi.musicbrainz.recording_lookup import RecordingLookupElement
 
 class MissedRecordingsElement(Element):
 
+    """ This element looks up top tracks for 3 users minus the tracks of one given user to form 
+        the core of the missed tracks playlist for yim. """
+
     def __init__(self, user_id, similar_user_ids, db_connect_str):
         Element.__init__(self)
         self.user_id = user_id
@@ -36,19 +39,17 @@ class MissedRecordingsElement(Element):
                            SELECT recording_mbid
                              FROM mapping.tracks_of_the_year t
                             WHERE user_id = %s
-                       ) SELECT recording_mbid
-                              , recording_name
-                              , sum(listen_count) AS listen_count
+                         ) SELECT recording_mbid
+                                , recording_name
+                                , sum(listen_count) AS listen_count
                              FROM mapping.tracks_of_the_year t
-                            WHERE user_id IN (%s, %s, %s)
+                            WHERE user_id IN %s
                               AND recording_mbid NOT IN (SELECT * FROM exclude_tracks)
                          GROUP BY recording_mbid, recording_name, artist_credit_name, artist_mbids
                          ORDER BY listen_count DESC
-                            LIMIT 100"""
+                            LIMIT 200"""
  
-                users = [ self.user_id ] 
-                users.extend(self.similar_user_ids)
-                curs.execute(query, tuple(users))
+                curs.execute(query, (self.user_id, tuple(self.similar_user_ids)))
                 output = []
                 while True:
                     row = curs.fetchone()
@@ -67,10 +68,12 @@ class TopMissedTracksPatch(troi.patch.Patch):
 
     NAME = "Top Missed Recordings of %d for %s"
     DESC = """<p>
-                There were too many words, so let keep it short: Here is your playlist."
+                This playlist features recordings that were listened to by users similar to %s in %d.
+                It is a discovery playlist that aims to introduce you to new music that other similar users
+                enjoy. It may require more active listening and may contain tracks that are not to your taste.
               </p>
               <p>
-                Your peeps: %s
+                The users similar to you who contributed to this playlist: %s. <a href="https://listenbrainz.org">listenbrainz.org</a>.
               </p>
            """
 
@@ -104,7 +107,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
         return "Generate a playlist from the top tracks that the most similar users listened to, but the user didn't listen to."
 
     def create(self, inputs):
-        user_id = inputs['user_id'] 
+        user_id = int(inputs['user_id'])
         user_name = inputs['user_name'] 
         lb_db_connect_str = inputs['lb_db_connect_str'] 
         mb_db_connect_str = inputs['mb_db_connect_str'] 
@@ -120,9 +123,8 @@ class TopMissedTracksPatch(troi.patch.Patch):
                 if similar_users is None:
                     return []
 
-                similar_users = [ (i, similar_users[0][i][0]) for i in similar_users[0] ]
-
                 similar_user_ids = []
+                similar_users = [ (i, similar_users[0][i][0]) for i in similar_users[0] ]
                 for user in sorted(similar_users, key=lambda item: item[1], reverse=True)[:3]:
                     similar_user_ids.append(int(user[0]))
 
@@ -131,6 +133,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
                                   FROM "user"
                                  WHERE id IN %s""", (tuple(similar_user_ids),))
                 your_peeps = ", ".join([ r["musicbrainz_id"] for r in curs.fetchall() ])
+                print(your_peeps)
 
 
         missed = MissedRecordingsElement(user_id, similar_user_ids, mb_db_connect_str)
@@ -140,7 +143,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
 
         year = datetime.now().year
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
-                                                      self.DESC % (your_peeps),
+                                                      self.DESC % (inputs['user_name'], year, your_peeps),
                                                       patch_slug=self.slug(),
                                                       user_name=inputs['user_name'])
         pl_maker.set_sources(rec_lookup)
