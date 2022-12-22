@@ -76,7 +76,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
                 The users similar to you who contributed to this playlist: %s.
               </p>
               <p>
-                For more information on how this playlist is generated, please see
+                For more information on how this playlist is generated, please see our
                 <a href="https://musicbrainz.org/doc/YIM2022Playlists">Year in Music 2022 Playlists</a> page.
               </p>
            """
