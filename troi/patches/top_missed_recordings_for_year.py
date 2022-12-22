@@ -40,7 +40,6 @@ class MissedRecordingsElement(Element):
                              FROM mapping.tracks_of_the_year t
                             WHERE user_id = %s
                          ) SELECT recording_mbid
-                                , recording_name
                                 , sum(listen_count) AS listen_count
                              FROM mapping.tracks_of_the_year t
                             WHERE user_id IN %s
@@ -56,7 +55,7 @@ class MissedRecordingsElement(Element):
                     if not row:
                         break
 
-                    output.append(Recording(mbid=row["recording_mbid"]))
+                    output.append(Recording(mbid=row["recording_mbid"], listenbrainz={"listen_count": row["listen_count"]}))
 
                 return output
 
