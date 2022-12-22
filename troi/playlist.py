@@ -323,29 +323,21 @@ class PlaylistRedundancyReducerElement(Element):
 
         playlists = []
 
-        max_artist_occurrence = self.max_artist_occurrence
         for playlist in inputs[0]:
-            while True:
-                kept = []
-                artists = defaultdict(int)
-                for r in playlist.recordings:
-
-                    for mbid in r.artist.mbids:
-                        artists[mbid] += 1
-                    for mbid in r.artist.mbids:
-                        if artists[mbid] > max_artist_occurrence:
-                            break
-                    else:
-                        kept.append(r)
-
-                if len(kept) >= self.max_num_recordings:
-                    playlist.recordings = kept[:self.max_num_recordings]
-                    break
-                else:
-                    max_artist_occurrence += 1
-                    if max_artist_occurrence > 4:
-                        playlist.recordings = kept
+            kept = []
+            artists = defaultdict(int)
+            for r in playlist.recordings:
+                keep = True
+                for mbid in r.artist.mbids:
+                    if artists[mbid] >= self.max_artist_occurrence:
+                        keep = False
                         break
+                    artists[mbid] += 1
+
+                if keep:
+                    kept.append(r)
+
+            playlist.recordings = kept[:self.max_num_recordings]
 
         return inputs[0]
 
