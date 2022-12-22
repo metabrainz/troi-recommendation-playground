@@ -73,7 +73,11 @@ class TopMissedTracksPatch(troi.patch.Patch):
                 enjoy. It may require more active listening and may contain tracks that are not to your taste.
               </p>
               <p>
-                The users similar to you who contributed to this playlist: %s. <a href="https://listenbrainz.org">listenbrainz.org</a>.
+                The users similar to you who contributed to this playlist: %s.
+              </p>
+              <p>
+                For more information on how this playlist is generated, please see
+                <a href="https://musicbrainz.org/doc/YIM2022Playlists">Year in Music 2022 Playlists</a> page.
               </p>
            """
 

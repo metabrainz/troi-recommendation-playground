@@ -17,25 +17,11 @@ class TopDiscoveries(troi.patch.Patch):
 
     NAME = "Top Discoveries of %d for %s"
     DESC = """<p>
-              This playlist highlights tracks that %s first listened to in %d and listened to more than once.
+              This playlist contains the top tracks for %s that were first listened to in %d.
               </p>
               <p>
-              We generated this playlist from %s's listens and chose all the recordings
-              that they first listened to this year and they listened to more than once. We removed
-              recordings from duplicate artists so that ideally no artist (or an artist in a collaboration) appears
-              more than twice in this playlist, although that may not always be possible. 
-              Finally we randomized the order of the recordings so that two of the same artists hopefully
-              won't appear in a row.
-              </p>
-              <p>
-              Please remember that ListenBrainz may not know about all the times this user listened to a recording
-              before they started sharing their listening history with us, so we apologize if recordings appear that
-              this user listened to in the past. Also, we have attempted to match all of the listens to MusicBrainz
-              IDs in order for them to be included in this playlist, but we may not have been able to match them all,
-              so some recordings may be missing from this list.
-              </p>
-              <p>
-              This is a review playlist that we hope will give insights into the listening habits of the year.
+                For more information on how this playlist is generated, please see
+                <a href="https://musicbrainz.org/doc/YIM2022Playlists">Year in Music 2022 Playlists</a> page.
               </p>
            """
 
