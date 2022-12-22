@@ -48,7 +48,6 @@ recording_ret = {
                 'artist_name': 'Woolfy',
                 'listen_count': 94, 
                 'recording_mbid': None, 
-                'recording_msid': '65435007-a8ea-48aa-9b23-5af1bd640905', 
                 'release_mbid': None, 
                 'release_name': 'Stations',
                 'track_name': 'Tangiers'
@@ -95,4 +94,3 @@ class TestStats(unittest.TestCase):
         assert entities[0].artist.name == 'Woolfy'
         assert entities[0].release.name == 'Stations'
         assert entities[0].name == 'Tangiers'
-        assert entities[0].msid == '65435007-a8ea-48aa-9b23-5af1bd640905'
