@@ -136,7 +136,8 @@ class TopMissedTracksPatch(troi.patch.Patch):
                                      , musicbrainz_id
                                   FROM "user"
                                  WHERE id IN %s""", (tuple(similar_user_ids),))
-                your_peeps = ", ".join([ r["musicbrainz_id"] for r in curs.fetchall() ])
+                your_peeps = ", ".join([ f'<a href="https://listenbrainz.org/user/{r["musicbrainz_id"]}/">{r["musicbrainz_id"]}</a>'
+                                          for r in curs.fetchall() ])
                 print(your_peeps)
 
 
