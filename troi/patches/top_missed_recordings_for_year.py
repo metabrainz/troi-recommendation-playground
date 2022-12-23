@@ -37,14 +37,14 @@ class MissedRecordingsElement(Element):
  
                 query = """WITH exclude_tracks AS (
                            SELECT recording_mbid
-                             FROM mapping.tracks_of_the_year t
+                             FROM mapping.tracks_of_the_year_2022 t
                             WHERE user_id = %s
-                         ) SELECT recording_mbid
+                         ) SELECT recording_mbid::TEXT
                                 , sum(listen_count) AS listen_count
-                             FROM mapping.tracks_of_the_year t
+                             FROM mapping.tracks_of_the_year_2022 t
                             WHERE user_id IN %s
                               AND recording_mbid NOT IN (SELECT * FROM exclude_tracks)
-                         GROUP BY recording_mbid, recording_name, artist_credit_name, artist_mbids
+                         GROUP BY recording_mbid
                          ORDER BY listen_count DESC
                             LIMIT 200"""
  
@@ -116,12 +116,10 @@ class TopMissedTracksPatch(troi.patch.Patch):
         mb_db_connect_str = inputs['mb_db_connect_str'] 
 
         similar_users = None
-        with psycopg2.connect(lb_db_connect_str) as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as curs:
-                curs.execute("""SELECT similar_users
-                                  FROM recommendation.similar_user
-                                 WHERE user_id = %s""", (user_id,))
-                similar_users = curs.fetchone()
+        with psycopg2.connect(mb_db_connect_str) as mb_conn,\
+            mb_conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as mb_curs:
+                mb_curs.execute("SELECT similar_users FROM recommendation.similar_user WHERE user_id = %s", (user_id,))
+                similar_users = mb_curs.fetchone()
 
                 if similar_users is None:
                     return []
@@ -131,25 +129,22 @@ class TopMissedTracksPatch(troi.patch.Patch):
                 for user in sorted(similar_users, key=lambda item: item[1], reverse=True)[:3]:
                     similar_user_ids.append(int(user[0]))
 
-                curs.execute("""SELECT id
-                                     , musicbrainz_id
-                                  FROM "user"
-                                 WHERE id IN %s""", (tuple(similar_user_ids),))
+                mb_curs.execute("""SELECT id, musicbrainz_id FROM "user" WHERE id IN %s""", (tuple(similar_user_ids),))
                 your_peeps = ", ".join([ f'<a href="https://listenbrainz.org/user/{r["musicbrainz_id"]}/">{r["musicbrainz_id"]}</a>'
-                                          for r in curs.fetchall() ])
+                                          for r in mb_curs.fetchall() ])
                 print(your_peeps)
 
 
-        missed = MissedRecordingsElement(user_id, similar_user_ids, mb_db_connect_str)
+        missed = MissedRecordingsElement(user_id, similar_user_ids, lb_db_connect_str)
 
         rec_lookup = RecordingLookupElement()
         rec_lookup.set_sources(missed)
 
         year = datetime.now().year
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
-                                                      self.DESC % (inputs['user_name'], year, your_peeps),
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name),
+                                                      self.DESC % (user_name, year, your_peeps),
                                                       patch_slug=self.slug(),
-                                                      user_name=inputs['user_name'])
+                                                      user_name=user_name)
         pl_maker.set_sources(rec_lookup)
 
         reducer = PlaylistRedundancyReducerElement(max_num_recordings=self.max_num_recordings)
