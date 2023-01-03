@@ -68,11 +68,11 @@ class DailyJamsPatch(troi.patch.Patch):
         latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
         latest_filter.set_sources(self.recent_listens_lookup)
 
-        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name=self)
+        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
         feedback_lookup.set_sources(latest_filter)
 
         hate_filter = troi.filters.HatedRecordingsFilterElement()
-        hate_filter.set_sources(self.recent_listens_lookup)
+        hate_filter.set_sources(feedback_lookup)
 
         return hate_filter
 
