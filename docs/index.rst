@@ -38,7 +38,9 @@ Documentation Page
 
    introduction.rst
    patches
-   elements
+   elements/index
+   elements/musicbrainz
+   elements/listenbrainz
    dev/index
 
 

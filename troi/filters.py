@@ -10,6 +10,9 @@ from troi import PipelineError, Recording, Playlist
 class ArtistCreditFilterElement(troi.Element):
     '''
         Remove recordings if they do or do not belong to a given list of artists.
+
+        :param artist_credit_ids: A list of artist_credit_ids to remove/keep
+        :param include: If true, include all tracks with the given artist_credit_id, otherwise remove them.
     '''
 
     def __init__(self, artist_credit_ids, include=False):
@@ -59,16 +62,20 @@ class ArtistCreditFilterElement(troi.Element):
 
 
 class ArtistCreditLimiterElement(troi.Element):
+    '''
+        This element examines there passed in recordings and if the count of
+        recordings by any one artists exceeds the given limit, excessive recordigns
+        are removed. If the flag exclude_lower_ranked is True, and each recording
+        has a "ranked" key in the musicbrainz dict, then the lowest
+        ranked recordings are removed, otherwise the highest ranked recordings
+        are removed. Throws PipelineError is not all recordings have
+        artist_credit_ids set.
+
+        :param count: The number of duplicate aritst_credits to allow in the output
+        :param exclude_lower_ranked: Remove the lower ranked duplicates, if rankings are present.
+    '''
 
     def __init__(self, count=2, exclude_lower_ranked=True):
-        '''
-            This element examines there passed in recordings and if the count of
-            recordings by any one artists exceeds the given limit, excessive recordigns
-            are removed. If the flag exclude_lower_ranked is True, then the lowest
-            ranked recordings are removed, otherwise the highest ranked recordings
-            are removed. Throws PipelineError is not all recordings have
-            artist_credit_ids set.
-        '''
         troi.Element.__init__(self)
         self.count = count
         self.exclude_lower_ranked = exclude_lower_ranked
@@ -137,8 +144,9 @@ class ArtistCreditLimiterElement(troi.Element):
 
 
 class DuplicateRecordingMBIDFilterElement(troi.Element):
-    """This Element takes a list of recordings and removes any duplicate recordings
-    based on the recording's MBID, preserving the input order.
+    """
+        This Element takes a list of recordings and removes any duplicate recordings
+        based on the recording's MBID, preserving the input order.
     """
 
     @staticmethod
@@ -162,8 +170,9 @@ class DuplicateRecordingMBIDFilterElement(troi.Element):
 
 
 class DuplicateRecordingArtistCreditFilterElement(troi.Element):
-    """This Element takes a list of recordings and removes any duplicate recordings
-    based on the recording's name and artist_credit name, preserving the input order.
+    """
+        This Element takes a list of recordings and removes any duplicate recordings
+        based on the recording's name and artist_credit name, preserving the input order.
     """
 
     @staticmethod
@@ -244,17 +253,18 @@ class EmptyRecordingFilterElement(troi.Element):
 
 class YearRangeFilterElement(troi.Element):
     '''
-        Remove/keep recordings if they do or do not belong in a range of years
+        Filter a list of Recordings based on their year -- the year must be between
+        start_year and end_year, otherwise the recording will be filtered out. If no
+        end_year is given, keep (or reject in case of inverse) tracks greater or equal
+        to start_year. If inverse=True, then keep all Recordings that do no fit into the
+        given year range.
+
+        :param start_year: The full start year to filter (inclusive).
+        :param end_year: The full end year to filter (inclusive).
+        :param inverse: If inverse is True, exclude everything in the year range.
     '''
 
     def __init__(self, start_year, end_year=None, inverse=False):
-        '''
-            Filter a list of Recordings based on their year -- the year must be between
-            start_year and end_year, otherwise the recording will be filtered out. If no
-            end_year is given, keep (or reject in case of inverse) tracks greater or equal
-            to start_year. If inverse=True, then keep all Recordings that do no fit into the
-            given year range.
-        '''
         troi.Element.__init__(self)
         self.start_year = start_year
         self.end_year = end_year
@@ -296,6 +306,8 @@ class GenreFilterElement(troi.Element):
     '''
         Keep recorindgs that have at least one genre in commong
         from the list passed in when this class is created.
+
+        :param genre_list: A list of genre trags to filter out.
     '''
 
     def __init__(self, genre_list):
@@ -329,15 +341,14 @@ class GenreFilterElement(troi.Element):
 
 class LatestListenedAtFilterElement(troi.Element):
     '''
-        Remove recordings if they have been played recently
+        Filter the recordings according to latest_listened_at field in the lb metadata. 
+        If that field is None, treat it as if the user hasn't listened to this track
+        recently or at all and keep the track in the list.
+
+        :param min_number_of_days: The number of tracks that must have passed for a track to be kept.
     '''
 
     def __init__(self, min_number_of_days=14):
-        '''
-            Filter the recordings according to latest_listened_at field in the lb metadata. 
-            If that field is None, treat it as if the user hasn't listened to this track
-            recently or at all and keep the track in the list.
-        '''
         troi.Element.__init__(self)
         self.min_number_of_days = min_number_of_days
 

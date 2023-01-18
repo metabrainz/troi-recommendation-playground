@@ -7,17 +7,16 @@ from troi import PipelineError, Recording
 
 class YearSortElement(troi.Element):
     '''
-        Sort recordings by year.
+        Sort recordings by year ascending -- recordings that have the same
+        year will be returned in an undefined order. Recordings
+        that have no year set will be returned at the end of the list.
+        If reverse=True, sort descending and return tracks with no year
+        first.
+
+        :param reverse: Reverse the sort order.
     '''
 
     def __init__(self, reverse=False):
-        '''
-            Sort recordings by year ascending -- recordings that have the same
-            year will be returned in an undefined order. Recordings
-            that have no year set will be returned at the end of the list.
-            If reverse=True, sort descending and return tracks with no year
-            first.
-        '''
         super().__init__()
         self.reverse = reverse
 

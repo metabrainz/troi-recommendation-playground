@@ -30,8 +30,9 @@ For instance, to create a Recording object, you'll need to at least pass in a na
 
 .. autoclass:: troi.__init__.Recording
 
-Very often Recordings are created with name and mbid arguments and then the :py:class:`~troi.musicbrainz.recording_lookup.RecordingLookupElement`
-is used to automatically lookup all the needed data (e.g. artist).
+Very often Recordings are created with name and mbid arguments and then the 
+:py:class:`~troi.musicbrainz.recording_lookup.RecordingLookupElement` is used to automatically lookup all the
+needed data (e.g. artist).
 
 A patch never processes data on its own -- a Patch returns a constructed pipeline of Elements that are chained 
 together. The Elements are the classes that process data, but those are invoked only after the pipeline
