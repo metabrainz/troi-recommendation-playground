@@ -29,29 +29,24 @@ def generate_playlist(patch: Patch, args: Dict):
     """
     Generate a playlist using a patch
 
-    patch: the patch to run
-    args: the arguments to pass to the patch. in addition to any arguments that the patch takes, the following
-     arguments are supported as well:
-        debug: Print debug information or not
-        args: Other parameters that might need to be passed to the patch [optional]
-        print: This option causes the generated playlist to be printed to stdout.
-        save: The save option causes the generated playlist to be saved to disk.
-        token: Auth token to use when using the LB API. Required for submitting playlists to the server.
-               See https://listenbrainz.org/profile to get your user token.
-        upload: Whether or not to submit the finished playlist to the LB server. Token must be set for this to work.
-        created-for: If this option is specified, it must give a valid user name and the
-                     TOKEN argument must specify a user who is whitelisted as a playlist bot at
-                     listenbrainz.org .
-        name: Override the algorithms that generate a playlist name and use this name instead.
-        desc: Override the algorithms that generate a playlist description and use this description instead.
-        min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete.
-                        If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
-                        Default: Off, a playlist with at least one track will be considere complete.
-        spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the
-            spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public,
-            private or collaborative. it can also optionally have the existing urls to update playlists instead of
-            creating new ones.
+    The args parameter is a dict and may containt the following keys:
+
+    * debug: Print debug information or not
+    * print: This option causes the generated playlist to be printed to stdout.
+    * save: The save option causes the generated playlist to be saved to disk.
+    * token: Auth token to use when using the LB API. Required for submitting playlists to the server. See https://listenbrainz.org/profile to get your user token.
+    * upload: Whether or not to submit the finished playlist to the LB server. Token must be set for this to work.
+    * created-for: If this option is specified, it must give a valid user name and the TOKEN argument must specify a user who is whitelisted as a playlist bot at listenbrainz.org .
+    * name: Override the algorithms that generate a playlist name and use this name instead.
+    * desc: Override the algorithms that generate a playlist description and use this description instead.
+    * min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete. If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it. Default: Off, a playlist with at least one track will be considere complete.
+    * spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public, private or collaborative. it can also optionally have the existing urls to update playlists instead of creating new ones.
+
+    :param patch: the patch to run
+    :param args: the arguments to pass to the patch, may contain one of more of the following keys:
+
     """
+
     patch_args = {**default_patch_args, **args}
     pipeline = patch.create(patch_args)
     try:
@@ -125,7 +120,9 @@ def generate_playlist(patch: Patch, args: Dict):
 
 
 def list_patches():
-    """List all available patches"""
+    """
+        Print a list of all available patches
+    """
     patches = troi.utils.discover_patches()
 
     print("Available patches:")
@@ -135,7 +132,12 @@ def list_patches():
 
 
 def patch_info(patch):
-    """Get info for a given patch"""
+    """
+        Get info for a given patch
+
+        :param patch: the patch to get info for.
+    """
+
     patches = troi.utils.discover_patches()
     if patch not in patches:
         print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch,
@@ -149,7 +151,11 @@ def patch_info(patch):
 
 
 def convert_patch_to_command(patch):
-    """ Convert patch object to dummy click command to parse args and show help """
+    """
+        Convert patch object to dummy click command to parse args and show help
+
+        :param patch: the patch to get info for.
+    """
     def f(**data):
         return data
 

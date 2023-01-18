@@ -7,6 +7,8 @@ acts on it and passes output data. At the end of the pipeline, the last element 
 a Playlist object that the Troi main function can then display or submit to ListenBrainz or other
 services.
 
+.. autoclass:: troi.__init__.Element
+
 A pipeline, and the Elements that it is composed of are called a Patch. The most common data passed
 through a data are Recording objects that represent a MusicBrainz recording. But other data elements
 such as Users, Artists and Releases could easily be objects passed through a pipeline. A patch never
