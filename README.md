@@ -7,7 +7,7 @@ it very easy for someone to get started hacking on music recommendations.
 
 To accomplish this goal, we, the MetaBrainz Foundation, have created and hosted a number of data-sets
 that can be accessed as a part of this project. For instance, the more stable APIs are hosted on our
-Labs API page](https://labs.api.listenbrainz.org).
+[Labs API page](https://labs.api.listenbrainz.org).
 
 The ListenBrainz project offers a number of data sets:
 
