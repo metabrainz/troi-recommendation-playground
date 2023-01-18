@@ -39,6 +39,7 @@ Documentation Page
    introduction.rst
    patches
    elements
+   dev/index
 
 
 Indices and tables
