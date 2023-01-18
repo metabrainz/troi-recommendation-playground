@@ -35,3 +35,12 @@ Elements that sort the data in a pipeline:
 
 .. automodule:: troi.sorts
     :members:
+
+
+troi.musicbrainz
+----------------
+
+Elements that retrieve the musicbrainz data in a pipeline:
+
+.. automodule:: troi.musicbrainz.recording_lookup
+    :members:

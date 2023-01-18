@@ -2,7 +2,7 @@ Technical Introduction
 ======================
 
 Troi uses a pipeline architecture comprised of Elements (a node in the pipeline) that can be chained
-togther. Each element can be a source of data and act like a filter that takes the incoming data,
+togther. Each element :py:class:`~troi.__init__.Element` can be a source of data and act like a filter that takes the incoming data,
 acts on it and passes output data. At the end of the pipeline, the last element should return
 a Playlist object that the Troi main function can then display or submit to ListenBrainz or other
 services.
@@ -30,10 +30,7 @@ For instance, to create a Recording object, you'll need to at least pass in a na
 
 .. autoclass:: troi.__init__.Recording
 
-Very often Recordings are created with name and mbid arguments and then the 
-
-.. autoclass:: troi.musicbrainz.recording_lookup.RecordingLookupElement
-
+Very often Recordings are created with name and mbid arguments and then the :py:class:`~troi.musicbrainz.recording_lookup.RecordingLookupElement`
 is used to automatically lookup all the needed data (e.g. artist).
 
 A patch never processes data on its own -- a Patch returns a constructed pipeline of Elements that are chained 
