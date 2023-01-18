@@ -7,12 +7,36 @@ acts on it and passes output data. At the end of the pipeline, the last element 
 a Playlist object that the Troi main function can then display or submit to ListenBrainz or other
 services.
 
-.. autoclass:: troi.__init__.Element
+The important methods of this class are:
 
-A pipeline, and the Elements that it is composed of are called a Patch. The most common data passed
-through a data are Recording objects that represent a MusicBrainz recording. But other data elements
-such as Users, Artists and Releases could easily be objects passed through a pipeline. A patch never
-processes data on its own -- a Patch returns a constructed pipeline of Elements that are chained 
+.. autoclass:: troi.__init__.Element
+    :members: inputs, outputs, set_sources
+
+Each class derived from Element must override these three functions.
+
+A patch (data pipeline) is constructed by instantiating Element objects and then chaining them
+together with set_sources() methods. If you want to create a patch with two elements, the following
+code could be used:
+
+.. code-block:: python
+
+   element0 = MyElement()
+   element1 = MyOtherElement()
+   element1.set_sources(element0)
+
+The most common data passed through a data are Recording objects that represent a MusicBrainz recording.
+But other data elements such as Users, Artists and Releases could easily be objects passed through a pipeline.
+For instance, to create a Recording object, you'll need to at least pass in a name of the Recording:
+
+.. autoclass:: troi.__init__.Recording
+
+Very often Recordings are created with name and mbid arguments and then the 
+
+.. autoclass:: troi.musicbrainz.recording_lookup.RecordingLookupElement
+
+is used to automatically lookup all the needed data (e.g. artist).
+
+A patch never processes data on its own -- a Patch returns a constructed pipeline of Elements that are chained 
 together. The Elements are the classes that process data, but those are invoked only after the pipeline
 is constructed and when Troi begins to generate a playlist.
 
