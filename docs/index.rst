@@ -49,7 +49,7 @@ TV series Star Trek: The Next Generation.
 
 .. toctree::
    :maxdepth: 2
-   :caption: troi documentation index
+   :caption: Troi Documentation Index
 
    installation.rst
    user-guide.rst
