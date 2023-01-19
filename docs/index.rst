@@ -6,7 +6,19 @@ philiosophy. API-first means that user do no need to download a lot of data befo
 can start working with Troi -- all the needed data should ideally live in online APIs, making
 it very easy for someone to get started hacking on music recommendations.
 
-To accomplish this goal, we, the MetaBrainz Foundation, have created and hosted a number of data-sets
+Troi implements a toolkit that allows developers to create data pipelines comprised of Elements
+that generate, filter or manipulate data in a data pipeline. Troi assumes that MusicBrainz IDs
+are available for all the data passing through the system. This allows us to create a powerful
+toolkit underpinned by rich datasets, but it does have the disadvantage that recommendations
+can only be created for music present in MusicBrainz.
+
+For a much more detailed introduction to Troi, please see :ref:`technical-introduction`.
+
+
+MetaBrainz APIs
+---------------
+
+To accomplish the goal of an API-first toolkit, we, have created and hosted a number of data-sets
 that can be accessed as a part of this project. From Troi you can call any API you'd like, including
 the MusicBrainz and ListenBrainz APIs. We have also created the following sites with more API endpoints
 to support Troi:
@@ -29,7 +41,7 @@ Trivia
 The project is named after `Deanna Troi <https://en.wikipedia.org/wiki/Deanna_Troi>`_, the empath on the
 TV series Star Trek: The Next Generation.
 
-Documentation Page
+Troi Documentation
 ------------------
 
 .. toctree::
@@ -38,6 +50,7 @@ Documentation Page
 
    introduction.rst
    patches
+   entities
    elements/index
    elements/musicbrainz
    elements/listenbrainz
