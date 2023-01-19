@@ -47,9 +47,6 @@ Trivia
 The project is named after `Deanna Troi <https://en.wikipedia.org/wiki/Deanna_Troi>`_, the empath on the
 TV series Star Trek: The Next Generation.
 
-Troi Documentation
-------------------
-
 .. toctree::
    :maxdepth: 2
    :caption: troi documentation index
