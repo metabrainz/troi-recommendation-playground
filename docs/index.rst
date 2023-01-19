@@ -14,6 +14,12 @@ can only be created for music present in MusicBrainz.
 
 For a much more detailed introduction to Troi, please see :ref:`technical-introduction`.
 
+User Guide
+----------
+
+For end-user guide on how to run Troi and what the various command line arguments are, please
+see our :ref:`user-guide`.
+
 
 MetaBrainz APIs
 ---------------
@@ -48,6 +54,8 @@ Troi Documentation
    :maxdepth: 2
    :caption: Our documentation pages:
 
+   installation.rst
+   user-guide.rst
    introduction.rst
    patches
    entities

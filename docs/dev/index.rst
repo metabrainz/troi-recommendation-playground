@@ -12,11 +12,11 @@ for end users, so thos are defined in the main section of our docs.
 troi.cli
 --------
 
-This module is the entry point for the troi command line interface:
+This module is the entry point for the troi command line interface. 
 
 .. click:: troi.cli:cli
    :prog: python -m troi.cli
-   :nested: full
+   :nested: short
 
 troi.core
 ---------

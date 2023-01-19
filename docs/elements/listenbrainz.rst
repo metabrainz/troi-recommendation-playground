@@ -81,3 +81,22 @@ Given a user_name and a time_range, fetch the top recording statistics for that 
 defined `in the ListenBrainz Statistics API documentation <https://listenbrainz.readthedocs.io/en/latest/users/api/statistics.html#constants>`_.
 
 .. autoclass:: troi.listenbrainz.stats.UserRecordingElement
+
+User Related Elements
+---------------------
+
+troi.listenbrainz.user.UserListElement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given a list of users, return those users as User objects.
+
+.. autoclass:: troi.listenbrainz.user.UserListElement
+
+
+troi.listenbrainz.yim_user.YIMUserListElement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This Element is used for when we run the Year in Music report and create playlists. The elment fetches the list of
+users who should have YIM playlists generated and returns them.
+
+.. autoclass:: troi.listenbrainz.yim_user.YIMUserListElement
