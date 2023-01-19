@@ -6,7 +6,10 @@ from troi import Element, Artist, PipelineError, DEVELOPMENT_SERVER_URL
 
 class ArtistCreditIdLookupElement(Element):
     '''
-       Look up MBIDs for the given artist_credit_ids
+       Look up artist_credit_name and artist_credit_mbids for the Artists that have artist_credit_id defined.
+
+       No parameters needed for objection creation.
+
     '''
 
     SERVER_URL = DEVELOPMENT_SERVER_URL + "/artist-credit-id-lookup/json"

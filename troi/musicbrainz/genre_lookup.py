@@ -7,8 +7,9 @@ MAX_MBIDS_PER_CALL = 20
 
 class GenreLookupElement(Element):
     """
-        Look up musicbrainz tags for a list of recordings recordings, based on recording mbid.
-        Mosly for experimentation for now -- still needs support for adding genre vs tag.
+        Look up musicbrainz tags and genres for a list of Recordings, based on recording mbid.
+
+        :param count_threshold: This integer parameter controls which tags/genres to load. If the tag_count (the number of times a tag/genre has been applied to this Recording) is greate or equal to count_threshold, then the tag/genre will be kept and returned. Use 0 to return all tags/genres.
     """
 
     SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"

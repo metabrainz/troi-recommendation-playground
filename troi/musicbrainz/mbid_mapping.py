@@ -8,6 +8,8 @@ class MBIDMappingLookupElement(Element):
     '''
        Look up MBIDs for the given recordings, if possible. If recordings
        are not found, their data remains unchanged.
+
+       :param remove_unmatched: If True (default False) do not return any Recordings that were not found using the mapping.
     '''
 
     SERVER_URL = "https://labs.api.listenbrainz.org/mbid-mapping/json"
