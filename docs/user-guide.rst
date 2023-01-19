@@ -34,3 +34,5 @@ To generate a playlist from a patch and display it and then upload it to ListenB
 
 This will generate a playlist and print the list to the terminal and then upload it to ListenBrainz. You can find your
 user token on your `profile page at ListenBrainz <https://listenbrainz.org/profile/>`_.
+
+From here on you can explore different :ref:`patches` or read how Troi works :ref:`technical-introduction`

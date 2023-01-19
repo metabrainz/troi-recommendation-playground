@@ -52,7 +52,7 @@ Troi Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Our documentation pages:
+   :caption: troi documentation index
 
    installation.rst
    user-guide.rst
