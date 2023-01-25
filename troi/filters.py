@@ -394,10 +394,18 @@ class NeverListenedFilterElement(troi.Element):
 
         results = []
         for r in recordings:
-            if "latest_listened_at" not in r.listenbrainz or r.listenbrainz["latest_listened_at"] is None:
-                continue
-
-            results.append(r)
+            # has this track never been listened to before?
+            if "latest_listened_at" in r.listenbrainz and r.listenbrainz["latest_listened_at"]:
+                if self.remove_unlistened:
+                    results.append(r)
+                else:
+                    continue
+            else:
+                if self.remove_unlistened:
+                    continue
+                else:
+                    results.append(r)
+            
 
         return results
 
