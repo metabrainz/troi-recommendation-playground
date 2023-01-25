@@ -51,10 +51,6 @@ class DailyJamsPatch(troi.patch.Patch):
     def description():
         return "Generate a daily playlist from the ListenBrainz recommended recordings."
 
-    def apply_filters(self, user_name, element):
-
-        return hate_filter
-
     def create(self, inputs):
         user_name = inputs['user_name']
         jam_date = inputs.get('jam_date')
