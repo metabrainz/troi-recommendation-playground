@@ -403,10 +403,17 @@ class PlaylistMakerElement(Element):
         :param patch-slug: The patch slug (URL-safe short name) of the patch that created the playlist. Optional.
         :param max_num_recordings: The maximum number of recordings to have in the playlist. Extras are discarded. Optional argument, and the default is to keep all recordings
         :param max_artist_occurence: The number of times and artist is allowed to appear in the playlist. Any recordings that exceed this count ared discarded. Optional, default is to keep all recordings.
-
+        :param shuffle: If True, the playlist will be shuffled before being truncated. Optional. Default: False
     '''
 
-    def __init__(self, name, desc, patch_slug=None, user_name=None, max_num_recordings=None, max_artist_occurrence=None):
+    def __init__(self,
+                 name,
+                 desc,
+                 patch_slug=None,
+                 user_name=None,
+                 max_num_recordings=None,
+                 max_artist_occurrence=None,
+                 shuffle=False):
         super().__init__()
         self.name = name
         self.desc = desc
@@ -414,6 +421,7 @@ class PlaylistMakerElement(Element):
         self.user_name = user_name
         self.max_num_recordings = max_num_recordings
         self.max_artist_occurrence = max_artist_occurrence
+        self.shuffle = shuffle
 
     @staticmethod
     def inputs():
@@ -448,13 +456,15 @@ class PlaylistMakerElement(Element):
 
             recordings = kept[:max_num_recordings]
 
-        return [
-            Playlist(name=self.name,
-                     description=self.desc,
-                     recordings=recordings,
-                     patch_slug=self.patch_slug,
-                     user_name=self.user_name)
-        ]
+        playlist = Playlist(name=self.name,
+                            description=self.desc,
+                            recordings=recordings,
+                            patch_slug=self.patch_slug,
+                            user_name=self.user_name)
+        if self.shuffle:
+            playlist.shuffle()
+
+        return [playlist]
 
 
 class PlaylistFromJSPFElement(Element):

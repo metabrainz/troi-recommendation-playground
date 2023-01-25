@@ -70,14 +70,8 @@ class DailyJamsPatch(troi.patch.Patch):
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000)
 
-        every_7th = troi.filters.EvertNthItemElement(7, jam_date_dt.weekday())
-        every_7th.set_sources(recs)
-
-        raw_recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        raw_recs_lookup.set_sources(every_7th)
-
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
-        recent_listens_lookup.set_sources(raw_recs_lookup)
+        recent_listens_lookup.set_sources(recs)
 
         # Remove tracks that have not been listened to before.
         never_listened = troi.filters.NeverListenedFilterElement()
@@ -89,14 +83,18 @@ class DailyJamsPatch(troi.patch.Patch):
         feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
         feedback_lookup.set_sources(latest_filter)
 
+        recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        recs_lookup.set_sources(feedback_lookup)
+
         hate_filter = troi.filters.HatedRecordingsFilterElement()
-        hate_filter.set_sources(feedback_lookup)
+        hate_filter.set_sources(recs_lookup)
 
         pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
                                         desc="Daily jams playlist!",
                                         patch_slug=self.slug(),
                                         max_num_recordings=50,
-                                        max_artist_occurrence=2)
+                                        max_artist_occurrence=2,
+                                        shuffle=True)
         pl_maker.set_sources(hate_filter)
 
         return pl_maker
