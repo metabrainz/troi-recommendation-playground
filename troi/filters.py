@@ -366,6 +366,42 @@ class LatestListenedAtFilterElement(troi.Element):
         return results
 
 
+class NeverListenedFilterElement(troi.Element):
+    '''
+        Remove/keep only recordings if they have not/been listened to.
+    '''
+
+    def __init__(self, remove_unlistened=True):
+        '''
+            Filter the recordings according to latest_listened_at field in the lb metadata. 
+            If that field is None, treat it as if the user hasn't listened to this track
+            and remove it, or keep it, based on the remove_unlistened parameter.
+        '''
+        troi.Element.__init__(self)
+        self.remove_unlistened = remove_unlistened
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs, debug=False):
+
+        recordings = inputs[0]
+
+        results = []
+        for r in recordings:
+            if "latest_listened_at" not in r.listenbrainz or r.listenbrainz["latest_listened_at"] is None:
+                continue
+
+            results.append(r)
+
+        return results
+
+
 class HatedRecordingsFilterElement(troi.Element):
     """ Remove recordings that have been hated by the user """
 
