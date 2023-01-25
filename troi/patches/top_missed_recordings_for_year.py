@@ -5,7 +5,7 @@ import psycopg2.extras
 
 import troi
 from troi import Recording, Element
-from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
+from troi.playlist import PlaylistMakerElement
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
 
 
@@ -144,10 +144,8 @@ class TopMissedTracksPatch(troi.patch.Patch):
         pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, user_name),
                                                       self.DESC % (user_name, year, your_peeps),
                                                       patch_slug=self.slug(),
-                                                      user_name=user_name)
+                                                      user_name=user_name,
+                                                      max_artist_occurrence=2)
         pl_maker.set_sources(rec_lookup)
 
-        reducer = PlaylistRedundancyReducerElement(max_num_recordings=self.max_num_recordings)
-        reducer.set_sources(pl_maker)
-
-        return reducer
+        return pl_maker

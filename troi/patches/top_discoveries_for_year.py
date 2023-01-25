@@ -7,7 +7,7 @@ import troi.musicbrainz.year_lookup
 import troi.sorts
 from troi import Recording
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-from troi.playlist import PlaylistShuffleElement, PlaylistRedundancyReducerElement
+from troi.playlist import PlaylistShuffleElement, PlaylistMakerElement
 
 
 class TopDiscoveries(troi.patch.Patch):
@@ -57,16 +57,14 @@ class TopDiscoveries(troi.patch.Patch):
                                      json_post_data=[{ 'user_id': inputs['user_id'] }])
 
         year = datetime.now().year
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
-                                                      self.DESC % (inputs['user_name'], year),
-                                                      patch_slug=self.slug(),
-                                                      user_name=inputs['user_name'])
+        pl_maker = PlaylistMakerElement(self.NAME % (year, inputs['user_name']),
+                                        self.DESC % (inputs['user_name'], year),
+                                        patch_slug=self.slug(),
+                                        user_name=inputs['user_name'],
+                                        max_artist_occurrence=2)
         pl_maker.set_sources(recs)
 
-        shaper = PlaylistRedundancyReducerElement()
-        shaper.set_sources(pl_maker)
-
         shuffle = PlaylistShuffleElement()
-        shuffle.set_sources(shaper)
+        shuffle.set_sources(pl_maker)
 
         return shuffle

@@ -5,7 +5,7 @@ import troi.tools.area_lookup
 import troi.musicbrainz.recording_lookup
 import troi.patch
 import troi.filters
-from troi.playlist import PlaylistRedundancyReducerElement
+import troi.playlist
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
 
@@ -66,10 +66,7 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
                                                        'area_mbid': area_id }])
 
         name = "Random recordings from %s between %d and %d." % (area_name, start_year, end_year)
-        pl_maker = troi.playlist.PlaylistMakerElement(name=name, desc=name)
+        pl_maker = troi.playlist.PlaylistMakerElement(name=name, desc=name, max_artist_occurrence=2)
         pl_maker.set_sources(recs)
 
-        reducer = PlaylistRedundancyReducerElement()
-        reducer.set_sources(pl_maker)
-
-        return reducer
+        return pl_maker

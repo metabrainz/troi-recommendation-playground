@@ -385,3 +385,41 @@ class HatedRecordingsFilterElement(troi.Element):
                 continue
             results.append(r)
         return results
+
+
+class EvertNthItemElement(troi.Element):
+    '''
+        This element returns the nth item from the given list, starting with a given offset.
+
+        :param n: determines the every nth item to return. Must be greater than 0.
+        :param offset: determines the offset where to start returning recordings.
+    '''
+
+    def __init__(self, n, offset = 0):
+        troi.Element.__init__(self)
+        self.n = n
+        self.offset = offset
+
+    @staticmethod
+    def inputs():
+        return []
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs):
+        recordings = inputs[0]
+
+        output = []
+        index = self.offset
+        while True:
+            try:
+                output.append(recordings[index])
+                index += self.n
+            except IndexError:
+                break
+
+        return output
+
+

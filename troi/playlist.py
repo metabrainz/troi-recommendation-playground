@@ -34,13 +34,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
                          all tracks will be serialized.
     """
 
-    data = { "creator": "ListenBrainz Troi",
-             "extension": {
-                 PLAYLIST_EXTENSION_URI: {
-                     "public": True
-                 }
-           }
-    }
+    data = {"creator": "ListenBrainz Troi", "extension": {PLAYLIST_EXTENSION_URI: {"public": True}}}
 
     if playlist.name:
         data["title"] = playlist.name
@@ -63,7 +57,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
         track = {}
         artist_mbids = []
         if e.artist is not None:
-            artist_mbids = [ str(mbid) for mbid in e.artist.mbids or [] ]
+            artist_mbids = [str(mbid) for mbid in e.artist.mbids or []]
             track["creator"] = e.artist.name if e.artist else ""
 
         track["album"] = e.release.name if e.release else ""
@@ -79,7 +73,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
 
     data['track'] = tracks
 
-    return { "playlist" : data }
+    return {"playlist": data}
 
 
 def _deserialize_from_jspf(data) -> Playlist:
@@ -102,12 +96,10 @@ def _deserialize_from_jspf(data) -> Playlist:
 
         recordings.append(recording)
 
-    playlist = Playlist(
-        name=data["title"],
-        description=data.get("annotation"),
-        mbid=data["identifier"].split("/")[-1],
-        recordings=recordings
-    )
+    playlist = Playlist(name=data["title"],
+                        description=data.get("annotation"),
+                        mbid=data["identifier"].split("/")[-1],
+                        recordings=recordings)
     return playlist
 
 
@@ -225,8 +217,7 @@ class PlaylistElement(Element):
                 except json.decoder.JSONDecodeError:
                     err = r.text
 
-                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" %
-                                    (r.status_code, err))
+                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" % (r.status_code, err))
 
             try:
                 result = json.loads(r.text)
@@ -238,7 +229,11 @@ class PlaylistElement(Element):
 
         return playlist_mbids
 
-    def submit_to_spotify(self, user_id: str, token: str, is_public: bool = True, is_collaborative: bool = False,
+    def submit_to_spotify(self,
+                          user_id: str,
+                          token: str,
+                          is_public: bool = True,
+                          is_collaborative: bool = False,
                           existing_urls: str = None):
         """ Given spotify user id, spotify auth token with appropriate permissions and playlist visibility
          characteristics, upload the playlists generated in the current element to Spotify and return the
@@ -268,11 +263,7 @@ class PlaylistElement(Element):
                 playlist_url = existing_urls[idx]
                 playlist_id = playlist_url.split("/")[-1]
                 try:
-                    sp.playlist_change_details(
-                        playlist_id=playlist_id,
-                        name=playlist.name,
-                        description=playlist.description
-                    )
+                    sp.playlist_change_details(playlist_id=playlist_id, name=playlist.name, description=playlist.description)
                 except SpotifyException as err:
                     # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
                     print("provided playlist url has been unfollowed/deleted by the user, creating a new one")
@@ -280,13 +271,11 @@ class PlaylistElement(Element):
 
             if not playlist_id:
                 # create new playlist
-                spotify_playlist = sp.user_playlist_create(
-                    user=user_id,
-                    name=playlist.name,
-                    public=is_public,
-                    collaborative=is_collaborative,
-                    description=playlist.description
-                )
+                spotify_playlist = sp.user_playlist_create(user=user_id,
+                                                           name=playlist.name,
+                                                           public=is_public,
+                                                           collaborative=is_collaborative,
+                                                           description=playlist.description)
                 playlist_id = spotify_playlist["id"]
                 playlist_url = spotify_playlist["external_urls"]["spotify"]
 
@@ -408,15 +397,23 @@ class PlaylistBPMSawtoothSortElement(Element):
 class PlaylistMakerElement(Element):
     '''
         This element takes in Recordings and spits out a Playlist.
+
+        :param name: The name of the playlist
+        :param desc: The description of the playlist
+        :param patch-slug: The patch slug (URL-safe short name) of the patch that created the playlist. Optional.
+        :param max_num_recordings: The maximum number of recordings to have in the playlist. Extras are discarded. Optional argument, and the default is to keep all recordings
+        :param max_artist_occurence: The number of times and artist is allowed to appear in the playlist. Any recordings that exceed this count ared discarded. Optional, default is to keep all recordings.
+
     '''
 
-    def __init__(self, name, desc, patch_slug=None, user_name=None, max_num_recordings=None):
+    def __init__(self, name, desc, patch_slug=None, user_name=None, max_num_recordings=None, max_artist_occurrence=None):
         super().__init__()
         self.name = name
         self.desc = desc
         self.patch_slug = patch_slug
         self.user_name = user_name
         self.max_num_recordings = max_num_recordings
+        self.max_artist_occurrence = max_artist_occurrence
 
     @staticmethod
     def inputs():
@@ -424,21 +421,40 @@ class PlaylistMakerElement(Element):
 
     @staticmethod
     def outputs():
+        # We never actually return more than one playlist.
         return [Playlist]
 
     def read(self, inputs):
-        if self.max_num_recordings is not None:
-            return [Playlist(name=self.name,
-                    description=self.desc,
-                    recordings=inputs[0][:self.max_num_recordings],
-                    patch_slug=self.patch_slug,
-                    user_name=self.user_name)]
+        recordings = inputs[0]
+
+        if self.max_num_recordings is None:
+            max_num_recordings = len(recordings)
         else:
-            return [Playlist(name=self.name,
-                    description=self.desc,
-                    recordings=inputs[0],
-                    patch_slug=self.patch_slug,
-                    user_name=self.user_name)]
+            max_num_recordings = self.max_num_recordings
+
+        if self.max_artist_occurrence is not None:
+            kept = []
+            artists = defaultdict(int)
+            for r in recordings:
+                keep = True
+                for mbid in r.artist.mbids:
+                    if artists[mbid] >= self.max_artist_occurrence:
+                        keep = False
+                        break
+                    artists[mbid] += 1
+
+                if keep:
+                    kept.append(r)
+
+            recordings = kept[:max_num_recordings]
+
+        return [
+            Playlist(name=self.name,
+                     description=self.desc,
+                     recordings=recordings,
+                     patch_slug=self.patch_slug,
+                     user_name=self.user_name)
+        ]
 
 
 class PlaylistFromJSPFElement(Element):
@@ -490,4 +506,3 @@ class DumpElement(Element):
             pr.print(input)
 
         return inputs[0]
-
