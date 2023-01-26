@@ -17,6 +17,7 @@ MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
 class NewJamsPatch(troi.patch.Patch):
     """
+        Generate a playlist from the ListenBrainz recommended recordings that the user has not listened to.
     """
 
     def __init__(self, debug=False):
