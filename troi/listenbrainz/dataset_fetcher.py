@@ -25,7 +25,68 @@ class DataSetFetcherElement(Element):
 
     @staticmethod
     def outputs():
-        return [Recording]
+        return [Recording, Artist]
+
+
+    def create_recording(self, row):
+
+        r = Recording(mbid=row['recording_mbid']) 
+        if 'artist_credit_name' in row:
+            if 'artist_credit_id' in row:
+                r.artist.artist_credit_id = row['artist_credit_id']
+
+        artist = None
+        if 'artist_credit_name' in row:
+            artist = Artist(name=row['artist_credit_name'])
+
+        if 'artist_credit_id' in row:
+            if artist is None:
+                artist = Artist(artist_credit_id=row['artist_credit_id'])
+            else:
+                artist.artist_credit_id = row['artist_credit_id']
+
+        if 'artist_mbids' in row:
+            if artist is None:
+                artist = Artist(mbids=row['artist_mbids'])
+            else:
+                artist.mbids = row['artist_mbids']
+
+        r.artist = artist
+
+        if 'recording_name' in row:
+            r.name = row['recording_name']
+
+        if 'year' in row:
+            r.year = row['year']
+
+        if 'listen_count' in row:
+            r.listenbrainz={"listen_count": row["listen_count"]}
+
+        if 'bpm' in row:
+            r.acousticbrainz={"bpm": row["bpm"]}
+
+        return r
+
+    def create_artists(self, row):
+        # TODO REview this, not finished!
+
+        artist = None
+        if 'artist_credit_name' in row:
+            artist = Artist(name=row['artist_credit_name'])
+
+        if 'artist_credit_id' in row:
+            if artist is None:
+                artist = Artist(artist_credit_id=row['artist_credit_id'])
+            else:
+                artist.artist_credit_id = row['artist_credit_id']
+
+        if 'artist_mbids' in row:
+            if artist is None:
+                artist = Artist(mbids=row['artist_mbids'])
+            else:
+                artist.mbids = row['artist_mbids']
+
+        return artist
 
     def read(self, inputs):
 
@@ -33,46 +94,13 @@ class DataSetFetcherElement(Element):
         if r.status_code != 200:
             raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" % (r.status_code, r.text))
 
-        recordings = []
+        output = []
         for row in r.json():
-            if row['recording_mbid'] is None:
-                continue
+            if "recordind_mbid" in row:
+                r = self.create_recording(row)
+            elif "artist_mbid" in row:
+                r = self.create_artist(row)
 
-            r = Recording(mbid=row['recording_mbid']) 
-            if 'artist_credit_name' in row:
-                if 'artist_credit_id' in row:
-                    r.artist.artist_credit_id = row['artist_credit_id']
+            output.append(r)
 
-            artist = None
-            if 'artist_credit_name' in row:
-                artist = Artist(name=row['artist_credit_name'])
-
-            if 'artist_credit_id' in row:
-                if artist is None:
-                    artist = Artist(artist_credit_id=row['artist_credit_id'])
-                else:
-                    artist.artist_credit_id = row['artist_credit_id']
-
-            if 'artist_mbids' in row:
-                if artist is None:
-                    artist = Artist(mbids=row['artist_mbids'])
-                else:
-                    artist.mbids = row['artist_mbids']
-
-            r.artist = artist
-
-            if 'recording_name' in row:
-                r.name = row['recording_name']
-
-            if 'year' in row:
-                r.year = row['year']
-
-            if 'listen_count' in row:
-                r.listenbrainz={"listen_count": row["listen_count"]}
-
-            if 'bpm' in row:
-                r.acousticbrainz={"bpm": row["bpm"]}
-
-            recordings.append(r)
-
-        return recordings
+        return output
