@@ -1,7 +1,7 @@
 import requests
 import ujson
 
-from troi import Element, Artist, PipelineError, Recording
+from troi import Element, Artist, PipelineError, Recording, Playlist
 
 
 class RecordingLookupElement(Element):
@@ -17,15 +17,18 @@ class RecordingLookupElement(Element):
 
     @staticmethod
     def inputs():
-        return [ Recording ]
+        return [ Recording, Playlist ]
 
     @staticmethod
     def outputs():
-        return [ Recording ]
+        return [ Recording, Playlist ]
 
     def read(self, inputs):
 
-        recordings = inputs[0]
+        if isinstance(inputs[0], Playlist):
+            recordings = inputs[0].recordings
+        else:
+            recordings = inputs[0]
         if not recordings:
             return []
 
@@ -79,5 +82,9 @@ class RecordingLookupElement(Element):
             r.listenbrainz["canonical_recording_mbid"] = row["canonical_recording_mbid"]
 
             output.append(r)
+
+        if isinstance(inputs[0], Playlist):
+            inputs[0].recordings = output
+            output = inputs[0]
 
         return output

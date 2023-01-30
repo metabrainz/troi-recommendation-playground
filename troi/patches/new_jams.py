@@ -15,10 +15,9 @@ BATCH_SIZE_RECS = 100  # the number of recommendations fetched in 1 go
 MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
 
-class DailyJamsPatch(troi.patch.Patch):
+class NewJamsPatch(troi.patch.Patch):
     """
-       Take the raw recommendations, filter out recently listened tracks, unlisted tracks, hated tracks
-       and then randomly pick 50 of them, with never more than 2 recordings by the same artist.
+        Generate a playlist from the ListenBrainz recommended recordings that the user has not listened to.
     """
 
     def __init__(self, debug=False):
@@ -27,16 +26,13 @@ class DailyJamsPatch(troi.patch.Patch):
     @staticmethod
     def inputs():
         """
-        Generate a daily playlist from the ListenBrainz recommended recordings.
+        Generate a playlist from the ListenBrainz recommended recordings that the user has not listened to.
 
         \b
         USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
-        JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
-        can be on different dates). Required formatting for the date is 'YYYY-MM-DD'.
         """
         return [
-            {"type": "argument", "args": ["user_name"]},
-            {"type": "argument", "args": ["jam_date"], "kwargs": {"required": False}}
+            {"type": "argument", "args": ["user_name"]}
         ]
 
     @staticmethod
@@ -45,52 +41,40 @@ class DailyJamsPatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "daily-jams"
+        return "new-jams"
 
     @staticmethod
     def description():
-        return "Generate a daily playlist from the ListenBrainz recommended recordings."
+        return "Generate a playlist from the ListenBrainz recommended recordings that the user has not listened to."
 
     def create(self, inputs):
         user_name = inputs['user_name']
-        jam_date = inputs.get('jam_date')
-        if jam_date is None:
-            jam_date_dt  = datetime.utcnow()
-        else:
-            try:
-                jam_date_dt = datetime.strptime(jam_date, "%Y-%m-%d")
-            except ValueError:
-                raise RuntimeError(f"Cannot parse date {jam_date}. Must be in format YYYY-MM-DD.")
-
-        jam_date = jam_date_dt.strftime("%Y-%m-%d %a")
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000)
 
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
         recent_listens_lookup.set_sources(recs)
 
-        # Remove tracks that have not been listened to before.
-        never_listened = troi.filters.NeverListenedFilterElement()
+        # Remove tracks that have been listened to before.
+        never_listened = troi.filters.NeverListenedFilterElement(remove_unlistened=False)
         never_listened.set_sources(recent_listens_lookup)
 
-        latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
-        latest_filter.set_sources(never_listened)
-
         feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
-        feedback_lookup.set_sources(latest_filter)
+        feedback_lookup.set_sources(never_listened)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(feedback_lookup)
 
+        # You'd think you wouldn't need a hate filter for tracks a user has never listened to,
+        # but there are users who fake listens just to hate them. Commenting for a friend.
         hate_filter = troi.filters.HatedRecordingsFilterElement()
         hate_filter.set_sources(recs_lookup)
 
-        pl_maker = PlaylistMakerElement(name="Daily Jams for %s, %s" % (user_name, jam_date),
-                                        desc="Daily jams playlist!",
+        pl_maker = PlaylistMakerElement(name="New Jams for %s" % (user_name),
+                                        desc="This playlist contains tracks that you have not listened to yet.",
                                         patch_slug=self.slug(),
                                         max_num_recordings=50,
-                                        max_artist_occurrence=2,
-                                        shuffle=True)
+                                        max_artist_occurrence=2)
         pl_maker.set_sources(hate_filter)
 
         return pl_maker

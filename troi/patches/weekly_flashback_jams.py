@@ -73,7 +73,7 @@ class WeeklyFlashbackJams(troi.patch.Patch):
 
         \b
         USER_NAME: is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE: is The type of daily jam. Must be 'top' or 'similar'.
+        TYPE: is The type of daily jam. Must be 'top', 'similar' or 'raw'.
         """
         return [
             {"type": "argument", "args": ["user_name"]},
@@ -97,8 +97,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         type = inputs['type']
         print(type)
 
-        if type not in ("top", "similar"):
-            raise PipelineError("type must be either 'top' or 'similar'")
+        if type not in ("top", "similar", "raw"):
+            raise PipelineError("type must be either 'top', 'similar' or 'raw'")
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name=user_name,
                                                                           artist_type=type,
