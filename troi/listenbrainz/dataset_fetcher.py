@@ -92,7 +92,7 @@ class DataSetFetcherElement(Element):
 
         try:
             data = r.json()[3]["data"]
-        except (IndexErrror, KeyError):
+        except (IndexError, KeyError):
             data = r.json()
 
         output = []

@@ -120,20 +120,15 @@ class ArtistRadioPatch(troi.patch.Patch):
     def create(self, inputs):
         artist_mbids = inputs['artist_mbid']
 
-        elements = [ ArtistMBIDSourceEement(artist_mbids) ]
-        for artist_mbid in artist_mbids:
-            elements.append(DataSetFetcherElement(server_url="https://labs.api.listenbrainz.org/similar-artists/json",
+        similar_artists = DataSetFetcherElement(server_url="https://labs.api.listenbrainz.org/similar-artists/json",
                                      max_num_items=5,
                                      json_post_data=[{
-                                         'artist_mbid': artist_mbid,
+                                         'artist_mbid': ",".join(artist_mbids),
                                          'algorithm': "session_based_days_1800_session_300_contribution_3_threshold_10_limit_100_filter_True_skip_30"
-                                     }]))
-
-        union = UnionElement()
-        union.set_sources(elements)
+                                     }])
 
         pop_recordings = PopularRecordingsElement(max_num_recordings=3)
-        pop_recordings.set_sources(union)
+        pop_recordings.set_sources(similar_artists)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(pop_recordings)
