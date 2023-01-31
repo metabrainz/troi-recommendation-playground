@@ -123,7 +123,7 @@ class ArtistRadioPatch(troi.patch.Patch):
         similar_artists = DataSetFetcherElement(server_url="https://labs.api.listenbrainz.org/similar-artists/json",
                                      max_num_items=5,
                                      json_post_data=[{
-                                         'artist_mbid': ",".join(artist_mbids),
+                                         '[artist_mbid]': ",".join(artist_mbids),
                                          'algorithm': "session_based_days_1800_session_300_contribution_3_threshold_10_limit_100_filter_True_skip_30"
                                      }])
 
