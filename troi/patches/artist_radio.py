@@ -66,6 +66,27 @@ class PopularRecordingsElement(troi.Element):
         return output
 
 
+class ArtistMBIDSourceEement(troi.Element):
+
+    def __init__(self, artist_mbids):
+        troi.Element.__init__(self)
+        self.artist_mbids = artist_mbids
+
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Artist]
+
+    def read(self, entities):
+
+        output = []
+        for mbid in self.artist_mbids:
+            output.append(Artist(mbids=[mbid]))
+
+        return output
+
+
 class ArtistRadioPatch(troi.patch.Patch):
     """
        Artist radio experimentation.
@@ -99,7 +120,7 @@ class ArtistRadioPatch(troi.patch.Patch):
     def create(self, inputs):
         artist_mbids = inputs['artist_mbid']
 
-        elements = []
+        elements = [ ArtistMBIDSourceEement(artist_mbids) ]
         for artist_mbid in artist_mbids:
             elements.append(DataSetFetcherElement(server_url="https://labs.api.listenbrainz.org/similar-artists/json",
                                      max_num_items=5,
