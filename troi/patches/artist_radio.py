@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 
 import requests
@@ -48,8 +49,7 @@ class PopularRecordingsElement(troi.Element):
 
     def read(self, entities):
 
-        for a in entities[0]:
-            print(a.mbids)
+        counts = defaultdict(int)
 
         r = requests.post(self.server_url, json=[ { "[artist_mbid]" : a.mbids[0] } for a in entities[0] ])
         if r.status_code != 200:
@@ -57,9 +57,11 @@ class PopularRecordingsElement(troi.Element):
 
         output = []
         for row in r.json():
-            output.append(Recording(mbid=row["recording_mbid"]))
-            if len(output) >= self.max_num_recordings:
-                break
+            if counts[row["artist_mbid"]] >= self.max_num_recordings:
+                continue
+
+            output.append(Recording(mbid=row["recording_mbid"], listenbrainz={ "listen_count": row["count"] }))
+            counts[row["artist_mbid"]] += 1
 
         return output
 
