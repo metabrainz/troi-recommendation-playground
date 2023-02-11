@@ -55,14 +55,7 @@ class DailyJamsPatch(troi.patch.Patch):
         user_name = inputs['user_name']
         jam_date = inputs.get('jam_date')
         if jam_date is None:
-            jam_date_dt  = datetime.utcnow()
-        else:
-            try:
-                jam_date_dt = datetime.strptime(jam_date, "%Y-%m-%d")
-            except ValueError:
-                raise RuntimeError(f"Cannot parse date {jam_date}. Must be in format YYYY-MM-DD.")
-
-        jam_date = jam_date_dt.strftime("%Y-%m-%d %a")
+            jam_date = datetime.utcnow().strftime("%Y-%m-%d %a")
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000)
 
