@@ -4,6 +4,7 @@ import troi.filters
 import troi.listenbrainz.feedback
 import troi.listenbrainz.listens
 import troi.listenbrainz.recs
+import troi.listenbrainz.graph
 import troi.musicbrainz.recording_lookup
 from troi import Playlist, Element, Recording
 from troi.musicbrainz.recording import RecordingListElement
@@ -59,8 +60,11 @@ class DailyJamsPatch(troi.patch.Patch):
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000)
 
+        graph = troi.listenbrainz.graph.GraphUserRecordingRecommendationsElement(f"rankings-{user_name}.png", user_name)
+        graph.set_sources(recs)
+
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
-        recent_listens_lookup.set_sources(recs)
+        recent_listens_lookup.set_sources(graph)
 
         # Remove tracks that have not been listened to before.
         never_listened = troi.filters.NeverListenedFilterElement()
