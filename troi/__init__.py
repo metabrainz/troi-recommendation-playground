@@ -41,12 +41,15 @@ class Element(ABC):
         # type check the source
         if len(self.inputs()) > 0:
             for source in sources:
+                matched = False if len(source.outputs()) > 0 else True
                 for output_type in source.outputs() or []:
                     if output_type in self.inputs():
+                        matched = True
                         break
-                    else:
-                        raise RuntimeError("Element %s cannot accept %s as input." %
-                                           (type(self).__name__, output_type)) 
+
+                if not matched:
+                    raise RuntimeError("Element %s cannot accept any of %s as input." %
+                                       (type(self).__name__, self.inputs())) 
 
 
     def check(self):
