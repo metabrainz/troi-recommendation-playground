@@ -4,6 +4,8 @@ from troi import Element, User
 class UserListElement(Element):
     '''
         This element is used to pass a provided list of users into the pipeline.
+
+        :param user_list: A list of user_names
     '''
 
     def __init__(self, user_list):

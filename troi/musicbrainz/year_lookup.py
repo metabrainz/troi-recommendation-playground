@@ -15,6 +15,7 @@ class YearLookupElement(Element):
         By default items that are not found in the year lookup are not returned by this element. Pass
         skip_not_found=False to init to keep tracks that failed the year lookup.
 
+        :param skip_not_found: If this is True (the default) then any Recordings for which the year could not be lookd up will not be returned from this Element.
     '''
 
     SERVER_URL = "https://labs.api.listenbrainz.org/year-artist-recording-year-lookup/json"

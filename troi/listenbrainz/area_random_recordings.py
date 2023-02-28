@@ -5,8 +5,11 @@ from troi import Element, Artist, Recording, PipelineError, DEVELOPMENT_SERVER_U
 
 class AreaRandomRecordingsElement(Element):
     '''
-        Given an area, find random tracks from releases that were released
-        by artists from that given area.
+        Given an area, find random Recordings from releases that were released by artists from that given area.
+
+        :param area_id: A musicbrainz area_id (integer)
+        :param start_year: The start year of the year range.
+        :param end_year: The end year of the year range.
     '''
 
     SERVER_URL =  DEVELOPMENT_SERVER_URL + "/area-random-recordings/json"

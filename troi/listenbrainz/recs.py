@@ -10,7 +10,11 @@ MAX_NUM_RECORDINGS_PER_REQUEST = 100
 
 class UserRecordingRecommendationsElement(Element):
     '''
-        Fetch recommended recording for a user from ListenBrainz
+        Fetch recommended recordings for a user from ListenBrainz.
+
+        :param user_name: The ListenBrainz user to fetch recs for.
+        :param artist_type: The type of recs to fetch. Must be one of "top", "similar" or "raw".
+        :param count: The number of recs to fetch. Defaults to 25.
     '''
 
     MAX_RECORDINGS_TO_FETCH = 2000

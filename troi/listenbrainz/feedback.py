@@ -8,7 +8,10 @@ from troi import Element, Recording
 
 
 class ListensFeedbackLookup(Element):
-    """ Element to look up the user's feedback for the given recordings in past X days. """
+    """ Element to look up the user's feedback for the given Recordings.
+
+        :param user_name: The ListenBrainz user_name for whom to fetch feedback information.
+    """
 
     def __init__(self, user_name):
         super().__init__()

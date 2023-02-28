@@ -2,6 +2,7 @@ from collections import defaultdict
 import json
 from typing import Dict, Tuple
 
+
 import requests
 import spotipy
 from spotipy import SpotifyException
@@ -113,7 +114,7 @@ class PlaylistElement(Element):
         be saved/submitted individually.
 
         Note that the Playlist entity object is distinct from this class -- the Playlist object tracks
-        the core components of a playlist for passing through troi piplines, whereas this class
+        the core components of a playlist for passing through troi piplines, whereas this clas
         is designed to be the end of the pipeline for saving results.
     """
 
@@ -191,10 +192,8 @@ class PlaylistElement(Element):
         """
             Submit the playlist to ListenBrainz.
 
-            token - the ListenBrainz user token to use to submit this playlist.
-            created_for - the ListenBrainz user name for whom this playlist was created.
-                          the token above must be an Approved Playlist Bot in the ListenBrainz
-                          server, otherwise the subission will fail.
+            :param token: the ListenBrainz user token to use to submit this playlist.
+            :param created_for: the ListenBrainz user name for whom this playlist was created. the token above must be an Approved Playlist Bot in the ListenBrainz server, otherwise the subission will fail.
         """
 
         if not self.playlists:

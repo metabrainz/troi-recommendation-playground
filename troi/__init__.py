@@ -31,6 +31,9 @@ class Element(ABC):
 
     def set_sources(self, sources):
         """
+           Set the source elements for this element.
+
+           :param sources: A list of objects derived from the Element class, containing at least 1 class. When the pipeline is executed the output of the provided class(es) read function will become the input to this class.
         """
 
         if not isinstance(sources, list):
@@ -134,6 +137,8 @@ class Element(ABC):
             If the initializers of other objects in the pipeline are updated,
             calling read() again will generate the set new. Passing True for
             debug should print helpful debug statements about its progress.
+
+            Note: This function should not be called directly by the user.
         '''
 
         pass

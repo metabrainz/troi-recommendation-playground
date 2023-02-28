@@ -7,6 +7,8 @@ from troi import Element, Artist, PipelineError, Recording, Playlist
 class RecordingLookupElement(Element):
     '''
         Look up a musicbrainz data for a list of recordings, based on MBID.
+
+        :param skip_not_found: If skip_not_found is set to True (the default) then Recordings that cannot be found in MusicBrainz will not be returned from this Element.
     '''
 
     SERVER_URL = "https://labs.api.listenbrainz.org/recording-mbid-lookup/json?count=%d"
