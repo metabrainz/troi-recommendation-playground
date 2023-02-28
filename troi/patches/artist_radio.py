@@ -105,7 +105,7 @@ class ArtistRadioPatch(troi.patch.Patch):
                                      max_num_items=5,
                                      json_post_data=[{
                                          'artist_mbid': artist_mbid,
-                                         'algorithm': "session_based_days_1800_session_300_contribution_3_threshold_10_limit_100_filter_True_skip_30"
+                                         'algorithm': "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
                                      }]))
 
         union = UnionElement()
