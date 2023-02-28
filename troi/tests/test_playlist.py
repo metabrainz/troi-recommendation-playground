@@ -93,7 +93,9 @@ class TestSpotifySubmission(unittest.TestCase):
             }
         })
 
-        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "foo"})
+        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "baz"})
+
+        mock_requests.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "foo"})
 
         mock_requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={
             "items": [
@@ -172,27 +174,24 @@ class TestSpotifySubmission(unittest.TestCase):
         # we had 4 tracks with mbids, out of those no matching spotify id was found for the last track id.
         # so we submitted the first spotify track id for the remaining tracks preserving the order in which
         # occur in the original playlist
-        self.assertEqual(history[2].json(), {
-            "uris": [
-                "spotify:track:47BBI51FKFwOMlIiX6m8ya",
-                "spotify:track:7y9bltr6hV3CsbqXWgwVZv",
-                "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
-            ]
-        })
+        self.assertEqual(history[2].json(), [
+            "spotify:track:47BBI51FKFwOMlIiX6m8ya",
+            "spotify:track:7y9bltr6hV3CsbqXWgwVZv",
+            "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
+        ])
 
         # history[3] is the request to retrieve tracks for checking whether the playlist has unplayable tracks
         # history[4] is the request to retrieve info for alternative spotify ids of unplayable tracks, only thing
         # to check about this is the query strings which the request matcher in the beginning of this method does
+        # history[5] is the request to reset the playlist tracks
 
         # we had found one track to be unplayable and replaced it with an alternative playable track. now updating the
         # playlist again so check the all the correct tracks and the new replaced tracks are sent and also in the
         # original order in which the tracks occur in the playlist
-        self.assertEqual(history[5].json(), {
-            "uris": [
-                "spotify:track:47BBI51FKFwOMlIiX6m8ya",
-                "spotify:track:4LWQfAhwP1Tf1wbzmT6NwW",
-                "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
-            ]
-        })
+        self.assertEqual(history[6].json(), [
+            "spotify:track:47BBI51FKFwOMlIiX6m8ya",
+            "spotify:track:4LWQfAhwP1Tf1wbzmT6NwW",
+            "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
+        ])
 
         self.assertEqual(playlist.playlists[0].additional_metadata["external_urls"]["spotify"], playlist_url)

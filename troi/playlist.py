@@ -1,10 +1,10 @@
 from collections import defaultdict
 import json
-from typing import Dict, Tuple
 
 
 import requests
 import spotipy
+from more_itertools import chunked
 from spotipy import SpotifyException
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, Release
@@ -277,8 +277,14 @@ class PlaylistElement(Element):
                                                            description=playlist.description)
                 playlist_id = spotify_playlist["id"]
                 playlist_url = spotify_playlist["external_urls"]["spotify"]
+            else:
+                # existing playlist, clear it
+                sp.playlist_replace_items(playlist_id, [])
 
-            result = sp.playlist_replace_items(playlist_id, spotify_track_ids)
+            # spotify API allows a max of 100 tracks in 1 request
+            for chunk in chunked(spotify_track_ids, 100):
+                sp.playlist_add_items(playlist_id, chunk)
+
             fixup_spotify_playlist(sp, playlist_id, mbid_spotify_index, spotify_mbid_index)
             submitted.append((playlist_url, playlist_id))
 
