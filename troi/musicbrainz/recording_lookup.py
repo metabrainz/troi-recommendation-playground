@@ -1,3 +1,5 @@
+from time import sleep
+
 import requests
 import ujson
 
@@ -40,9 +42,16 @@ class RecordingLookupElement(Element):
 
         self.debug("- debug %d recordings" % len(recordings))
 
-        r = requests.post(self.SERVER_URL % len(recordings), json=data)
-        if r.status_code != 200:
-            raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d" % r.status_code)
+        while True:
+            r = requests.post(self.SERVER_URL % len(recordings), json=data)
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d" % r.status_code)
+
+            break
 
         try:
             rows = ujson.loads(r.text)
