@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
+from time import sleep
 
 import requests
 
@@ -8,8 +9,14 @@ from troi import Element, Recording
 
 
 class RecentListensTimestampLookup(Element):
-    """ Element to look up the time when a user last listened given recordings in past X days. Note that the
-    element is stateful and caches the recent listens lookup results.
+    """
+        Element to look up the time when a user last listened given recordings in past X days.
+        Note that the element is stateful and caches the recent listens lookup results!
+
+        Timestamps are stored in the listenbrainz dict, with key name "latest_listened_at".
+
+        :param user_name: The ListenBrainz user for whome to fetch recent listen timestamps.
+        :param days: The number of days to check.
     """
 
     def __init__(self, user_name, days: int):
@@ -39,6 +46,10 @@ class RecentListensTimestampLookup(Element):
                 f"https://api.listenbrainz.org/1/user/{self.user_name}/listens",
                 params={"min_ts": min_ts, "count": 100}
             )
+            if response.status_code == 429:
+                sleep(2)
+                continue
+
             response.raise_for_status()
             data = response.json()["payload"]
             if len(data["listens"]) == 0:

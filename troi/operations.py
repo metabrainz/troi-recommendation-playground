@@ -51,6 +51,8 @@ class UniqueElement(troi.Element):
         (must be one of name or mbid) and return the unique list. recordings also allow
         msid as key and artists allow artist_credit_id as key. Currently the order of the
         list is not preserved. This should be improved on...
+
+        :param key: Which key to use for making the list unique. Defaults to "mbid".
     """
 
     def __init__(self, key="mbid"):

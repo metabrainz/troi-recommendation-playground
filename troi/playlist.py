@@ -1,9 +1,10 @@
 from collections import defaultdict
 import json
-from typing import Dict, Tuple
+
 
 import requests
 import spotipy
+from more_itertools import chunked
 from spotipy import SpotifyException
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, Release
@@ -113,7 +114,7 @@ class PlaylistElement(Element):
         be saved/submitted individually.
 
         Note that the Playlist entity object is distinct from this class -- the Playlist object tracks
-        the core components of a playlist for passing through troi piplines, whereas this class
+        the core components of a playlist for passing through troi piplines, whereas this clas
         is designed to be the end of the pipeline for saving results.
     """
 
@@ -191,10 +192,8 @@ class PlaylistElement(Element):
         """
             Submit the playlist to ListenBrainz.
 
-            token - the ListenBrainz user token to use to submit this playlist.
-            created_for - the ListenBrainz user name for whom this playlist was created.
-                          the token above must be an Approved Playlist Bot in the ListenBrainz
-                          server, otherwise the subission will fail.
+            :param token: the ListenBrainz user token to use to submit this playlist.
+            :param created_for: the ListenBrainz user name for whom this playlist was created. the token above must be an Approved Playlist Bot in the ListenBrainz server, otherwise the subission will fail.
         """
 
         if not self.playlists:
@@ -278,8 +277,14 @@ class PlaylistElement(Element):
                                                            description=playlist.description)
                 playlist_id = spotify_playlist["id"]
                 playlist_url = spotify_playlist["external_urls"]["spotify"]
+            else:
+                # existing playlist, clear it
+                sp.playlist_replace_items(playlist_id, [])
 
-            result = sp.playlist_replace_items(playlist_id, spotify_track_ids)
+            # spotify API allows a max of 100 tracks in 1 request
+            for chunk in chunked(spotify_track_ids, 100):
+                sp.playlist_add_items(playlist_id, chunk)
+
             fixup_spotify_playlist(sp, playlist_id, mbid_spotify_index, spotify_mbid_index)
             submitted.append((playlist_url, playlist_id))
 

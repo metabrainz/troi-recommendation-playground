@@ -5,7 +5,12 @@ import pylistenbrainz.errors
 
 class UserArtistsElement(Element):
     '''
-        Fetch artist statistics from ListenBrainz
+        Fetch artist statistics from ListenBrainz.
+
+        :param user_name: The ListenBrainz user for whom to fetch statistics.
+        :param time_range: The time range for which to fetch stats.
+        :param count: The number of items to return. Default 25.
+        :param offset: The offset into the results. Used for pagination.
     '''
 
     def __init__(self, user_name, count=25, offset=0, time_range='all_time', auth_token=None):
@@ -34,6 +39,11 @@ class UserArtistsElement(Element):
 class UserReleasesElement(Element):
     '''
         Fetch release statistics from ListenBrainz
+
+        :param user_name: The ListenBrainz user for whom to fetch statistics.
+        :param time_range: The time range for which to fetch stats.
+        :param count: The number of items to return. Default 25.
+        :param offset: The offset into the results. Used for pagination.
     '''
 
     def __init__(self, user_name, count=25, offset=0, time_range='all_time', auth_token=None):
@@ -62,7 +72,12 @@ class UserReleasesElement(Element):
 
 class UserRecordingElement(Element):
     '''
-        Fetch recording statistics from ListenBrainz
+        Fetch release statistics from ListenBrainz
+
+        :param user_name: The ListenBrainz user for whom to fetch statistics.
+        :param time_range: The time range for which to fetch stats.
+        :param count: The number of items to return. Default 25.
+        :param offset: The offset into the results. Used for pagination.
     '''
 
     def __init__(self, user_name, count=25, offset=0, time_range='all_time'):

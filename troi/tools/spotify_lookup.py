@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import requests
 import spotipy
+from more_itertools import chunked
 
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 
@@ -106,4 +107,9 @@ def fixup_spotify_playlist(sp: spotipy.Spotify, playlist_id: str, mbid_spotify_i
     all_items.sort(key=lambda x: x[0])
     # update all track ids the spotify playlist
     finalized_ids = [x[1] for x in all_items]
-    result = sp.playlist_replace_items(playlist_id, finalized_ids)
+
+    # clear existing playlist
+    sp.playlist_replace_items(playlist_id, [])
+    # spotify API allows a max of 100 tracks in 1 request
+    for chunk in chunked(finalized_ids, 100):
+        sp.playlist_add_items(playlist_id, chunk)

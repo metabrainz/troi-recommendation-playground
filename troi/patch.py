@@ -14,7 +14,9 @@ class Patch(ABC):
 
     def log(self, msg):
         '''
-            Log a message with the info log level, which is the default for troi.
+            Log a message with the info log level, which is the default for troi. 
+
+            :param msg: The message to log.
         '''
         self.logger.info(msg)
 
@@ -27,27 +29,27 @@ class Patch(ABC):
     @staticmethod
     def inputs():
         """
-            This function should return a list of dicts that defined the type (argument or option), args,
-            and kwargs to be passed to the click function. MusicBrainz entities and python base types can
-            all be used. The documentation of the method is used as the help returned by the command. Example:
+            This function should return a list of dicts that defined the type (argument or option), args, and kwargs to be passed to the click function. MusicBrainz entities and python base types can all be used. The documentation of the method is used as the help returned by the command. Example:
 
-            [
-                {
-                    "type" : "argument",
-                    "args": ["num_recordings"],
-                    "kwargs": {
-                        "optional": True
+            .. code-block:: json
+
+                [
+                    {
+                        "type" : "argument",
+                        "args": ["num_recordings"],
+                        "kwargs": {
+                            "optional": true
+                        }
                     }
-                }
-            ]
+                ]
+
         """
         return None
 
     @staticmethod
     def slug():
         ''' 
-            Return the slug for this patch -- this is a URL friendly short identifier
-            that can be used to invoke this patch via an HTTP call.
+            Return the slug for this patch -- this is a URL friendly short identifier that can be used to invoke this patch via an HTTP call.
 
             e.g area-random-recordings
         '''
@@ -57,8 +59,7 @@ class Patch(ABC):
     @staticmethod
     def description():
         '''
-            Return the description for this patch -- this short description (not more than a paragraph)
-            should give the user an idea as to what the patch does.
+            Return the description for this patch -- this short description (not more than a paragraph) should give the user an idea as to what the patch does.
 
             e.g "Generate a list of random recordings from a given area."
         '''

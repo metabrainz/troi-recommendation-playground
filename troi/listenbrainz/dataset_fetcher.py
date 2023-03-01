@@ -5,13 +5,12 @@ from troi import Element, Artist, Recording, Playlist, PipelineError
 
 class DataSetFetcherElement(Element):
     '''
-        Fetch a dataset from the dataset hoster that contains at least a recording_mbid,
-        but also recording_name, listen_count and artist_credit_name if the fields
-        are available.
+        Fetch a dataset from the ListenBrainz experimental APIs that contains at least a recording_mbid.
+        Recording.name, listenbrainz.listen_count and Artist.artist_credit_name will also be filled out
+        if it is available in the returned data.
 
-        Args:
-            server_url: the URL to POST to
-            json_post_data: the dict data that will be POSTed as JSON
+        :param server_url: the URL to POST to
+        :param json_post_data: the dict data that will be POSTed as JSON
     '''
 
     def __init__(self, server_url, json_post_data, max_num_items=None):

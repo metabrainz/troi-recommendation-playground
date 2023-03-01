@@ -6,7 +6,9 @@ from troi import Element, Artist, PipelineError, Recording
 
 class MBIDReaderElement(Element):
     '''
-        Look up a musicbrainz data for a list of recordings, based on MBID.
+        Read MBIDs from a file, one per line and return Recording objects with the MBID field filled out.
+
+        :param filename: The name (with full path) of the file to read recording MBIDs from.
     '''
 
     def __init__(self, filename):

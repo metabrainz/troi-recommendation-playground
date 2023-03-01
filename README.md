@@ -1,35 +1,35 @@
 # Introduction
 
-This project is aim to create a sandbox for developers to develop and
-experiment with music recommendation engines. To accomplish this goal,
-the MetaBrainz Foundation has created and hosted a number of data-sets
-that can be accessed as a part of this project.
+This project aims to create an open source music recommendation toolkit with an API-first
+philiosophy. API-first means that user do no need to download a lot of data before they
+can start working with Troi -- all the needed data should ideally live in online APIs, making
+it very easy for someone to get started hacking on music recommendations.
 
-The project is named after [Deanna Troi](https://en.wikipedia.org/wiki/Deanna_Troi).
-
-The AcousticBrainz project hosts the Annoy indexes that allows
-you to find recordings that have similar characteristics given an initial recording.
+To accomplish this goal, we, the MetaBrainz Foundation, have created and hosted a number of data-sets
+that can be accessed as a part of this project. For instance, the more stable APIs are hosted on our
+[Labs API page](https://labs.api.listenbrainz.org).
 
 The ListenBrainz project offers a number of data sets:
 
-1. Collaborative filtered recordings that suggest what recordings a
-user should listen to based on their previous listening habits.
-2. User statistics that were derived from users recent listening
-habits.
+1. Collaborative filtered recordings that suggest what recordings a user should listen to based on
+their previous listening habits.
+2. User statistics that were derived from users recent listening habits.
 
-MusicBrainz provides:
+We will continue to build and host more datasets as time passes. If an API endpoint becomes useful to
+a greater number of people we will elevate these API endpoints to officially supported endpoints
+that we ensure are up to date on online at all times.
 
-1. Related artists -- which artists are related to other artists.
+The project is named after [Deanna Troi](https://en.wikipedia.org/wiki/Deanna_Troi).
 
-MessyBrainz provides:
+# Documentation
 
-1. MessyBrainz -> MusicBrainz mapping for mapping listens with MSIDs
-   to MusicBrainz MBIDs
+Full documentation for Troi is available at [troi.readthedocs.org](https://troi.readthedocs.org).
 
 
 ## Installation for end users
 
-TBC -- waiting for modules to be shipped to pypi.
+So far we've not uploaded Troi bundles to PyPi -- please use the installation instructions for developers
+below.
 
 ## Installation for Development
 
@@ -83,11 +83,17 @@ python3 -m troi.cli test -v
 python3 -m troi.cli test -v <file to test>
 ```
 
+## Building Documentation
+
+To build the documentation locally:
+
+    cd docs
+    pip install -r requirements.txt
+    make clean html
+
 ## References for the future path of Troi
 
 Troi is a rather primitive tool at this point in time, but as the MetaBrainz projects gather more data, we can improve
 how we generate playlists. A good overview of the technology and psychology behind playlists and recommendations, see:
 
 * https://www.slideshare.net/BenFields/finding-a-path-through-the-juke-box-the-playlist-tutorial?utm_source=pocket_mylist
-
-
