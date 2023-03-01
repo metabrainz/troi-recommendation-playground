@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
+from time import sleep
 
 import requests
 
@@ -45,6 +46,10 @@ class RecentListensTimestampLookup(Element):
                 f"https://api.listenbrainz.org/1/user/{self.user_name}/listens",
                 params={"min_ts": min_ts, "count": 100}
             )
+            if response.status_code == 429:
+                sleep(2)
+                continue
+
             response.raise_for_status()
             data = response.json()["payload"]
             if len(data["listens"]) == 0:
