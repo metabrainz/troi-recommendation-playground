@@ -16,13 +16,15 @@ class RecentListensTimestampLookup(Element):
         Timestamps are stored in the listenbrainz dict, with key name "latest_listened_at".
 
         :param user_name: The ListenBrainz user for whome to fetch recent listen timestamps.
+        :param auth_token: a ListenBrainz auth token
         :param days: The number of days to check.
     """
 
-    def __init__(self, user_name, days: int):
+    def __init__(self, user_name, days: int, auth_token=None):
         super().__init__()
         self.user_name = user_name
         self.days = days
+        self.auth_token = auth_token
         self.index: Optional[dict[str, int]] = None
 
     @staticmethod
@@ -42,9 +44,11 @@ class RecentListensTimestampLookup(Element):
         min_dt = datetime.now() + timedelta(days=-self.days)
         min_ts = int(min_dt.timestamp())
         while True:
+            headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
             response = requests.get(
                 f"https://api.listenbrainz.org/1/user/{self.user_name}/listens",
-                params={"min_ts": min_ts, "count": 100}
+                params={"min_ts": min_ts, "count": 100},
+                headers=headers
             )
             if response.status_code == 429:
                 sleep(2)

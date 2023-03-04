@@ -57,9 +57,9 @@ class DailyJamsPatch(troi.patch.Patch):
         if jam_date is None:
             jam_date = datetime.utcnow().strftime("%Y-%m-%d %a")
 
-        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000)
+        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000, auth_token=inputs.get("auth_token"))
 
-        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2)
+        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2, auth_token=inputs.get("auth_token"))
         recent_listens_lookup.set_sources(recs)
 
         # Remove tracks that have not been listened to before.
@@ -69,7 +69,7 @@ class DailyJamsPatch(troi.patch.Patch):
         latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
         latest_filter.set_sources(never_listened)
 
-        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
+        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name, auth_token=inputs.get("auth_token"))
         feedback_lookup.set_sources(latest_filter)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
