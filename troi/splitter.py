@@ -132,8 +132,28 @@ class DataSetSplitter:
 
             Return value is a data item, unless count is > 1, then a list is returned
         """
+        if segment < 0 or segment >= self.segment_count:
+            raise ValueError("Invalid segment")
+
+        if len(self.segments) == 0:
+            return []
 
         data = self.items(segment)
         items = [ data[randint(0, len(data) - 1)] for i in range(min(count, len(data))) ]
         items = [dict(t) for t in {tuple(d.items()) for d in items}]
-        return items if count > 1 else items[0]
+
+        if count > 1:
+            return items
+
+        return items[0] if len(items) > 0 else []
+
+    def random(self):
+        """
+            Return the data from a random segment.
+            NOTE: To return a random item, use random_item or the % operator.
+        """
+        if len(self.segments) == 0:
+            return []
+
+        segment = randint(0, len(self.segments))
+        return self.items(segment)

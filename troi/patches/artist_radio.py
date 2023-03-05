@@ -11,70 +11,15 @@ import troi.listenbrainz.listens
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
 from troi import Playlist, Element, Recording, Artist, PipelineError
+from troi.splitter import DataSetSplitter
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
 
+# Variables we can control:
+#
+# count thresholds, to ensure that we don't go too low
 
-class DataSetSplitter:
-
-    def __init__(self, segment_count, field="score"):
-        self.segment_count = segment_count
-        self.field = field
-
-    def split(self, data):
-
-        if len(data) == 0:
-            self.segments = []
-            return
-        self.data = data
-
-        high_score = data[0][self.field]
-        low_score = data[-1][self.field]
-
-        segment_width = (high_score - low_score) / self.segment_count
-        self.segments = []
-        for segment in range(self.segment_count):
-            self.segments.append({self.field: low_score + segment * segment_width})
-        self.segments.reverse()
-
-        segment_index = 0
-        for i, d in enumerate(data):
-            if d[self.field] < self.segments[segment_index][self.field]:
-                self.segments[segment_index]["index"] = i - 1
-                segment_index += 1
-
-        self.segments[-1]["index"] = len(data) - 1
-        print(self.segments)
-
-    def items(self, segment):
-        if segment < 0 or segment >= self.segment_count:
-            raise ValueError("Invalid segment")
-
-        if len(self.segments) == 0:
-            return None
-
-        if segment == 0:
-            return self.data[0:self.segments[0]["index"]]
-        else:
-            return self.data[self.segments[segment - 1]["index"]:self.segments[segment]["index"]]
-
-    def random_item(self, segment):
-        if segment < 0 or segment >= self.segment_count:
-            raise ValueError("Invalid segment")
-
-        if len(self.segments) == 0:
-            return None
-
-        if segment == 0:
-            data = self.data[0:self.segments[0]["index"]]
-        else:
-            data = self.data[self.segments[segment - 1]["index"]:self.segments[segment]["index"]]
-
-        if len(data) == 0:
-            return None
-        
-        return data[randint(0, len(data) - 1)]
 
 
 def get_popular_recordings(artist_mbid):
@@ -117,14 +62,13 @@ def collect_artists(artist_mbid):
     if len(orig_artists) == 0:
         return []
 
-    dss = DataSetSplitter(3)
-    dss.split(orig_artists)
+    print("original artist '%s'" % original_artist_name)
 
-    print(orig_artists)
+    dss = DataSetSplitter(orig_artists, 3)
 
     artists = [ { "artist_mbid": artist_mbid, "name": original_artist_name, "score": 0 } ]
-    artists.extend(dss.items(0))
-    artists.extend(dss.items(1))
+    artists.extend(dss[0])
+    artists.extend(dss[1])
 
     # Now fetch similar artists for the A artists
     a_artists = dss.items(0)
@@ -132,9 +76,8 @@ def collect_artists(artist_mbid):
         sim_artists, sim_artist_name = get_similar_artists(artist["artist_mbid"])
         if len(sim_artists) == 0:
             continue
-        d = DataSetSplitter(3)
-        d.split(sim_artists)
-        artists.extend(d.items(0))
+
+        artists.extend(DataSetSplitter(sim_artists, 3)[0])
 
     # Unique the list
     artists = list({a['artist_mbid']:a for a in artists}.values())
@@ -149,20 +92,12 @@ def collect_recordings(artists):
     for artist in artists:
         print("similar artists '%s'" % artist["name"])
         popular = get_popular_recordings(artist["artist_mbid"])
-        ds = DataSetSplitter(4, "count")
-        ds.split(popular)
+        ds = DataSetSplitter(popular, 4, "count")
         for j in range(3):
-            try:
-                for i in range(5):
-                    item = ds.random_item(j)
-                    if item is not None:
-                        recordings.append(item)
-            except ValueError:
-                pass
+            recordings.extend(ds.random_item(j, 5))
 
         if len(recordings) > 150:
             break
-
 
     return list({r['recording_mbid']:r for r in recordings}.values())
 
@@ -185,7 +120,6 @@ class ArtistRadioSourceElement(troi.Element):
         for artist_mbid in self.artist_mbids:
             artists.append(collect_artists(artist_mbid))
 
-        print(artists)
         artists = interleave(artists)
 
         recordings = collect_recordings(artists)
@@ -220,7 +154,7 @@ class ArtistRadioPatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "artist-radio-2"
+        return "artist-radio"
 
     @staticmethod
     def description():

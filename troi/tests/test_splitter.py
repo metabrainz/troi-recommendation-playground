@@ -56,6 +56,10 @@ class TestSplitter(unittest.TestCase):
 
     def test_splitter_random(self):
         dss = DataSetSplitter([{"score": 4}, {"score": 3}, {"score": 2}], 3)
+        assert dss.random() == [{'score': 4}] or [{"score": 3}] or [{"score": 2}]
+
+    def test_splitter_random_item(self):
+        dss = DataSetSplitter([{"score": 4}, {"score": 3}, {"score": 2}], 3)
         assert dss.random_item(0, 2) == [{'score': 4}]
         assert dss.random_item(1, 2) == [{'score': 3}]
         assert dss.random_item(2, 2) == [{'score': 2}]
