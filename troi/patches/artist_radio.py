@@ -24,6 +24,9 @@ class DataSetSplitter:
 
     def split(self, data):
 
+        if len(data) == 0:
+            self.segments = []
+            return
         self.data = data
 
         high_score = data[0][self.field]
@@ -42,10 +45,14 @@ class DataSetSplitter:
                 segment_index += 1
 
         self.segments[-1]["index"] = len(data) - 1
+        print(self.segments)
 
     def items(self, segment):
         if segment < 0 or segment >= self.segment_count:
             raise ValueError("Invalid segment")
+
+        if len(self.segments) == 0:
+            return None
 
         if segment == 0:
             return self.data[0:self.segments[0]["index"]]
@@ -55,6 +62,9 @@ class DataSetSplitter:
     def random_item(self, segment):
         if segment < 0 or segment >= self.segment_count:
             raise ValueError("Invalid segment")
+
+        if len(self.segments) == 0:
+            return None
 
         if segment == 0:
             data = self.data[0:self.segments[0]["index"]]
@@ -109,6 +119,8 @@ def collect_artists(artist_mbid):
 
     dss = DataSetSplitter(3)
     dss.split(orig_artists)
+
+    print(orig_artists)
 
     artists = [ { "artist_mbid": artist_mbid, "name": original_artist_name, "score": 0 } ]
     artists.extend(dss.items(0))
