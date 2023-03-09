@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from random import randint
+from random import randint, shuffle
 from datetime import datetime
 
 import requests
@@ -15,20 +15,17 @@ from troi.splitter import DataSetSplitter
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
-
 # Variables we can control:
 #
-# count thresholds, to ensure that we don't go too low
-
+# max counts, to ensure that we don't go too low 5 - 10 artists seems good.
+#
 
 
 def get_popular_recordings(artist_mbid):
 
-    r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json",
-                      json=[{
-                          '[artist_mbid]':
-                          artist_mbid,
-                      }])
+    r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
+        '[artist_mbid]': artist_mbid,
+    }])
     return r.json()
 
 
@@ -55,58 +52,15 @@ def get_similar_artists(artist_mbid):
 def interleave(lists):
     return [val for tup in zip(*lists) for val in tup]
 
-def collect_artists(artist_mbid):
-
-    # Fetch similar artists for original artist
-    orig_artists, original_artist_name = get_similar_artists(artist_mbid)
-    if len(orig_artists) == 0:
-        return []
-
-    print("original artist '%s'" % original_artist_name)
-
-    dss = DataSetSplitter(orig_artists, 3)
-
-    artists = [ { "artist_mbid": artist_mbid, "name": original_artist_name, "score": 0 } ]
-    artists.extend(dss[0])
-    artists.extend(dss[1])
-
-    # Now fetch similar artists for the A artists
-    a_artists = dss.items(0)
-    for artist in a_artists:
-        sim_artists, sim_artist_name = get_similar_artists(artist["artist_mbid"])
-        if len(sim_artists) == 0:
-            continue
-
-        artists.extend(DataSetSplitter(sim_artists, 3)[0])
-
-    # Unique the list
-    artists = list({a['artist_mbid']:a for a in artists}.values())
-
-    return artists
-
-
-def collect_recordings(artists):
-
-    recordings = []
-
-    for artist in artists:
-        print("similar artists '%s'" % artist["name"])
-        popular = get_popular_recordings(artist["artist_mbid"])
-        ds = DataSetSplitter(popular, 4, "count")
-        for j in range(3):
-            recordings.extend(ds.random_item(j, 5))
-
-        if len(recordings) > 150:
-            break
-
-    return list({r['recording_mbid']:r for r in recordings}.values())
-
 
 class ArtistRadioSourceElement(troi.Element):
+
+    MAX_NUM_SIMILAR_ARTISTS = 10 
 
     def __init__(self, artist_mbids):
         troi.Element.__init__(self)
         self.artist_mbids = artist_mbids
+        self.artists = {}
 
     def inputs(self):
         return []
@@ -114,18 +68,93 @@ class ArtistRadioSourceElement(troi.Element):
     def outputs(self):
         return [Recording]
 
+    def collect_artists(self, artist_mbid):
+
+        # Fetch similar artists for original artist
+        orig_artists, original_artist_name = get_similar_artists(artist_mbid)
+        if len(orig_artists) == 0:
+            return
+
+        print("seed artist '%s'" % original_artist_name)
+
+        dss = DataSetSplitter(orig_artists, 3)
+
+        similar_artists = {}
+        for artist in dss[0]:
+            if len(similar_artists) > self.MAX_NUM_SIMILAR_ARTISTS:
+                break
+
+            if artist["artist_mbid"] not in self.artists:
+                artist["level"] = 1
+                similar_artists[artist["artist_mbid"]] = artist
+                print("  0 %5d %s %s" % (artist["score"], artist["name"], artist["artist_mbid"]))
+
+
+        for artist in dss[1]:
+            if len(similar_artists) > self.MAX_NUM_SIMILAR_ARTISTS:
+                break
+            if artist["artist_mbid"] not in self.artists:
+                artist["level"] = 2
+                similar_artists[artist["artist_mbid"]] = artist
+                print("  1 %5d %s %s" % (artist["score"], artist["name"], artist["artist_mbid"]))
+
+        self.artists[artist_mbid] = {
+            "artist_mbid": artist_mbid,
+            "name": original_artist_name,
+            "similar-artists": similar_artists,
+            "level": 0,
+            "score": 0
+        }
+
+        # Note: I tried loading more similar artists from the top artists, but the results were bad. Stick to 1 level.
+
+    def collect_recordings(self):
+
+        recordings = []
+
+        all_artists = {}
+        all_artists |= self.artists
+        for mbid in self.artists:
+            all_artists |= self.artists[mbid]["similar-artists"]
+
+        for artist_mbid in all_artists:
+            artist = all_artists[artist_mbid]
+            popular = get_popular_recordings(artist["artist_mbid"])
+            dss = DataSetSplitter(popular[:50], 6, "count")
+
+            recordings = []
+            for s in range(dss.get_segment_count() - 1):
+                recordings.extend(dss[s])
+
+            artist["recordings"] = recordings
+            print("recs for artist '%s' %d recordings" % (artist["name"], len(artist["recordings"])))
+
     def read(self, entities):
-       
-        artists = []
+
         for artist_mbid in self.artist_mbids:
-            artists.append(collect_artists(artist_mbid))
+            if artist_mbid not in self.artists:
+                self.collect_artists(artist_mbid)
 
-        artists = interleave(artists)
+        # Load all the recordings into the artists
+        self.collect_recordings()
 
-        recordings = collect_recordings(artists)
+        for artist_mbid in self.artists:
+            recordings = self.artists[artist_mbid]["recordings"]
+            for sim_artist_mbid in self.artists[artist_mbid]["similar-artists"]:
+                recordings.extend(self.artists[artist_mbid]["similar-artists"][sim_artist_mbid]["recordings"])
+
+            self.artists[artist_mbid]["all_recordings"] = recordings
+
+        # Shuffle the loaded tracks
+        for artist_mbid in self.artists:
+            shuffle(self.artists[artist_mbid]["all_recordings"])
+
         recs = []
-        for recording in recordings:
-            recs.append(Recording(mbid=recording["recording_mbid"]))
+        for artist_mbid in self.artists:
+            artist = self.artists[artist_mbid]
+            for i in range(10):
+                recording = artist["all_recordings"].pop(0)
+                recs.append(Recording(mbid=recording["recording_mbid"]))
 
         return recs
 

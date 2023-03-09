@@ -90,6 +90,8 @@ class DataSetSplitter:
                 self.segments[i]["index"] = None
                 self.segments[i]["count"] = 0
 
+    def get_segment_count(self):
+        return self.segment_count
 
     def __getitem__(self, segment):
         """ 
