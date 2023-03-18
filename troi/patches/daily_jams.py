@@ -69,7 +69,7 @@ class DailyJamsPatch(troi.patch.Patch):
         latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
         latest_filter.set_sources(never_listened)
 
-        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name, auth_token=inputs.get("auth_token"))
+        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name, auth_token=inputs.get("token"))
         feedback_lookup.set_sources(latest_filter)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
