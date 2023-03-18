@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import http.client
 import sys
 from typing import Dict
 
@@ -9,6 +9,8 @@ import troi
 import troi.playlist
 import troi.utils
 from troi.patch import Patch
+
+http.client.HTTPConnection.debuglevel = 1
 
 default_patch_args = dict(
     debug=False,
