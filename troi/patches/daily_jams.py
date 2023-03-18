@@ -57,9 +57,9 @@ class DailyJamsPatch(troi.patch.Patch):
         if jam_date is None:
             jam_date = datetime.utcnow().strftime("%Y-%m-%d %a")
 
-        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000, auth_token=inputs.get("auth_token"))
+        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000, auth_token=inputs.get("token"))
 
-        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2, auth_token=inputs.get("auth_token"))
+        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2, auth_token=inputs.get("token"))
         recent_listens_lookup.set_sources(recs)
 
         # Remove tracks that have not been listened to before.
