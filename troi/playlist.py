@@ -409,6 +409,7 @@ class PlaylistMakerElement(Element):
         :param max_num_recordings: The maximum number of recordings to have in the playlist. Extras are discarded. Optional argument, and the default is to keep all recordings
         :param max_artist_occurence: The number of times and artist is allowed to appear in the playlist. Any recordings that exceed this count ared discarded. Optional, default is to keep all recordings.
         :param shuffle: If True, the playlist will be shuffled before being truncated. Optional. Default: False
+        :param is_april_first: If True, do something very sneaky. Default: False.
     '''
 
     def __init__(self,
@@ -418,7 +419,8 @@ class PlaylistMakerElement(Element):
                  user_name=None,
                  max_num_recordings=None,
                  max_artist_occurrence=None,
-                 shuffle=False):
+                 shuffle=False,
+                 is_april_first=False):
         super().__init__()
         self.name = name
         self.desc = desc
@@ -427,6 +429,7 @@ class PlaylistMakerElement(Element):
         self.max_num_recordings = max_num_recordings
         self.max_artist_occurrence = max_artist_occurrence
         self.shuffle = shuffle
+        self.is_april_first = is_april_first
 
     @staticmethod
     def inputs():
@@ -468,6 +471,12 @@ class PlaylistMakerElement(Element):
                             user_name=self.user_name)
         if self.shuffle:
             playlist.shuffle()
+
+        if self.is_april_first:
+            try:
+                playlist.recordings[2].mbid = "8f3471b5-7e6a-48da-86a9-c1c07a0f47ae"
+            except IndexError:
+                pass
 
         return [playlist]
 

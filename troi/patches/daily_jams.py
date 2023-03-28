@@ -83,7 +83,8 @@ class DailyJamsPatch(troi.patch.Patch):
                                         patch_slug=self.slug(),
                                         max_num_recordings=50,
                                         max_artist_occurrence=2,
-                                        shuffle=True)
+                                        shuffle=True,
+                                        is_april_first=(jam_date[5:10] == "04-01"))
         pl_maker.set_sources(hate_filter)
 
         return pl_maker
