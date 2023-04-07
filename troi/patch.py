@@ -12,6 +12,9 @@ class Patch(ABC):
         logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
+        # Dict used for local storage
+        self._local_storage = {}
+
     def log(self, msg):
         '''
             Log a message with the info log level, which is the default for troi. 
@@ -25,6 +28,15 @@ class Patch(ABC):
             Log a message with debug log level. These messages will only be shown when debugging is enabled.
         '''
         self.logger.debug(msg)
+
+    @property
+    def local_storage(self):
+        """
+            Local storage for a patch. At times some elements in the pipeline will determine data that is needed
+            name a playlist (and other situations). But without patch local storage, there is no way to pass this
+            information to a later stage in the pipeline.
+        """
+        return _local_storage
 
     @staticmethod
     def inputs():

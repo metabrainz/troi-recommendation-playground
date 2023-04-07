@@ -48,19 +48,43 @@ def get_similar_artists(artist_mbid):
 
     return artists, artist_name
 
-
 def interleave(lists):
     return [val for tup in zip(*lists) for val in tup]
 
 
+class InterleaveRecordingsElement(troi.Element):
+
+    def __init__(self):
+        troi.Element.__init__(self)
+
+    def inputs(self):
+        return [Recording]
+
+    def read(self, entities):
+
+        recordings = []
+        while True:
+            empty = 0
+            for entity in entities:
+                try:
+                    recordings.append(entity.recordings.pop(0))
+                except IndexError:
+                    empty += 1
+
+            # Did we process all the recordings?
+            if empty == len(entities):
+                break
+
+        return recordings
+
+
 class ArtistRadioSourceElement(troi.Element):
 
-    MAX_NUM_SIMILAR_ARTISTS = 10 
+    MAX_NUM_SIMILAR_ARTISTS = 10
 
-    def __init__(self, artist_mbids):
+    def __init__(self, artist_mbid):
         troi.Element.__init__(self)
-        self.artist_mbids = artist_mbids
-        self.artists = {}
+        self.artist_mbid = artist_mbid
 
     def inputs(self):
         return []
@@ -68,93 +92,19 @@ class ArtistRadioSourceElement(troi.Element):
     def outputs(self):
         return [Recording]
 
-    def collect_artists(self, artist_mbid):
-
-        # Fetch similar artists for original artist
-        orig_artists, original_artist_name = get_similar_artists(artist_mbid)
-        if len(orig_artists) == 0:
-            return
-
-        print("seed artist '%s'" % original_artist_name)
-
-        dss = DataSetSplitter(orig_artists, 3)
-
-        similar_artists = {}
-        for artist in dss[0]:
-            if len(similar_artists) > self.MAX_NUM_SIMILAR_ARTISTS:
-                break
-
-            if artist["artist_mbid"] not in self.artists:
-                artist["level"] = 1
-                similar_artists[artist["artist_mbid"]] = artist
-                print("  0 %5d %s %s" % (artist["score"], artist["name"], artist["artist_mbid"]))
-
-
-        for artist in dss[1]:
-            if len(similar_artists) > self.MAX_NUM_SIMILAR_ARTISTS:
-                break
-            if artist["artist_mbid"] not in self.artists:
-                artist["level"] = 2
-                similar_artists[artist["artist_mbid"]] = artist
-                print("  1 %5d %s %s" % (artist["score"], artist["name"], artist["artist_mbid"]))
-
-        self.artists[artist_mbid] = {
-            "artist_mbid": artist_mbid,
-            "name": original_artist_name,
-            "similar-artists": similar_artists,
-            "level": 0,
-            "score": 0
-        }
-
-        # Note: I tried loading more similar artists from the top artists, but the results were bad. Stick to 1 level.
-
-    def collect_recordings(self):
-
-        recordings = []
-
-        all_artists = {}
-        all_artists |= self.artists
-        for mbid in self.artists:
-            all_artists |= self.artists[mbid]["similar-artists"]
-
-        for artist_mbid in all_artists:
-            artist = all_artists[artist_mbid]
-            popular = get_popular_recordings(artist["artist_mbid"])
-            dss = DataSetSplitter(popular[:50], 6, "count")
-
-            recordings = []
-            for s in range(dss.get_segment_count() - 1):
-                recordings.extend(dss[s])
-
-            artist["recordings"] = recordings
-            print("recs for artist '%s' %d recordings" % (artist["name"], len(artist["recordings"])))
-
     def read(self, entities):
 
-        for artist_mbid in self.artist_mbids:
-            if artist_mbid not in self.artists:
-                self.collect_artists(artist_mbid)
+        # Fetch similar artists for original artist
+        similar_artist_data, artist_name = get_similar_artists(self.artist_mbid)
 
-        # Load all the recordings into the artists
-        self.collect_recordings()
+        print("seed artist '%s'" % artist_name)
 
-        for artist_mbid in self.artists:
-            recordings = self.artists[artist_mbid]["recordings"]
-            for sim_artist_mbid in self.artists[artist_mbid]["similar-artists"]:
-                recordings.extend(self.artists[artist_mbid]["similar-artists"][sim_artist_mbid]["recordings"])
+        similar_artists = []
+        dss = DataSetSplitter(similar_artist_data, 3)
+        for similar_artist in dss[0] + dss[1]:
+            recordings = fetch_top_recordings(similar_artists["artist_mibd"])
+            similar_artists.append({ "artist_mbid": similar_artist["artist_mbid"], "recordings": recordings }
 
-            self.artists[artist_mbid]["all_recordings"] = recordings
-
-        # Shuffle the loaded tracks
-        for artist_mbid in self.artists:
-            shuffle(self.artists[artist_mbid]["all_recordings"])
-
-        recs = []
-        for artist_mbid in self.artists:
-            artist = self.artists[artist_mbid]
-            for i in range(10):
-                recording = artist["all_recordings"].pop(0)
-                recs.append(Recording(mbid=recording["recording_mbid"]))
 
         return recs
 
@@ -192,10 +142,19 @@ class ArtistRadioPatch(troi.patch.Patch):
     def create(self, inputs):
         artist_mbids = inputs['artist_mbid']
 
-        ar_source = ArtistRadioSourceElement(artist_mbids)
 
-        recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        recs_lookup.set_sources(ar_source)
+        lookups = []
+        for mbid in artist_mbids:
+            ar_source = ArtistRadioSourceElement(mbid)
+
+            recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+            recs_lookup.set_sources(ar_source)
+
+            lookups.append(rec_lookups)
+
+
+        interleave = InterleaveRecordingsElement()
+        interleave.set_sources(lookups)
 
         pl_maker = PlaylistMakerElement(name="Artist Radio for %s" % (",".join(artist_mbids)),
                                         desc="Experimental artist radio playlist",
@@ -203,6 +162,6 @@ class ArtistRadioPatch(troi.patch.Patch):
                                         max_num_recordings=50,
                                         max_artist_occurrence=5,
                                         shuffle=True)
-        pl_maker.set_sources(recs_lookup)
+        pl_maker.set_sources(interleave)
 
         return pl_maker

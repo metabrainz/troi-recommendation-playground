@@ -13,9 +13,28 @@ class Element(ABC):
         Base class for elements
     """
 
-    def __init__(self):
+    def __init__(self, patch=None):
         self.sources = []
         self.logger = logging.getLogger(type(self).__name__)
+        self.patch = patch
+
+    def set_patch_object(self, patch):
+        """
+            Set patch object -- this is so that each element has a reference to the 
+            parent Patch. To keep pipeline construction easy, this is done automatically
+            once the pipeline starts executing.
+        """
+        self.patch = patch
+
+    @property
+    def local_storage(self):
+        if self.patch is None:
+            raise RuntimeError("This Element does not have a patch set. Pass in the patch to the constructor " +
+                               "if you need the patch (for local storage) to be available before the pipeline " +
+                               "starts executing.")
+
+        return patch.local_storage
+
 
     def log(self, msg):
         '''
