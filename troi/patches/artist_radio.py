@@ -21,33 +21,6 @@ from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 #
 
 
-def get_popular_recordings(artist_mbid):
-
-    r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
-        '[artist_mbid]': artist_mbid,
-    }])
-    return r.json()
-
-
-def get_similar_artists(artist_mbid):
-
-    r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
-                      json=[{
-                          'artist_mbid':
-                          artist_mbid,
-                          'algorithm':
-                          "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
-                      }])
-
-    try:
-        artists = r.json()[3]["data"]
-    except IndexError:
-        return [], None
-
-    artist_name = r.json()[1]["data"][0]["name"]
-
-    return artists, artist_name
-
 def interleave(lists):
     return [val for tup in zip(*lists) for val in tup]
 
@@ -60,6 +33,9 @@ class InterleaveRecordingsElement(troi.Element):
     def inputs(self):
         return [Recording]
 
+    def outputs(self):
+        return [Recording]
+
     def read(self, entities):
 
         recordings = []
@@ -67,7 +43,7 @@ class InterleaveRecordingsElement(troi.Element):
             empty = 0
             for entity in entities:
                 try:
-                    recordings.append(entity.recordings.pop(0))
+                    recordings.append(entity.pop(0))
                 except IndexError:
                     empty += 1
 
@@ -85,6 +61,7 @@ class ArtistRadioSourceElement(troi.Element):
     def __init__(self, artist_mbid):
         troi.Element.__init__(self)
         self.artist_mbid = artist_mbid
+        self.similar_artists = []
 
     def inputs(self):
         return []
@@ -92,19 +69,65 @@ class ArtistRadioSourceElement(troi.Element):
     def outputs(self):
         return [Recording]
 
+    def fetch_top_recordings(self, artist_mbid):
+
+        r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
+            '[artist_mbid]': artist_mbid,
+        }])
+        return r.json()
+
+
+    def get_similar_artists(self, artist_mbid):
+
+        r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
+                          json=[{
+                              'artist_mbid':
+                              artist_mbid,
+                              'algorithm':
+                              "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
+                          }])
+
+        try:
+            artists = r.json()[3]["data"]
+        except IndexError:
+            return [], None
+
+        artist_name = r.json()[1]["data"][0]["name"]
+
+        return artists, artist_name
+
     def read(self, entities):
 
         # Fetch similar artists for original artist
-        similar_artist_data, artist_name = get_similar_artists(self.artist_mbid)
+        similar_artist_data, artist_name = self.get_similar_artists(self.artist_mbid)
 
         print("seed artist '%s'" % artist_name)
 
-        similar_artists = []
+        # Start collecting data
+        self.similar_artists = []
         dss = DataSetSplitter(similar_artist_data, 3)
         for similar_artist in dss[0] + dss[1]:
-            recordings = fetch_top_recordings(similar_artists["artist_mibd"])
-            similar_artists.append({ "artist_mbid": similar_artist["artist_mbid"], "recordings": recordings }
+            print("Fetch similar: ", similar_artist["artist_mbid"])
+            recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
+            self.similar_artists.append({ "artist_mbid": similar_artist["artist_mbid"], "recordings": recordings[:15] })
 
+            if len(self.similar_artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
+                break
+
+
+        # Now that data is collected, collate tracks into one single list
+        recs = []
+        print("Collate")
+        while True:
+            empty = 0
+            for similar_artist in self.similar_artists:
+                try:
+                    recs.append(Recording(mbid=similar_artist["recordings"].pop(0)["recording_mbid"]))
+                except IndexError:
+                    empty += 1
+
+            if empty == len(self.similar_artists):
+                break
 
         return recs
 
@@ -150,7 +173,7 @@ class ArtistRadioPatch(troi.patch.Patch):
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
 
-            lookups.append(rec_lookups)
+            lookups.append(recs_lookup)
 
 
         interleave = InterleaveRecordingsElement()
