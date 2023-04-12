@@ -15,12 +15,6 @@ from troi.splitter import DataSetSplitter
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
-# Variables we can control:
-#
-# max counts, to ensure that we don't go too low 5 - 10 artists seems good.
-#
-
-
 def interleave(lists):
     return [val for tup in zip(*lists) for val in tup]
 
@@ -56,12 +50,12 @@ class InterleaveRecordingsElement(troi.Element):
 
 class ArtistRadioSourceElement(troi.Element):
 
-    MAX_NUM_SIMILAR_ARTISTS = 10
-    MAX_TOP_RECORDINGS_PER_ARTIST = 15
+    MAX_NUM_SIMILAR_ARTISTS = 20
+    MAX_TOP_RECORDINGS_PER_ARTIST = 20
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
 
-    def __init__(self, artist_mbid, mode="easy"):
-        troi.Element.__init__(self)
+    def __init__(self, artist_mbid, mode="easy", patch=None):
+        troi.Element.__init__(self, patch)
         self.artist_mbid = artist_mbid
         self.similar_artists = []
         self.mode = mode
@@ -104,19 +98,21 @@ class ArtistRadioSourceElement(troi.Element):
         similar_artist_data, artist_name = self.get_similar_artists(self.artist_mbid)
 
         print("seed artist '%s'" % artist_name)
+        self.local_storage["artist_index"][self.artist_mbid] = artist_name
+        print(self.local_storage)
 
         # Start collecting data
         self.similar_artists = []
         dss = DataSetSplitter(similar_artist_data, 4)
 
         if self.mode == "easy":
-            similar_artists_filtered = dss[0] + dss[1]
+            segments = (0, 1)
         elif self.mode == "medium":
-            similar_artists_filtered = dss[1] + dss[2]
+            segments = (1, 2)
         else:
-            similar_artists_filtered = dss[2] + dss[3]
+            segments = (2, 3)
 
-        for similar_artist in similar_artists_filtered:
+        for similar_artist in dss[segments[0]] + dss[segments[1]]:
             recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
             if len(recordings) == 0:
                 continue
@@ -157,10 +153,9 @@ class ArtistRadioSourceElement(troi.Element):
         recs = []
         print("Collate")
         for similar_artist in self.similar_artists:
-            for rec in similar_artist["recordings"][:self.MAX_TOP_RECORDINGS_PER_ARTIST]:
-                recs.append(Recording(mbid=rec["recording_mbid"]))
-
-        shuffle(recs)
+            for index in segments:
+                for recording in similar_artist["dss"].random_item(index, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+                    recs.append(Recording(mbid=recording["recording_mbid"]))
 
         return recs
 
@@ -213,14 +208,13 @@ class ArtistRadioPatch(troi.patch.Patch):
     def create(self, inputs):
         artist_mbids = inputs["artist_mbid"]
         mode = inputs["mode"]
-        print(mode)
 
         if mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
         lookups = []
         for mbid in artist_mbids:
-            ar_source = ArtistRadioSourceElement(mbid, mode)
+            ar_source = ArtistRadioSourceElement(mbid, mode, patch=self)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
@@ -230,7 +224,11 @@ class ArtistRadioPatch(troi.patch.Patch):
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(lookups)
 
-        pl_maker = PlaylistMakerElement(name="Artist Radio for %s" % (",".join(artist_mbids)),
+        print(local_storage)
+        names = [ self.local_storage["artist_index"][mbid] for mbid in artist_mbids]
+        name = "Artist Radio for " + ",".join(names)
+
+        pl_maker = PlaylistMakerElement(name=name,
                                         desc="Experimental artist radio playlist",
                                         patch_slug=self.slug(),
                                         max_num_recordings=50,

@@ -36,7 +36,7 @@ class Patch(ABC):
             name a playlist (and other situations). But without patch local storage, there is no way to pass this
             information to a later stage in the pipeline.
         """
-        return _local_storage
+        return self._local_storage
 
     @staticmethod
     def inputs():
