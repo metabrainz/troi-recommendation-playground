@@ -50,6 +50,7 @@ class InterleaveRecordingsElement(troi.Element):
 
 class ArtistRadioSourceElement(troi.Element):
 
+    SIMILAR_ARTISTS_MINIMUM_COUNT = 500
     MAX_NUM_SIMILAR_ARTISTS = 20
     MAX_TOP_RECORDINGS_PER_ARTIST = 20
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
@@ -115,6 +116,10 @@ class ArtistRadioSourceElement(troi.Element):
             segments = (2, 3)
 
         for similar_artist in dss[segments[0]] + dss[segments[1]]:
+            if similar_artist["score"] < self.SIMILAR_ARTISTS_MINIMUM_COUNT:
+                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
+                continue
+
             recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
             if len(recordings) == 0:
                 continue
@@ -149,17 +154,25 @@ class ArtistRadioSourceElement(troi.Element):
             for rec in sim["recordings"]:
                 rec["count"] = rec["count"] / float(max_count)
 
-            print("  similar: %.3f %d %s" % (sim["score"], len(sim["recordings"]), sim["artist_name"]))
+            print("  similar: %.3f (%d) %d %s" % (sim["score"], sim["raw_score"], len(sim["recordings"]), sim["artist_name"]))
 
         # Now that data is collected, collate tracks into one single list
         recs = []
         print("Collate")
         for similar_artist in self.similar_artists:
             for index in segments:
-                for recording in similar_artist["dss"].random_item(index, self.MAX_TOP_RECORDINGS_PER_ARTIST):
-                    recs.append(Recording(mbid=recording["recording_mbid"]))
+                for recording in similar_artist["dss"][index]:
+                    recs.append(recording)
 
-        return recs
+        recs = sorted(recs, key=lambda k: k["count"], reverse=True)
+
+        dss = DataSetSplitter(recs, 4, field="count")
+        recordings = []
+        for index in segments:
+            for recording in dss.random_item(index, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+                recordings.append(Recording(mbid=recording["recording_mbid"]))
+
+        return recordings
 
 
 class ArtistRadioPatch(troi.patch.Patch):
