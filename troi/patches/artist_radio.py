@@ -54,8 +54,8 @@ class ArtistRadioSourceElement(troi.Element):
     MAX_TOP_RECORDINGS_PER_ARTIST = 20
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
 
-    def __init__(self, artist_mbid, mode="easy", patch=None):
-        troi.Element.__init__(self, patch)
+    def __init__(self, artist_mbid, mode="easy"):
+        troi.Element.__init__(self)
         self.artist_mbid = artist_mbid
         self.similar_artists = []
         self.mode = mode
@@ -98,8 +98,10 @@ class ArtistRadioSourceElement(troi.Element):
         similar_artist_data, artist_name = self.get_similar_artists(self.artist_mbid)
 
         print("seed artist '%s'" % artist_name)
+        if "artist_index" not in self.local_storage:
+            self.local_storage["artist_index"] = {}
+
         self.local_storage["artist_index"][self.artist_mbid] = artist_name
-        print(self.local_storage)
 
         # Start collecting data
         self.similar_artists = []
@@ -167,6 +169,7 @@ class ArtistRadioPatch(troi.patch.Patch):
 
     def __init__(self, debug=False):
         super().__init__(debug)
+        self.artist_mbids = []
 
     @staticmethod
     def inputs():
@@ -206,15 +209,15 @@ class ArtistRadioPatch(troi.patch.Patch):
         return "Given one or more artist_mbids, return a list playlist of those and similar artists."
 
     def create(self, inputs):
-        artist_mbids = inputs["artist_mbid"]
+        self.artist_mbids = inputs["artist_mbid"]
         mode = inputs["mode"]
 
         if mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
         lookups = []
-        for mbid in artist_mbids:
-            ar_source = ArtistRadioSourceElement(mbid, mode, patch=self)
+        for mbid in self.artist_mbids:
+            ar_source = ArtistRadioSourceElement(mbid, mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
@@ -224,15 +227,16 @@ class ArtistRadioPatch(troi.patch.Patch):
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(lookups)
 
-        print(local_storage)
-        names = [ self.local_storage["artist_index"][mbid] for mbid in artist_mbids]
-        name = "Artist Radio for " + ",".join(names)
-
-        pl_maker = PlaylistMakerElement(name=name,
-                                        desc="Experimental artist radio playlist",
+        pl_maker = PlaylistMakerElement(desc="Experimental atist radio using %s mode." % mode,
                                         patch_slug=self.slug(),
                                         max_num_recordings=50,
                                         max_artist_occurrence=5)
         pl_maker.set_sources(interleave)
 
         return pl_maker
+
+    def post_process(self):
+
+        names = [ self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
+        name = "Artist Radio for " + ", ".join(names)
+        self.local_storage["_playlist_name"] = name

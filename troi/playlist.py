@@ -412,8 +412,8 @@ class PlaylistMakerElement(Element):
     '''
 
     def __init__(self,
-                 name,
-                 desc,
+                 name=None,
+                 desc=None,
                  patch_slug=None,
                  user_name=None,
                  max_num_recordings=None,
@@ -460,6 +460,15 @@ class PlaylistMakerElement(Element):
                     kept.append(r)
 
             recordings = kept[:max_num_recordings]
+
+        # Call the patch's post_process function
+        self.patch.post_process()
+
+        if self.name is None:
+            self.name = self.local_storage["_playlist_name"]
+
+        if self.desc is None:
+            self.desc = self.local_storage["_playlist_desc"]
 
         playlist = Playlist(name=self.name,
                             description=self.desc,

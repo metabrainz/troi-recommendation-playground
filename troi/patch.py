@@ -12,8 +12,9 @@ class Patch(ABC):
         logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
+        print("Setup local storage for patch %s" % self.slug())
         # Dict used for local storage
-        self._local_storage = {}
+        self.local_storage = {}
 
     def log(self, msg):
         '''
@@ -28,15 +29,6 @@ class Patch(ABC):
             Log a message with debug log level. These messages will only be shown when debugging is enabled.
         '''
         self.logger.debug(msg)
-
-    @property
-    def local_storage(self):
-        """
-            Local storage for a patch. At times some elements in the pipeline will determine data that is needed
-            name a playlist (and other situations). But without patch local storage, there is no way to pass this
-            information to a later stage in the pipeline.
-        """
-        return self._local_storage
 
     @staticmethod
     def inputs():
@@ -87,3 +79,11 @@ class Patch(ABC):
                input_args: the arguments passed to the patch.
         """
         return None
+
+    def post_process(self):
+        """
+            This function is called once the pipeline has produced its playlist, just before the Playlist object is created.
+            This function could be used to inspect data in patch local storage to create the detailed playlist name
+            and descriptionm which may not be available when the pipeline is constructed.
+        """
+        return

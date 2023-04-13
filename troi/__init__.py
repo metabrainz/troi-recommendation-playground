@@ -33,7 +33,7 @@ class Element(ABC):
                                "if you need the patch (for local storage) to be available before the pipeline " +
                                "starts executing.")
 
-        return patch.local_storage
+        return self.patch.local_storage
 
 
     def log(self, msg):
