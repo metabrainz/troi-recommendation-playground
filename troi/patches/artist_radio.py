@@ -11,7 +11,7 @@ import troi.listenbrainz.listens
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
 from troi import Playlist, Element, Recording, Artist, PipelineError
-from troi.splitter import DataSetSplitter
+from troi.splitter import DataSetSplitter, plist
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
@@ -72,7 +72,7 @@ class ArtistRadioSourceElement(troi.Element):
         r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
             '[artist_mbid]': artist_mbid,
         }])
-        return r.json()
+        return plist(r.json())
 
     def get_similar_artists(self, artist_mbid):
 
@@ -91,7 +91,7 @@ class ArtistRadioSourceElement(troi.Element):
 
         artist_name = r.json()[1]["data"][0]["name"]
 
-        return artists, artist_name
+        return plist(artists), artist_name
 
     def read(self, entities):
 
@@ -106,16 +106,15 @@ class ArtistRadioSourceElement(troi.Element):
 
         # Start collecting data
         self.similar_artists = []
-        dss = DataSetSplitter(similar_artist_data, 4)
 
         if self.mode == "easy":
-            segments = (0, 1)
+            start, stop = 0, 50 
         elif self.mode == "medium":
-            segments = (1, 2)
+            start, stop = 25, 75 
         else:
-            segments = (2, 3)
+            start, stop = 50, 100
 
-        for similar_artist in dss[segments[0]] + dss[segments[1]]:
+        for similar_artist in similar_artist_data[start:stop]:
             if similar_artist["score"] < self.SIMILAR_ARTISTS_MINIMUM_COUNT:
                 print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
                 continue
@@ -125,14 +124,13 @@ class ArtistRadioSourceElement(troi.Element):
                 continue
 
             # Keep only a certain number of top recordings
-            recordings = recordings[:self.KEEP_TOP_RECORDINGS_PER_ARTIST]
+            recordings = recordings.dslice(None, self.KEEP_TOP_RECORDINGS_PER_ARTIST)
 
             self.similar_artists.append({
                 "artist_mbid": similar_artist["artist_mbid"],
                 "artist_name": similar_artist["name"],
                 "raw_score": similar_artist["score"],
-                "recordings": recordings,
-                "dss": DataSetSplitter(recordings, 4, field="count")
+                "recordings": recordings
             })
 
             if len(self.similar_artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
@@ -160,17 +158,14 @@ class ArtistRadioSourceElement(troi.Element):
         recs = []
         print("Collate")
         for similar_artist in self.similar_artists:
-            for index in segments:
-                for recording in similar_artist["dss"][index]:
-                    recs.append(recording)
+            for recording in similar_artist["recordings"][start:stop]:
+                recs.append(recording)
 
-        recs = sorted(recs, key=lambda k: k["count"], reverse=True)
+        recs = plist(sorted(recs, key=lambda k: k["count"], reverse=True))
 
-        dss = DataSetSplitter(recs, 4, field="count")
         recordings = []
-        for index in segments:
-            for recording in dss.random_item(index, self.MAX_TOP_RECORDINGS_PER_ARTIST):
-                recordings.append(Recording(mbid=recording["recording_mbid"]))
+        for recording in recs.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+            recordings.append(Recording(mbid=recording["recording_mbid"]))
 
         return recordings
 
