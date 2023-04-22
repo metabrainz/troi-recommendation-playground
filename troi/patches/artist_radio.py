@@ -238,7 +238,10 @@ class ArtistRadioPatch(troi.patch.Patch):
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
 
-            lookups.append(recs_lookup)
+            hate_filter = troi.filters.HatedRecordingsFilterElement()
+            hate_filter.set_sources(recs_lookup)
+
+            lookups.append(hate_filter)
 
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(lookups)
