@@ -15,6 +15,7 @@ from troi.splitter import DataSetSplitter, plist
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
+
 def interleave(lists):
     return [val for tup in zip(*lists) for val in tup]
 
@@ -50,7 +51,9 @@ class InterleaveRecordingsElement(troi.Element):
 
 class ArtistRadioSourceElement(troi.Element):
 
-    SIMILAR_ARTISTS_MINIMUM_COUNT = 500
+    SIMILAR_ARTISTS_MINIMUM_COUNT_EASY = 500
+    SIMILAR_ARTISTS_MINIMUM_COUNT_MEDIUM = 400
+    SIMILAR_ARTISTS_MINIMUM_COUNT_HARD = 200
     MAX_NUM_SIMILAR_ARTISTS = 20
     MAX_TOP_RECORDINGS_PER_ARTIST = 20
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
@@ -96,7 +99,7 @@ class ArtistRadioSourceElement(troi.Element):
     def read(self, entities):
 
         # Fetch similar artists for original artist
-        similar_artist_data, artist_name = self.get_similar_artists(self.artist_mbid)
+        artists_to_lookup, artist_name = self.get_similar_artists(self.artist_mbid)
 
         print("seed artist '%s'" % artist_name)
         if "artist_index" not in self.local_storage:
@@ -104,19 +107,22 @@ class ArtistRadioSourceElement(troi.Element):
 
         self.local_storage["artist_index"][self.artist_mbid] = artist_name
 
+        seed_artist_recordings = plist(self.fetch_top_recordings(self.artist_mbid))
+
         # Start collecting data
-        self.similar_artists = []
-
         if self.mode == "easy":
-            start, stop = 0, 50 
+            start, stop, min_similar_artists = 0, 50, self.SIMILAR_ARTISTS_MINIMUM_COUNT_EASY
         elif self.mode == "medium":
-            start, stop = 25, 75 
+            start, stop, min_similar_artists = 25, 75, self.SIMILAR_ARTISTS_MINIMUM_COUNT_MEDIUM
         else:
-            start, stop = 50, 100
+            start, stop, min_similar_artists = 50, 100, self.SIMILAR_ARTISTS_MINIMUM_COUNT_HARD
 
-        for similar_artist in similar_artist_data[start:stop]:
-            if similar_artist["score"] < self.SIMILAR_ARTISTS_MINIMUM_COUNT:
+        for similar_artist in artists_to_lookup[start:stop]:
+            if similar_artist["score"] < min_similar_artists:
                 print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
+                continue
+
+            if similar_artist["artist_mbid"] in self.local_storage["artist_index"]:
                 continue
 
             recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
@@ -132,6 +138,7 @@ class ArtistRadioSourceElement(troi.Element):
                 "raw_score": similar_artist["score"],
                 "recordings": recordings
             })
+            self.local_storage["artist_index"][similar_artist["artist_mbid"]] = similar_artist["name"]
 
             if len(self.similar_artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
                 break
@@ -155,7 +162,7 @@ class ArtistRadioSourceElement(troi.Element):
             print("  similar: %.3f (%d) %d %s" % (sim["score"], sim["raw_score"], len(sim["recordings"]), sim["artist_name"]))
 
         # Now that data is collected, collate tracks into one single list
-        recs = []
+        recs = plist()
         print("Collate")
         for similar_artist in self.similar_artists:
             for recording in similar_artist["recordings"][start:stop]:
@@ -163,7 +170,8 @@ class ArtistRadioSourceElement(troi.Element):
 
         recs = plist(sorted(recs, key=lambda k: k["count"], reverse=True))
 
-        recordings = []
+        recordings = plist()
+        recordings.append(Recording(mbid=seed_artist_recordings.random_item(0, 25)["recording_mbid"]))
         for recording in recs.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
             recordings.append(Recording(mbid=recording["recording_mbid"]))
 
@@ -245,6 +253,6 @@ class ArtistRadioPatch(troi.patch.Patch):
 
     def post_process(self):
 
-        names = [ self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
+        names = [self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
         name = "Artist Radio for " + ", ".join(names)
         self.local_storage["_playlist_name"] = name
