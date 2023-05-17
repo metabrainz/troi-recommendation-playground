@@ -15,6 +15,12 @@ from troi.splitter import DataSetSplitter, plist
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
 
+OVERHYPED_SIMILAR_ARTISTS = [
+    "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
+    "83d91898-7763-47d7-b03b-b92132375c47",  # Pink Floyd
+    "a74b1b7f-71a5-4011-9441-d0b5e4122711",  # Radiohead
+]
+
 
 def interleave(lists):
     return [val for tup in zip(*lists) for val in tup]
@@ -51,11 +57,8 @@ class InterleaveRecordingsElement(troi.Element):
 
 class ArtistRadioSourceElement(troi.Element):
 
-    SIMILAR_ARTISTS_MINIMUM_COUNT_EASY = 500
-    SIMILAR_ARTISTS_MINIMUM_COUNT_MEDIUM = 400
-    SIMILAR_ARTISTS_MINIMUM_COUNT_HARD = 200
     MAX_NUM_SIMILAR_ARTISTS = 20
-    MAX_TOP_RECORDINGS_PER_ARTIST = 20
+    MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
 
     def __init__(self, artist_mbid, mode="easy"):
@@ -92,8 +95,13 @@ class ArtistRadioSourceElement(troi.Element):
         except IndexError:
             return [], None
 
-        artist_name = r.json()[1]["data"][0]["name"]
+        # Knock down super hyped artists
+        for artist in artists:
+            if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
+                print("Chop artist %s in half!" % artist["artist_mbid"])
+                artist["score"] /= 2  # Chop it in half!
 
+        artist_name = r.json()[1]["data"][0]["name"]
         return plist(artists), artist_name
 
     def read(self, entities):
@@ -111,16 +119,16 @@ class ArtistRadioSourceElement(troi.Element):
 
         # Start collecting data
         if self.mode == "easy":
-            start, stop, min_similar_artists = 0, 50, self.SIMILAR_ARTISTS_MINIMUM_COUNT_EASY
+            start, stop = 0, 50
         elif self.mode == "medium":
-            start, stop, min_similar_artists = 25, 75, self.SIMILAR_ARTISTS_MINIMUM_COUNT_MEDIUM
+            start, stop = 25, 75
         else:
-            start, stop, min_similar_artists = 50, 100, self.SIMILAR_ARTISTS_MINIMUM_COUNT_HARD
+            start, stop = 50, 100
 
-        for similar_artist in artists_to_lookup[start:stop]:
-            if similar_artist["score"] < min_similar_artists:
-                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
-                continue
+        for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
+#            if similar_artist["score"] < min_similar_artists:
+#                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
+#                continue
 
             if similar_artist["artist_mbid"] in self.local_storage["artist_index"]:
                 continue
@@ -163,7 +171,6 @@ class ArtistRadioSourceElement(troi.Element):
 
         # Now that data is collected, collate tracks into one single list
         recs = plist()
-        print("Collate")
         for similar_artist in self.similar_artists:
             for recording in similar_artist["recordings"][start:stop]:
                 recs.append(recording)
