@@ -224,9 +224,9 @@ class PlaylistElement(Element):
                 raise PipelineError("Cannot post playlist to ListenBrainz: " + str(err))
 
             playlist.mbid = result["playlist_mbid"]
-            playlist_urls.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
+            playlist_mbids.append((LISTENBRAINZ_SERVER_URL + "/playlist/" + result["playlist_mbid"], result["playlist_mbid"]))
 
-        return playlist_urls
+        return playlist_mbids
 
     def submit_to_spotify(self,
                           user_id: str,
