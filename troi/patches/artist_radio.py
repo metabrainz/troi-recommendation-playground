@@ -62,9 +62,10 @@ class ArtistRadioSourceElement(troi.Element):
     MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
 
-    def __init__(self, artist_mbid, mode="easy"):
+    def __init__(self, artist_mbid, artist_name, mode="easy"):
         troi.Element.__init__(self)
         self.artist_mbid = artist_mbid
+        self.artist_name = artist_name
         self.similar_artists = []
         self.mode = mode
 
@@ -73,6 +74,14 @@ class ArtistRadioSourceElement(troi.Element):
 
     def outputs(self):
         return [Recording]
+
+    def fetch_artist_names(self, artist_mbid):
+
+        r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=[{
+            '[artist_mbid]': artist_mbid,
+        }])
+
+        return {r.artist_mbid: r.artist_name for result in r.json()}
 
     def fetch_top_recordings(self, artist_mbid):
 
@@ -94,27 +103,28 @@ class ArtistRadioSourceElement(troi.Element):
         try:
             artists = r.json()[3]["data"]
         except IndexError:
-            return [], None
+            return []
 
         # Knock down super hyped artists
         for artist in artists:
             if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
-                print("Chop artist %s in half!" % artist["artist_mbid"])
-                artist["score"] /= 4  # Chop it in a quarter!
+                artist["score"] /= 3  # Chop it to a quarter!
 
-        artist_name = r.json()[1]["data"][0]["name"]
-        return plist(artists), artist_name
+        return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
 
     def read(self, entities):
 
         # Fetch similar artists for original artist
-        artists_to_lookup, artist_name = self.get_similar_artists(self.artist_mbid)
+        artists_to_lookup = self.get_similar_artists(self.artist_mbid)
+        if len(artists_to_lookup) == 0:
+            raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
+                               self.artist_name)
 
-        print("seed artist '%s'" % artist_name)
+        print("seed artist '%s'" % self.artist_name)
         if "artist_index" not in self.local_storage:
             self.local_storage["artist_index"] = {}
 
-        self.local_storage["artist_index"][self.artist_mbid] = artist_name
+        self.local_storage["artist_index"][self.artist_mbid] = self.artist_name
 
         seed_artist_recordings = plist(self.fetch_top_recordings(self.artist_mbid))
 
@@ -233,16 +243,28 @@ class ArtistRadioPatch(troi.patch.Patch):
     def description():
         return "Given one or more artist_mbids, return a list playlist of those and similar artists."
 
+    def fetch_artist_names(self, artist_mbids):
+
+        data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
+        r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
+
+        return {result["artist_mbid"]: result["artist_name"] for result in r.json()}
+
     def create(self, inputs):
         self.artist_mbids = inputs["artist_mbid"]
         self.mode = inputs["mode"]
+
+        self.artist_names = self.fetch_artist_names(self.artist_mbids)
+        for artist_mbid in self.artist_mbids:
+            if artist_mbid not in self.artist_names:
+                raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist_mbid)
 
         if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
         lookups = []
         for mbid in self.artist_mbids:
-            ar_source = ArtistRadioSourceElement(mbid, self.mode)
+            ar_source = ArtistRadioSourceElement(mbid, self.artist_names[mbid], self.mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
@@ -264,6 +286,7 @@ class ArtistRadioPatch(troi.patch.Patch):
 
         names = [self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
         name = "Artist Radio for " + ", ".join(names)
-        desc="Experimental artist radio using %s mode, which contains tracks from the seed artists (%s) and artists similar to them." % (self.mode, ", ".join(names))
+        desc = "Experimental artist radio using %s mode, which contains tracks from the seed artists (%s) and artists similar to them." % (
+            self.mode, ", ".join(names))
         self.local_storage["_playlist_name"] = name
         self.local_storage["_playlist_desc"] = desc
