@@ -19,6 +19,7 @@ OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
     "83d91898-7763-47d7-b03b-b92132375c47",  # Pink Floyd
     "a74b1b7f-71a5-4011-9441-d0b5e4122711",  # Radiohead
+    "8bfac288-ccc5-448d-9573-c33ea2aa5c30",  # Red Hot Chili Peppers
 ]
 
 
