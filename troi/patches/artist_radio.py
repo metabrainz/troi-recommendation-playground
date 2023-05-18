@@ -126,9 +126,9 @@ class ArtistRadioSourceElement(troi.Element):
             start, stop = 50, 100
 
         for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
-#            if similar_artist["score"] < min_similar_artists:
-#                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
-#                continue
+            #            if similar_artist["score"] < min_similar_artists:
+            #                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
+            #                continue
 
             if similar_artist["artist_mbid"] in self.local_storage["artist_index"]:
                 continue
@@ -254,9 +254,7 @@ class ArtistRadioPatch(troi.patch.Patch):
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(lookups)
 
-        pl_maker = PlaylistMakerElement(patch_slug=self.slug(),
-                                        max_num_recordings=50,
-                                        max_artist_occurrence=5)
+        pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=50, max_artist_occurrence=5)
         pl_maker.set_sources(interleave)
 
         return pl_maker
@@ -266,6 +264,6 @@ class ArtistRadioPatch(troi.patch.Patch):
         names = [self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
         name = "Artist Radio for " + ", ".join(names)
         desc="Experimental artist radio using %s mode, which contains tracks from the" + \
-             " seed artists (%s) and artists similar to them." % (self.mode, names.join(", "))
+             " seed artists (%s) and artists similar to them." % (self.mode, ", ".join(names))
         self.local_storage["_playlist_name"] = name
         self.local_storage["_playlist_desc"] = desc
