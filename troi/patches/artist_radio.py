@@ -99,7 +99,7 @@ class ArtistRadioSourceElement(troi.Element):
         for artist in artists:
             if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
                 print("Chop artist %s in half!" % artist["artist_mbid"])
-                artist["score"] /= 2  # Chop it in half!
+                artist["score"] /= 4  # Chop it in a quarter!
 
         artist_name = r.json()[1]["data"][0]["name"]
         return plist(artists), artist_name
@@ -193,6 +193,7 @@ class ArtistRadioPatch(troi.patch.Patch):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.artist_mbids = []
+        self.mode = None
 
     @staticmethod
     def inputs():
@@ -233,14 +234,14 @@ class ArtistRadioPatch(troi.patch.Patch):
 
     def create(self, inputs):
         self.artist_mbids = inputs["artist_mbid"]
-        mode = inputs["mode"]
+        self.mode = inputs["mode"]
 
-        if mode not in ("easy", "medium", "hard"):
+        if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
         lookups = []
         for mbid in self.artist_mbids:
-            ar_source = ArtistRadioSourceElement(mbid, mode)
+            ar_source = ArtistRadioSourceElement(mbid, self.mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
@@ -253,8 +254,7 @@ class ArtistRadioPatch(troi.patch.Patch):
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(lookups)
 
-        pl_maker = PlaylistMakerElement(desc="Experimental atist radio using %s mode." % mode,
-                                        patch_slug=self.slug(),
+        pl_maker = PlaylistMakerElement(patch_slug=self.slug(),
                                         max_num_recordings=50,
                                         max_artist_occurrence=5)
         pl_maker.set_sources(interleave)
@@ -265,4 +265,7 @@ class ArtistRadioPatch(troi.patch.Patch):
 
         names = [self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
         name = "Artist Radio for " + ", ".join(names)
+        desc="Experimental artist radio using %s mode, which contains tracks from the" + \
+             " seed artists (%s) and artists similar to them." % (self.mode, names.join(", "))
         self.local_storage["_playlist_name"] = name
+        self.local_storage["_playlist_desc"] = desc
