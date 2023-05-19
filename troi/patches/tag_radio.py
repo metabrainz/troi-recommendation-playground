@@ -90,11 +90,14 @@ class TagRadioPatch(troi.patch.Patch):
         latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
         latest_filter.set_sources(source)
 
-        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
-        feedback_lookup.set_sources(latest_filter)
-
-        recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-        recs_lookup.set_sources(feedback_lookup)
+        if (user_name != "-"):
+            feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
+            feedback_lookup.set_sources(latest_filter)
+            recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+            recs_lookup.set_sources(feedback_lookup)
+        else:
+            recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+            recs_lookup.set_sources(latest_filter)
 
         hate_filter = troi.filters.HatedRecordingsFilterElement()
         hate_filter.set_sources(recs_lookup)
