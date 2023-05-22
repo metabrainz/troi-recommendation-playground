@@ -12,7 +12,6 @@ class Patch(ABC):
         logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
-        print("Setup local storage for patch %s" % self.slug())
         # Dict used for local storage
         self.local_storage = {}
 
