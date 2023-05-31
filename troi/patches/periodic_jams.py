@@ -109,7 +109,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
 
         pl_maker = PlaylistMakerElement(name="%s for %s, %s" % (jam_name, user_name, jam_date),
                                         desc="%s playlist!" % jam_name,
-                                        patch_slug=self.slug(),
+                                        patch_slug=jam_type,
                                         max_num_recordings=50,
                                         max_artist_occurrence=2,
                                         shuffle=True,
