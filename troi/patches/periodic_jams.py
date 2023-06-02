@@ -17,15 +17,15 @@ MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
 class PeriodicJamsPatch(troi.patch.Patch):
     """
-       Create either daily-jams, weekly-jams or weekly-new-jams with this patch.
+       Create either daily-jams, weekly-jams or weekly-exploration with this patch.
 
        First, fetch the top recommendations. For daily-jams and weekly-jams, filter out the recently listened tracks.
-       For weekly-new-jams, filter out tracks that have been listened to.
+       For weekly-exploration, filter out tracks that have been listened to.
 
        Then filter out hated tracks and make the playlist.
     """
 
-    JAM_TYPES = ("daily-jams", "weekly-jams", "weekly-new-jams")
+    JAM_TYPES = ("daily-jams", "weekly-jams", "weekly-exploration")
 
     def __init__(self, debug=False):
         super().__init__(debug)
@@ -37,7 +37,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
 
         \b
         USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE Must be one of "daily-jams", "weekly-jams" or "weekly-new-jams".
+        TYPE Must be one of "daily-jams", "weekly-jams" or "weekly-exploration".
         JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
         can be on different dates). Required formatting for the date is 'YYYY-MM-DD'.
         """
@@ -86,11 +86,11 @@ class PeriodicJamsPatch(troi.patch.Patch):
             else:
                 jam_name = "Weekly Jams"
                 jam_date = "week of " + jam_date
-        elif jam_type == "weekly-new-jams":
+        elif jam_type == "weekly-exploration":
             # Remove tracks that have been listened to before.
             never_listened = troi.filters.NeverListenedFilterElement(remove_unlistened=False)
             never_listened.set_sources(recent_listens_lookup)
-            jam_name = "Weekly New Jams"
+            jam_name = "Weekly Exploration"
             jam_date = "week of " + jam_date
         else:
             raise RuntimeError("someone goofed up!")
