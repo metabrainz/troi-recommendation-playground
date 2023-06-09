@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from random import randint, shuffle
@@ -56,6 +57,85 @@ class InterleaveRecordingsElement(troi.Element):
         return recordings
 
 
+class RecordingSource:
+
+    def __init__(self, mode, entity_type, entity_name, entity_mbid="", year=""):
+        self.mode = mode
+        self.entity_type = entity_type
+        self.entity_name = entity_name
+        self.entity_mbid = entity_mbid
+        self.year = year
+
+    @abstractmethod
+    def get(self):
+        pass
+
+
+class SimilarArtistRecordingSource(RecordingSource):
+
+    def __init__(self, mode, entity_type, entity_name, entity_mbid="", artist_index=None):
+        """
+            entity_type, name and mbid must be given for this source
+        """
+        super().__init__(mode, entity_type, entity_name, entity_mbid)
+
+        self.artist_index = artist_index
+
+    def fetch_top_recordings(self, artist_mbid):
+
+        r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
+            '[artist_mbid]': artist_mbid,
+        }])
+        return plist(r.json())
+
+    def get(self):
+
+        # Fetch similar artists for original artist
+        artists_to_lookup = self.get_similar_artists(self.entity_mbid)
+        if len(artists_to_lookup) == 0:
+            raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
+                               self.entity_name)
+
+        print("seed artist '%s'" % self.entity_name)
+
+        self.artist_index[self.entity_mbid] = self.entity_name
+        seed_artist_recordings = plist(self.fetch_top_recordings(self.entity_mbid))
+
+        if self.mode == "easy":
+            start, stop = 0, 50
+        elif self.mode == "medium":
+            start, stop = 25, 75
+        else:
+            start, stop = 50, 100
+
+        similar_artists = []
+        # Start collecting data
+        for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
+            #            if similar_artist["score"] < min_similar_artists:
+            #                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
+            #                continue
+
+            if similar_artist["artist_mbid"] in self.artist_index:
+                continue
+
+            recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
+            if len(recordings) == 0:
+                continue
+
+            # Keep only a certain number of top recordings
+            recordings = recordings.dslice(None, self.KEEP_TOP_RECORDINGS_PER_ARTIST)
+
+            self.similar_artists.append({
+                "artist_mbid": similar_artist["artist_mbid"],
+                "artist_name": similar_artist["name"],
+                "raw_score": similar_artist["score"],
+                "recordings": recordings
+            })
+            self.artist_index[similar_artist["artist_mbid"]] = similar_artist["name"]
+
+            if len(self.similar_artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
+                break
+
 class ArtistRadioSourceElement(troi.Element):
 
     MAX_NUM_SIMILAR_ARTISTS = 20
@@ -83,12 +163,6 @@ class ArtistRadioSourceElement(troi.Element):
 
         return {r.artist_mbid: r.artist_name for result in r.json()}
 
-    def fetch_top_recordings(self, artist_mbid):
-
-        r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
-            '[artist_mbid]': artist_mbid,
-        }])
-        return plist(r.json())
 
     def get_similar_artists(self, artist_mbid):
 
@@ -108,7 +182,7 @@ class ArtistRadioSourceElement(troi.Element):
         # Knock down super hyped artists
         for artist in artists:
             if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
-                artist["score"] /= 3  # Chop it to a quarter!
+                artist["score"] /= 3  # Chop!
 
         return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
 
