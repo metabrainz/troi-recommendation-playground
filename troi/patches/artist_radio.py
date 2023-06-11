@@ -59,7 +59,7 @@ class InterleaveRecordingsElement(troi.Element):
 
 class RecordingSource:
 
-    def __init__(self, mode, entity_type, entity_name, entity_mbid="", year=""):
+    def __init__(self, mode, entity_type, entity_name=None, entity_mbid=None, year=None):
         self.mode = mode
         self.entity_type = entity_type
         self.entity_name = entity_name
@@ -70,16 +70,46 @@ class RecordingSource:
     def get(self):
         pass
 
+    @abstractmethod
+    def quip(self):
+        """ A short snippet of what this source does and what its input was, in human readable form. """
+        pass
+
 
 class SimilarArtistRecordingSource(RecordingSource):
 
-    def __init__(self, mode, entity_type, entity_name, entity_mbid="", artist_index=None):
+    def __init__(self, mode, entity_type, entity_name="", entity_mbid="", data_cache=None):
         """
             entity_type, name and mbid must be given for this source
         """
         super().__init__(mode, entity_type, entity_name, entity_mbid)
 
-        self.artist_index = artist_index
+        self.data_cache = data_cache
+
+    def get_similar_artists(self, artist_mbid):
+
+        r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
+                          json=[{
+                              'artist_mbid':
+                              artist_mbid,
+                              'algorithm':
+                              "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
+                          }])
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch similar artists: {r.status_code}")
+
+        try:
+            artists = r.json()[3]["data"]
+        except IndexError:
+            return []
+
+        # Knock down super hyped artists
+        for artist in artists:
+            if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
+                artist["score"] /= 3  # Chop!
+
+        return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
+
 
     def fetch_top_recordings(self, artist_mbid):
 
@@ -98,24 +128,24 @@ class SimilarArtistRecordingSource(RecordingSource):
 
         print("seed artist '%s'" % self.entity_name)
 
-        self.artist_index[self.entity_mbid] = self.entity_name
+        self.data_cache[self.entity_mbid] = self.entity_name
         seed_artist_recordings = plist(self.fetch_top_recordings(self.entity_mbid))
 
         if self.mode == "easy":
             start, stop = 0, 50
         elif self.mode == "medium":
             start, stop = 25, 75
-        else:
             start, stop = 50, 100
 
-        similar_artists = []
-        # Start collecting data
+        similar_artist_recordings = []
         for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
             #            if similar_artist["score"] < min_similar_artists:
             #                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
             #                continue
 
-            if similar_artist["artist_mbid"] in self.artist_index:
+            if similar_artist["artist_mbid"] + "_top_recordings" in self.data_cache:
+                print("add from cache")
+                similar_artist_recordings.append(self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"])
                 continue
 
             recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
@@ -125,18 +155,28 @@ class SimilarArtistRecordingSource(RecordingSource):
             # Keep only a certain number of top recordings
             recordings = recordings.dslice(None, self.KEEP_TOP_RECORDINGS_PER_ARTIST)
 
-            self.similar_artists.append({
-                "artist_mbid": similar_artist["artist_mbid"],
-                "artist_name": similar_artist["name"],
-                "raw_score": similar_artist["score"],
-                "recordings": recordings
-            })
-            self.artist_index[similar_artist["artist_mbid"]] = similar_artist["name"]
+            # normalize recording scores
+            max_count = 0
+            for rec in recording:
+                max_count = max(max_count, rec["count"])
 
-            if len(self.similar_artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
+            for rec in recording:
+                rec["score"] = rec["count"] / float(max_count)
+
+            # Now tuck away the data for caching and interleaving
+            self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"] = recordings
+            similar_artist_recordings.append(recordings)
+
+            if i >= self.MAX_NUM_SIMILAR_ARTISTS:
                 break
 
-class ArtistRadioSourceElement(troi.Element):
+        return interleave(similar_artist_recordings)
+
+    def quip(self):
+        return "Fill this out!"
+
+
+class LBRadioSourceElement(troi.Element):
 
     MAX_NUM_SIMILAR_ARTISTS = 20
     MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
@@ -163,114 +203,23 @@ class ArtistRadioSourceElement(troi.Element):
 
         return {r.artist_mbid: r.artist_name for result in r.json()}
 
-
-    def get_similar_artists(self, artist_mbid):
-
-        r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
-                          json=[{
-                              'artist_mbid':
-                              artist_mbid,
-                              'algorithm':
-                              "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
-                          }])
-
-        try:
-            artists = r.json()[3]["data"]
-        except IndexError:
-            return []
-
-        # Knock down super hyped artists
-        for artist in artists:
-            if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
-                artist["score"] /= 3  # Chop!
-
-        return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
-
     def read(self, entities):
 
-        # Fetch similar artists for original artist
-        artists_to_lookup = self.get_similar_artists(self.artist_mbid)
-        if len(artists_to_lookup) == 0:
-            raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
-                               self.artist_name)
+        if "data_cache" not in self.local_storage:
+            self.local_storage["data_cache"] = {}
 
-        print("seed artist '%s'" % self.artist_name)
-        if "artist_index" not in self.local_storage:
-            self.local_storage["artist_index"] = {}
-
-        self.local_storage["artist_index"][self.artist_mbid] = self.artist_name
-
-        seed_artist_recordings = plist(self.fetch_top_recordings(self.artist_mbid))
-
-        # Start collecting data
-        if self.mode == "easy":
-            start, stop = 0, 50
-        elif self.mode == "medium":
-            start, stop = 25, 75
-        else:
-            start, stop = 50, 100
-
-        for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
-            #            if similar_artist["score"] < min_similar_artists:
-            #                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
-            #                continue
-
-            if similar_artist["artist_mbid"] in self.local_storage["artist_index"]:
-                continue
-
-            recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
-            if len(recordings) == 0:
-                continue
-
-            # Keep only a certain number of top recordings
-            recordings = recordings.dslice(None, self.KEEP_TOP_RECORDINGS_PER_ARTIST)
-
-            self.similar_artists.append({
-                "artist_mbid": similar_artist["artist_mbid"],
-                "artist_name": similar_artist["name"],
-                "raw_score": similar_artist["score"],
-                "recordings": recordings
-            })
-            self.local_storage["artist_index"][similar_artist["artist_mbid"]] = similar_artist["name"]
-
-            if len(self.similar_artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
-                break
-
-        # Normalize similar artist scores
-        max_score = 0
-        for sim in self.similar_artists:
-            max_score = max(max_score, sim["raw_score"])
-
-        for sim in self.similar_artists:
-            sim["score"] = sim["raw_score"] / float(max_score)
-
-            # And also normalize recording scores
-            max_count = 0
-            for rec in sim["recordings"]:
-                max_count = max(max_count, rec["count"])
-
-            for rec in sim["recordings"]:
-                rec["count"] = rec["count"] / float(max_count)
-
-            print("  similar: %.3f (%d) %d %s" % (sim["score"], sim["raw_score"], len(sim["recordings"]), sim["artist_name"]))
-
-        # Now that data is collected, collate tracks into one single list
-        recs = plist()
-        for similar_artist in self.similar_artists:
-            for recording in similar_artist["recordings"][start:stop]:
-                recs.append(recording)
-
-        recs = plist(sorted(recs, key=lambda k: k["count"], reverse=True))
+        sa = SimilarArtistRecordingSource(self.mode, "artist", self.artist_mbid, self.local_storage["data_cache"])
+        mbid_plist = plist(sorted(sa.get(), key=lambda k: k["count"], reverse=True))
 
         recordings = plist()
         recordings.append(Recording(mbid=seed_artist_recordings.random_item(0, 25)["recording_mbid"]))
-        for recording in recs.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+        for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
             recordings.append(Recording(mbid=recording["recording_mbid"]))
 
         return recordings
 
 
-class ArtistRadioPatch(troi.patch.Patch):
+class LBRadioPatch(troi.patch.Patch):
     """
        Artist radio experimentation.
     """
@@ -311,11 +260,11 @@ class ArtistRadioPatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "artist-radio"
+        return "lb-radio"
 
     @staticmethod
     def description():
-        return "Given one or more artist_mbids, return a list playlist of those and similar artists."
+        return "Given an LB radio prompt, generate a playlist for that prompt."
 
     def fetch_artist_names(self, artist_mbids):
 
@@ -338,7 +287,7 @@ class ArtistRadioPatch(troi.patch.Patch):
 
         lookups = []
         for mbid in self.artist_mbids:
-            ar_source = ArtistRadioSourceElement(mbid, self.artist_names[mbid], self.mode)
+            ar_source = LBRadioSourceElement(mbid, self.artist_names[mbid], self.mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(ar_source)
@@ -358,7 +307,7 @@ class ArtistRadioPatch(troi.patch.Patch):
 
     def post_process(self):
 
-        names = [self.local_storage["artist_index"][mbid] for mbid in self.artist_mbids]
+        names = [self.local_storage["data_cache"][mbid] for mbid in self.artist_mbids]
         name = "Artist Radio for " + ", ".join(names)
         desc = "Experimental artist radio using %s mode, which contains tracks from the seed artists (%s) and artists similar to them." % (
             self.mode, ", ".join(names))
