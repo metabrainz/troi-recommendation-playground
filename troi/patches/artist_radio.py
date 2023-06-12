@@ -70,11 +70,6 @@ class RecordingSource:
     def get(self):
         pass
 
-    @abstractmethod
-    def quip(self):
-        """ A short snippet of what this source does and what its input was, in human readable form. """
-        pass
-
 
 class SimilarArtistRecordingSource(RecordingSource):
 
@@ -128,9 +123,10 @@ class SimilarArtistRecordingSource(RecordingSource):
             raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
                                self.entity_name)
 
-        print("seed artist '%s'" % self.entity_name)
+        print("Seed artist: %s" % self.entity_name)
 
         self.data_cache[self.entity_mbid] = self.entity_name
+        self.data_cache["seed_artists"].append((self.entity_name, self.entity_mbid))
 
         if self.mode == "easy":
             start, stop = 0, 50
@@ -145,7 +141,6 @@ class SimilarArtistRecordingSource(RecordingSource):
             #                continue
 
             if similar_artist["artist_mbid"] + "_top_recordings" in self.data_cache:
-                print("add from cache")
                 similar_artist_recordings.append(self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"])
                 continue
 
@@ -172,9 +167,6 @@ class SimilarArtistRecordingSource(RecordingSource):
                 break
 
         return interleave(similar_artist_recordings)
-
-    def quip(self):
-        return "Fill this out!"
 
 
 class LBRadioSourceElement(troi.Element):
@@ -205,7 +197,7 @@ class LBRadioSourceElement(troi.Element):
     def read(self, entities):
 
         if "data_cache" not in self.local_storage:
-            self.local_storage["data_cache"] = {}
+            self.local_storage["data_cache"] = {"seed_artists": []}
 
         if self.mode == "easy":
             start, stop = 0, 50
@@ -216,6 +208,7 @@ class LBRadioSourceElement(troi.Element):
         sa = SimilarArtistRecordingSource(self.mode,
                                           "artist",
                                           entity_mbid=self.artist_mbid,
+                                          entity_name=self.artist_name,
                                           data_cache=self.local_storage["data_cache"])
         seed_artist_recordings = plist(sa.fetch_top_recordings(self.artist_mbid))
         mbid_plist = plist(sorted(sa.get(), key=lambda k: k["count"], reverse=True))
