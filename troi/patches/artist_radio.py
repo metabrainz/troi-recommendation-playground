@@ -78,6 +78,9 @@ class RecordingSource:
 
 class SimilarArtistRecordingSource(RecordingSource):
 
+    KEEP_TOP_RECORDINGS_PER_ARTIST = 100
+    MAX_NUM_SIMILAR_ARTISTS = 20
+
     def __init__(self, mode, entity_type, entity_name="", entity_mbid="", data_cache=None):
         """
             entity_type, name and mbid must be given for this source
@@ -96,7 +99,7 @@ class SimilarArtistRecordingSource(RecordingSource):
                               "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
                           }])
         if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch similar artists: {r.status_code}")
+            raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
 
         try:
             artists = r.json()[3]["data"]
@@ -109,7 +112,6 @@ class SimilarArtistRecordingSource(RecordingSource):
                 artist["score"] /= 3  # Chop!
 
         return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
-
 
     def fetch_top_recordings(self, artist_mbid):
 
@@ -129,7 +131,6 @@ class SimilarArtistRecordingSource(RecordingSource):
         print("seed artist '%s'" % self.entity_name)
 
         self.data_cache[self.entity_mbid] = self.entity_name
-        seed_artist_recordings = plist(self.fetch_top_recordings(self.entity_mbid))
 
         if self.mode == "easy":
             start, stop = 0, 50
@@ -157,10 +158,10 @@ class SimilarArtistRecordingSource(RecordingSource):
 
             # normalize recording scores
             max_count = 0
-            for rec in recording:
+            for rec in recordings:
                 max_count = max(max_count, rec["count"])
 
-            for rec in recording:
+            for rec in recordings:
                 rec["score"] = rec["count"] / float(max_count)
 
             # Now tuck away the data for caching and interleaving
@@ -178,9 +179,7 @@ class SimilarArtistRecordingSource(RecordingSource):
 
 class LBRadioSourceElement(troi.Element):
 
-    MAX_NUM_SIMILAR_ARTISTS = 20
     MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
-    KEEP_TOP_RECORDINGS_PER_ARTIST = 100
 
     def __init__(self, artist_mbid, artist_name, mode="easy"):
         troi.Element.__init__(self)
@@ -208,7 +207,17 @@ class LBRadioSourceElement(troi.Element):
         if "data_cache" not in self.local_storage:
             self.local_storage["data_cache"] = {}
 
-        sa = SimilarArtistRecordingSource(self.mode, "artist", self.artist_mbid, self.local_storage["data_cache"])
+        if self.mode == "easy":
+            start, stop = 0, 50
+        elif self.mode == "medium":
+            start, stop = 25, 75
+            start, stop = 50, 100
+
+        sa = SimilarArtistRecordingSource(self.mode,
+                                          "artist",
+                                          entity_mbid=self.artist_mbid,
+                                          data_cache=self.local_storage["data_cache"])
+        seed_artist_recordings = plist(sa.fetch_top_recordings(self.artist_mbid))
         mbid_plist = plist(sorted(sa.get(), key=lambda k: k["count"], reverse=True))
 
         recordings = plist()
