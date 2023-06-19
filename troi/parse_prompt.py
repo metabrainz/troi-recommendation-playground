@@ -36,23 +36,26 @@ from uuid import UUID
 # 
 # years:1986-2000
 #
+# TODO: Fix tag parsing: MB comma separates!
 
 PREFIXES = {
     "a": "artist",
+    "ar": "area",
+    "c": "country",
     "r": "recording",
     "rl": "release",
     "rg": "release-group",
     "g": "genre",
     "c": "country",
     "t": "tag",
-    "tag": "tag",
-    "rgt": "release-group-tag",
-    "release-group-tag": "release-group-tag",
     "y": "year",
     "ys": "years"
 }
 
 UUID_VALUES = ("artist", "recording", "release-group", "genre", "country")
+
+class ParseError(Exception):
+    pass
 
 def lex(prompt: str):
     """ Given a string, return the space separated token, taking care to mind quotes. """
@@ -70,6 +73,10 @@ def lex(prompt: str):
                 token = ""
 
             tokens.append(ch)
+            continue
+
+        if ch == "#" and len(token) == 0:
+            tokens.extend(("tag", ":"))
             continue
 
         if ch  == " " and quote == 0 and len(token) > 0:
@@ -90,51 +97,83 @@ def lex(prompt: str):
 
         token += ch
 
+    if quote != 0:
+        raise ParseError('Missing closing "')
+
     if len(token) > 0:
         tokens.append(token.strip())
 
     return tokens
 
-def yacc(prompt: str):
+def sanity_check_field(entity: str, values: list):
 
-    prefix = ""
+    def check_year(year):
+        try:
+            year = int(year)
+        except ValueError:
+            raise ParseError("Invalid year %s" % year)
+
+        if year < 1800 or year > 2100:  # fuck the future
+            raise ParseError("Invalid year %s. Must be between 1800 - 2100." % year)
+
+        return year
+
+    if entity == "year":
+        values[0] = check_year(values[0])
+        return values
+
+    if entity == "years":
+        try:
+            from_year, to_year = values[0].split("-")
+        except ValueError:
+            raise ParseError("Year range must be in format YYYY-YYYY")
+
+        return [check_year(from_year), check_year(to_year)]
+
+    return values
+
+
+def parse(prompt: str):
+
+    prefix = None
     values = []
-    suffix = ""
+    suffix = None
     elements = []
-    last_token = None
     colons = 0
     parens = 0
   
     for token in lex(prompt):
-        print(f"\ntoken '{token}', prefix: '{prefix}' values '{values}' suffix: '{suffix}' colons: {colons}")
 
         if token == "(":
             if colons != 1:
-                return [], ": not allowed here"
+                raise ParseError(": not allowed here")
 
             if parens != 0:
-                return [], "() may not be nested"
+                raise ParseError("More than one ( now allowed per element")
 
             parens = 1
             continue
 
         if token == ")":
-            if colons != 1:
-                return [], ": not allowed here"
+            if parens > 1:
+                raise ParseError("More than one ) now allowed per element")
 
-            if parens != 1:
-                return [], "() may not be nested"
+            if parens == 0:
+                raise ParseError(") is missing (")
 
             parens = 0
             continue
 
         if token == ":":
+            if parens == 1:
+                raise ParseError("Missing ) before :")
+
             colons += 1
             continue
 
         # Check text token to see if prefix, value or suffix
         if colons == 0 and token not in list(PREFIXES) + list(PREFIXES.values()):
-            return [], f'"{token}" must have one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}'
+            raise ParseError(f'"{token}" is invalid. It must be one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}')
 
         if token in PREFIXES:
             new_prefix = PREFIXES[token]
@@ -143,138 +182,52 @@ def yacc(prompt: str):
         else: 
             new_prefix = None
 
-        if token not in ("and", "or") and colons == 2:
-            return [], "Suffix must be 'and' or 'or'"
-        else:
-            suffix = token
+        if new_prefix is None and prefix is not None and parens == 0 and len(values) > 0 and colons < 2:
+            raise ParseError(f"Invalid prefix {token}")
 
-        print(f"  new prefix: {new_prefix} suffix: {suffix}")
-        if colons == 0 and new_prefix is not None:
-            prefix = token
+#        print(f"p {prefix} v {values} s {suffix} c {colons} p{parens}")
+        if new_prefix is not None:
+            if prefix is not None:
+                values = sanity_check_field(prefix, values)
+                elements.append({ "entity": prefix, "values": values, "args": suffix})
+
+            prefix = new_prefix
+            values = []
+            suffix = None
+            colons = 0
+            continue
+
+        if colons == 2 and token not in ("and", "or"):
+            raise ParseError("Suffix must be 'and' or 'or'")
+
+        if colons == 2:
+            suffix = token
             continue
 
         if colons == 1 and new_prefix is None:
-            values.append(token)
-            continue
+            if parens == 1 or len(values) == 0:
+                values.append(token)
+                continue
 
-        if colons > 1:
-            print(prefix, values, suffix)
-            elements.append((prefix, values, suffix))
-            prefix = token
-            values = []
-            suffix = None
-            parens = 0
-            colons = 0
-
-        # Parse token shorthand
-        if token[0] == '#':
-            if len(token) == 0:
-                return [], "#tags must have a name that is at least one character long."
-
-            if parens != 0 or colons != 0:
-                return [], "#tags may not contain : or other characters."
-
-            prefix = "tag"
-            values.append((prefix, token[1:], None))
-            print(f"tag {token[1:]}")
-            continue
+    if parens != 0:
+        raise ParseError("( not closed.")
 
     if prefix is not None and len(values) > 0:
-        print(prefix, values, suffix)
-        elements.append((prefix, values, suffix))
+        values = sanity_check_field(prefix, values)
+        elements.append({ "entity": prefix, "values": values, "args": suffix})
+
+#    print(elements)
 
     return elements, ""
 
-
-
-def parse_prompt(prompt: str):
-    """ Lex the prompt, then parse out the correct elements and error check the prompt.
-        return a list of tuples that contain (prefix, value). Value may be string, int or tuple.
-
-        For instance:
-
-        artist:05319f96-e409-4199-b94f-3cabe7cc188a and #downtempo rgt:"trip hop" c:d1ad6d63-448b-43c7-9de3-e60ac8418106 y:1996 ys:1986-2000
-
-        returns:
-
-        artist                    05319f96-e409-4199-b94f-3cabe7cc188a
-        op                        and
-        tag                       downtempo
-        release-group-tag         trip hop
-        country                   d1ad6d63-448b-43c7-9de3-e60ac8418106
-        year                      1996
-        years                     (1986, 2000)
-
-    """
-
-    elements = []
-    for token in lex(prompt):
-
-        if token[0] == '#':
-            if len(token) == 0:
-                return {}, "#tags must have a name that is at least one character long."
-
-            elements.append(("tag", token[1:]))
-            continue
-
-        if token.find(":") < 0 and token not in ("and", "or"):
-            return {}, f'"{token}" is not a valid element. Elements must have a prefix and :, a #tag, or be one of "or" or "and"'
-
-        try:
-            prefix, value = token.split(":")
-        except ValueError:
-            return {}, f'"{token}" is not a valid element. Elements must have a prefix and :, a #tag, or be one of "or" or "and"'
-
-        if prefix == "" or value == "":
-            return {}, f'"{token}" is not a valid element. Elements must have a prefix and :, a #tag, or be one of "or" or "and"'
-
-
-        if prefix not in PREFIXES.values():
-            return {}, f'"{token}" must have one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}'
-
-        if prefix in UUID_VALUES:
-            try:
-                u = UUID(value)
-            except ValueError:
-                return {}, f"{value} is not a valid MBID."
-
-        if prefix == "year":
-            try:
-                year = int(value)
-            except ValueError:
-                return {}, "Year must be a 4 digit number"
-
-            if year < 1900 or year > 2100: # Sometime will need to update this. eventually.
-                return {}, "Year must be >= 1900 and <= 2100."
-
-            value = year
-
-        if prefix == "years":
-            try:
-                begin_year, end_year = value.split("-")
-                begin_year = int(begin_year)
-                end_year = int(end_year)
-            except ValueError:
-                return {}, "years element must have a format of YYYY-YYYY."
-
-            if begin_year < 1900 or begin_year > 2100:
-                return {}, "Begin year must be >= 1900 and <= 2100."
-
-            if end_year < 1900 or end_year > 2100:
-                return {}, "End year must be >= 1900 and <= 2100."
-
-            value = (begin_year, end_year)
-
-        elements.append((prefix, value))
-
-    return elements, ""
 
 if __name__ == "__main__":
 
     prompt = 'artist:05319f96-e409-4199-b94f-3cabe7cc188a #downtempo tag:("trip hop" abstract):or c:d1ad6d63-448b-43c7-9de3-e60ac8418106 y:1996 ys:1986-2000'
 
-    elements, err = yacc(" ".join(sys.argv[1:]))
-    if err:
+    try:
+        elements, err = parse(" ".join(sys.argv[1:]))
+    except ParseError as err:
         print(err)
 #    else:
 #        for prefix, values, suffix in elements:
