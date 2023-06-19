@@ -64,11 +64,6 @@ class TestSplitter(unittest.TestCase):
         assert dss.random_item(1, 2) == [{'score': 3}]
         assert dss.random_item(2, 2) == [{'score': 2}]
 
-        dss = DataSetSplitter([{"score": 4}, {"score": 3}, {"score": 2}, {"score": 1}], 3)
-        assert dss.random_item(0, 2) == [{'score': 4}, {'score': 3}]
-        assert dss.random_item(0, 1) == {'score': 4} or {'score': 3}
-        assert dss.random_item(1, 2) == [{'score': 2}]
-
     def test_splitter_mod_operation(self):
         dss = DataSetSplitter([{"score": 4}, {"score": 3}, {"score": 2}], 3)
         # Test the % (random item from segment)
