@@ -298,7 +298,8 @@ class LBRadioPatch(troi.patch.Patch):
             hate_filter.set_sources(recs_lookup)
 
             lookups.append(hate_filter)
-
+    
+        #TODO: Add a duplicate filter
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(lookups)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 from uuid import UUID
 
 # EXAMPLES
@@ -30,9 +31,6 @@ from uuid import UUID
 #
 # #rock
 #
-# rgt:rock
-# release-group-tag:rock
-# 
 # y:1986
 # year: 1986
 # 
@@ -66,7 +64,15 @@ def lex(prompt: str):
     prompt = prompt.replace("\n\r\t", "").lower()
     prompt = " ".join(prompt.split())
     for ch in prompt.strip():
-        if ch == " " and quote == 0 and len(token) > 0:
+        if ch in (":", "(", ")"):
+            if len(token) > 0:
+                tokens.append(token.strip())
+                token = ""
+
+            tokens.append(ch)
+            continue
+
+        if ch  == " " and quote == 0 and len(token) > 0:
             tokens.append(token.strip())
             token = ""
             continue
@@ -88,6 +94,97 @@ def lex(prompt: str):
         tokens.append(token.strip())
 
     return tokens
+
+def yacc(prompt: str):
+
+    prefix = ""
+    values = []
+    suffix = ""
+    elements = []
+    last_token = None
+    colons = 0
+    parens = 0
+  
+    for token in lex(prompt):
+        print(f"\ntoken '{token}', prefix: '{prefix}' values '{values}' suffix: '{suffix}' colons: {colons}")
+
+        if token == "(":
+            if colons != 1:
+                return [], ": not allowed here"
+
+            if parens != 0:
+                return [], "() may not be nested"
+
+            parens = 1
+            continue
+
+        if token == ")":
+            if colons != 1:
+                return [], ": not allowed here"
+
+            if parens != 1:
+                return [], "() may not be nested"
+
+            parens = 0
+            continue
+
+        if token == ":":
+            colons += 1
+            continue
+
+        # Check text token to see if prefix, value or suffix
+        if colons == 0 and token not in list(PREFIXES) + list(PREFIXES.values()):
+            return [], f'"{token}" must have one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}'
+
+        if token in PREFIXES:
+            new_prefix = PREFIXES[token]
+        elif token in PREFIXES.values():
+            new_prefix = token
+        else: 
+            new_prefix = None
+
+        if token not in ("and", "or") and colons == 2:
+            return [], "Suffix must be 'and' or 'or'"
+        else:
+            suffix = token
+
+        print(f"  new prefix: {new_prefix} suffix: {suffix}")
+        if colons == 0 and new_prefix is not None:
+            prefix = token
+            continue
+
+        if colons == 1 and new_prefix is None:
+            values.append(token)
+            continue
+
+        if colons > 1:
+            print(prefix, values, suffix)
+            elements.append((prefix, values, suffix))
+            prefix = token
+            values = []
+            suffix = None
+            parens = 0
+            colons = 0
+
+        # Parse token shorthand
+        if token[0] == '#':
+            if len(token) == 0:
+                return [], "#tags must have a name that is at least one character long."
+
+            if parens != 0 or colons != 0:
+                return [], "#tags may not contain : or other characters."
+
+            prefix = "tag"
+            values.append((prefix, token[1:], None))
+            print(f"tag {token[1:]}")
+            continue
+
+    if prefix is not None and len(values) > 0:
+        print(prefix, values, suffix)
+        elements.append((prefix, values, suffix))
+
+    return elements, ""
+
 
 
 def parse_prompt(prompt: str):
@@ -112,9 +209,6 @@ def parse_prompt(prompt: str):
 
     elements = []
     for token in lex(prompt):
-        if token in ("and", "or"):
-            elements.append(("op", token))
-            continue
 
         if token[0] == '#':
             if len(token) == 0:
@@ -134,11 +228,6 @@ def parse_prompt(prompt: str):
         if prefix == "" or value == "":
             return {}, f'"{token}" is not a valid element. Elements must have a prefix and :, a #tag, or be one of "or" or "and"'
 
-        if prefix not in list(PREFIXES) + list(PREFIXES.values()):
-            return {}, f'"{token}" must have one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}'
-        else:
-            if prefix in PREFIXES:
-                prefix = PREFIXES[prefix]
 
         if prefix not in PREFIXES.values():
             return {}, f'"{token}" must have one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}'
@@ -181,7 +270,19 @@ def parse_prompt(prompt: str):
     return elements, ""
 
 if __name__ == "__main__":
-    elements, err = parse_prompt('artist:05319f96-e409-4199-b94f-3cabe7cc188a and #downtempo rgt:"trip hop" c:d1ad6d63-448b-43c7-9de3-e60ac8418106 y:1996 ys:1986-2000')
+
+    prompt = 'artist:05319f96-e409-4199-b94f-3cabe7cc188a #downtempo tag:("trip hop" abstract):or c:d1ad6d63-448b-43c7-9de3-e60ac8418106 y:1996 ys:1986-2000'
+
+    elements, err = yacc(" ".join(sys.argv[1:]))
+    if err:
+        print(err)
+#    else:
+#        for prefix, values, suffix in elements:
+#            print(prefix, values, suffix)
+
+    sys.exit(0)
+
+    elements, err = parse_prompt(prompt)
     if err:
         print(f"Error: {err}")
     else:
