@@ -15,6 +15,7 @@ from troi import Playlist, Element, Recording, Artist, PipelineError
 from troi.splitter import DataSetSplitter, plist
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
+from troi.parse_prompt import parse, ParseError
 
 OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
@@ -57,32 +58,25 @@ class InterleaveRecordingsElement(troi.Element):
         return recordings
 
 
-class RecordingSource:
+class SimilarArtistRecordingSource(troi.Element):
 
-    def __init__(self, mode, entity_type, entity_name=None, entity_mbid=None, year=None):
-        self.mode = mode
-        self.entity_type = entity_type
-        self.entity_name = entity_name
-        self.entity_mbid = entity_mbid
-        self.year = year
-
-    @abstractmethod
-    def get(self):
-        pass
-
-
-class SimilarArtistRecordingSource(RecordingSource):
-
+    MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
     KEEP_TOP_RECORDINGS_PER_ARTIST = 100
     MAX_NUM_SIMILAR_ARTISTS = 20
 
-    def __init__(self, mode, entity_type, entity_name="", entity_mbid="", data_cache=None):
-        """
-            entity_type, name and mbid must be given for this source
-        """
-        super().__init__(mode, entity_type, entity_name, entity_mbid)
+    def __init__(self, artist_mbid, mode="easy", weight):
+        troi.Element.__init__(self)
+        self.artist_mbid = artist_mbid
+        self.artist_name = None
+        self.similar_artists = []
+        self.mode = mode
+        self.weight = weight
 
-        self.data_cache = data_cache
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Recording]
 
     def get_similar_artists(self, artist_mbid):
 
@@ -115,24 +109,51 @@ class SimilarArtistRecordingSource(RecordingSource):
         }])
         return plist(r.json())
 
-    def get(self):
+    def read(self, entities):
+
+        if "data_cache" not in self.local_storage:
+            self.local_storage["data_cache"] = {"seed_artists": []}
 
         # Fetch similar artists for original artist
-        artists_to_lookup = self.get_similar_artists(self.entity_mbid)
+        artists_to_lookup = self.get_similar_artists(self.artist_mbid)
         if len(artists_to_lookup) == 0:
             raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
                                self.entity_name)
 
-        print("Seed artist: %s" % self.entity_name)
+        # Verify and lookup artist mbids
+        self.artist_mbids = [ self.artist_mbid ]
+        for artist in artist_to_lookup:
+            self.artist_mbids.append(artist["artist_mbid"])
 
-        self.data_cache[self.entity_mbid] = self.entity_name
-        self.data_cache["seed_artists"].append((self.entity_name, self.entity_mbid))
+        self.artist_names = self.fetch_artist_names(self.artist_mbids)
+        for artist_mbid in self.artist_mbids:
+            if artist_mbid not in self.artist_names:
+                raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist_mbid)
+
+        self.artist_name = self.artist_names[0]
+        print("Seed artist: %s" % self.artist_name)
+
+        self.data_cache[self.artist_mbid] = self.artist_name
+        self.data_cache["seed_artists"].append((self.artist_name, self.artist_mbid))
 
         if self.mode == "easy":
             start, stop = 0, 50
         elif self.mode == "medium":
             start, stop = 25, 75
             start, stop = 50, 100
+
+        sa = SimilarArtistRecordingSource(self.mode,
+                                          "artist",
+                                          entity_mbid=self.artist_mbid,
+                                          entity_name=self.artist_name,
+                                          data_cache=self.local_storage["data_cache"])
+        seed_artist_recordings = plist(sa.fetch_top_recordings(self.artist_mbid))
+        mbid_plist = plist(sorted(sa.get(), key=lambda k: k["count"], reverse=True))
+
+        recordings = plist()
+        recordings.append(Recording(mbid=seed_artist_recordings.random_item(0, 25)["recording_mbid"]))
+        for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+            recordings.append(Recording(mbid=recording["recording_mbid"]))
 
         similar_artist_recordings = []
         for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
@@ -169,57 +190,6 @@ class SimilarArtistRecordingSource(RecordingSource):
         return interleave(similar_artist_recordings)
 
 
-class LBRadioSourceElement(troi.Element):
-
-    MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
-
-    def __init__(self, artist_mbid, artist_name, mode="easy"):
-        troi.Element.__init__(self)
-        self.artist_mbid = artist_mbid
-        self.artist_name = artist_name
-        self.similar_artists = []
-        self.mode = mode
-
-    def inputs(self):
-        return []
-
-    def outputs(self):
-        return [Recording]
-
-    def fetch_artist_names(self, artist_mbid):
-
-        r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=[{
-            '[artist_mbid]': artist_mbid,
-        }])
-
-        return {r.artist_mbid: r.artist_name for result in r.json()}
-
-    def read(self, entities):
-
-        if "data_cache" not in self.local_storage:
-            self.local_storage["data_cache"] = {"seed_artists": []}
-
-        if self.mode == "easy":
-            start, stop = 0, 50
-        elif self.mode == "medium":
-            start, stop = 25, 75
-            start, stop = 50, 100
-
-        sa = SimilarArtistRecordingSource(self.mode,
-                                          "artist",
-                                          entity_mbid=self.artist_mbid,
-                                          entity_name=self.artist_name,
-                                          data_cache=self.local_storage["data_cache"])
-        seed_artist_recordings = plist(sa.fetch_top_recordings(self.artist_mbid))
-        mbid_plist = plist(sorted(sa.get(), key=lambda k: k["count"], reverse=True))
-
-        recordings = plist()
-        recordings.append(Recording(mbid=seed_artist_recordings.random_item(0, 25)["recording_mbid"]))
-        for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
-            recordings.append(Recording(mbid=recording["recording_mbid"]))
-
-        return recordings
-
 
 class LBRadioPatch(troi.patch.Patch):
     """
@@ -238,7 +208,7 @@ class LBRadioPatch(troi.patch.Patch):
 
         \b
         MODE which mode to generate playlists in. must be one of easy, mediumedium, hard
-        ARTIST_MBIDs is a list of artist_mbids to be used as seeds
+        PROMPT is the LB radio prompt. See troi/parse_prompt.py for details.
         """
         return [{
             "type": "argument",
@@ -249,9 +219,9 @@ class LBRadioPatch(troi.patch.Patch):
             }
         }, {
             "type": "argument",
-            "args": ["artist_mbid"],
+            "args": ["prompt"],
             "kwargs": {
-                "required": False,
+                "required": True,
                 "nargs": -1
             }
         }]
@@ -268,40 +238,41 @@ class LBRadioPatch(troi.patch.Patch):
     def description():
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
-    def fetch_artist_names(self, artist_mbids):
-
-        data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
-        r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
-
-        return {result["artist_mbid"]: result["artist_name"] for result in r.json()}
-
     def create(self, inputs):
-        self.artist_mbids = inputs["artist_mbid"]
+        self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
 
-        self.artist_names = self.fetch_artist_names(self.artist_mbids)
-        for artist_mbid in self.artist_mbids:
-            if artist_mbid not in self.artist_names:
-                raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist_mbid)
+        try:
+            prompt_elements = parse(self.prompt)
+        except ParseError as err:
+            raise RuntimeError("cannot parse prompt: 'err'"
+
 
         if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
-        lookups = []
-        for mbid in self.artist_mbids:
-            ar_source = LBRadioSourceElement(mbid, self.artist_names[mbid], self.mode)
+        elements = []
+        for element in prompt_elements:
+            if element["entity"] == "artist":
+                source = LBRadioArtistSourceElement(mbid, self.artist_names[mbid], self.mode, element["weight"])
+
+#            if element["entity"] == "tag":
+#                source = LBRadioTagSourceElement(element["values"], self.mode, "and", element["weight"])
+#
+#            if element["entity"] == "tag-or":
+#                source = LBRadioTagSourceElement(element["values"], self.mode, "or", element["weight"])
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
-            recs_lookup.set_sources(ar_source)
+            recs_lookup.set_sources(source)
 
             hate_filter = troi.filters.HatedRecordingsFilterElement()
             hate_filter.set_sources(recs_lookup)
 
-            lookups.append(hate_filter)
+            elements.append(hate_filter)
     
         #TODO: Add a duplicate filter
         interleave = InterleaveRecordingsElement()
-        interleave.set_sources(lookups)
+        interleave.set_sources(elements)
 
         pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=50, max_artist_occurrence=5)
         pl_maker.set_sources(interleave)
