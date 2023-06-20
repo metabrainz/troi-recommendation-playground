@@ -255,7 +255,6 @@ class LBRadioPatch(troi.patch.Patch):
         self.prompt = " ".join(inputs["prompt"])
         self.mode = inputs["mode"]
 
-        print(f"in create '{inputs['prompt']}'")
         try:
             prompt_elements = parse(self.prompt)
         except ParseError as err:
