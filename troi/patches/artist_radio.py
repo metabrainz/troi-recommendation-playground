@@ -58,7 +58,42 @@ class InterleaveRecordingsElement(troi.Element):
         return recordings
 
 
-class LBRadioArtistRecordingSource(troi.Element):
+class LBRadioTagRecordingElement(troi.Element):
+
+
+    def __init__(self, tags, operator="and", mode="easy", weight=1):
+        troi.Element.__init__(self)
+        self.tags = tags
+        self.operator = operator
+        self.mode = mode
+        self.weight = weight
+
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Recording]
+
+    def fetch_tag_data(self, tags, operator, threshold):
+
+        data = [{"[tag]": tag, "operator": operator, "threshold": threshold } for tag in tags]
+        r = requests.post("https://datasets.listenbrainz.org/recording-from-tag/json", json=data)
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
+
+        return list(r.json())
+
+    def read(self, entities):
+        threshold = 1
+
+        recordings = []
+        for rec in self.fetch_tag_data(self.tags, self.operator, threshold):
+            recordings.append(Recording(mbid=rec["recording_mbid"]))
+
+        return recordings
+
+
+class LBRadioArtistRecordingElement(troi.Element):
 
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
     MAX_NUM_SIMILAR_ARTISTS = 12
@@ -231,14 +266,13 @@ class LBRadioPatch(troi.patch.Patch):
         elements = []
         for element in prompt_elements:
             if element["entity"] == "artist":
-                source = LBRadioArtistRecordingSource(element["values"][0], self.mode, element["weight"])
+                source = LBRadioArtistRecordingElement(element["values"][0], self.mode, element["weight"])
 
+            if element["entity"] == "tag":
+                source = LBRadioTagRecordingElement(element["values"], mode=self.mode, operator="and", weight=element["weight"])
 
-#            if element["entity"] == "tag":
-#                source = LBRadioTagSourceElement(element["values"], self.mode, "and", element["weight"])
-#
-#            if element["entity"] == "tag-or":
-#                source = LBRadioTagSourceElement(element["values"], self.mode, "or", element["weight"])
+            if element["entity"] == "tag-or":
+                source = LBRadioTagRecordingElement(element["values"], mode=self.mode, operator="or", weight=element["weight"])
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
