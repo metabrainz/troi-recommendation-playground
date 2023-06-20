@@ -28,6 +28,7 @@ from uuid import UUID
 # tag:rock
 #
 # t:"trip hop"
+# tag-or:(rock pop):
 #
 # #rock
 #
@@ -48,6 +49,7 @@ PREFIXES = {
     "g": "genre",
     "c": "country",
     "t": "tag",
+    "to": "tag-or",
     "y": "year",
     "ys": "years"
 }
@@ -108,7 +110,7 @@ def lex(prompt: str):
     return tokens
 
 
-def sanity_check_field(entity: str, values: list):
+def sanity_check_field(entity: str, values: list, weight: str):
     """ Sanity check the given element data. If an error is found, raises ParseError().
         returns the value list passed in, possibly modified (number strings converted to ints) """
 
@@ -125,7 +127,6 @@ def sanity_check_field(entity: str, values: list):
 
     if entity == "year":
         values[0] = check_year(values[0])
-        return values
 
     if entity == "years":
         try:
@@ -133,16 +134,25 @@ def sanity_check_field(entity: str, values: list):
         except ValueError:
             raise ParseError("Year range must be in format YYYY-YYYY")
 
-        return [check_year(from_year), check_year(to_year)]
+        values = [check_year(from_year), check_year(to_year)]
 
-    return values
+    if weight is not None:
+        try:
+            weight = int(weight)
+        except ValueError:
+            raise ParseError("Weight must be a positive, non-zero integer")
+
+        if weight < 0 or weight > 1000:
+            raise ParseError("Weight must be between 1 and 1000")
+
+    return values, weight
 
 
 def parse(prompt: str):
     """ Parse the given prompt. Return an array of dicts that contain the following keys:
           entity: str  e.g. "artist"
           values: list e.g. "57baa3c6-ee43-4db3-9e6a-50bbc9792ee4"
-          args: str    e.g. "and" or "or"
+          weight: int  e.g. 1 (positive integer)
 
         raises ParseError if, well, a parse error is encountered. 
     """
@@ -201,17 +211,14 @@ def parse(prompt: str):
 
         if new_prefix is not None:
             if prefix is not None:
-                values = sanity_check_field(prefix, values)
-                elements.append({"entity": prefix, "values": values, "args": suffix})
+                values, suffix = sanity_check_field(prefix, values, suffix)
+                elements.append({"entity": prefix, "values": values, "weight": suffix})
 
             prefix = new_prefix
             values = []
             suffix = None
             colons = 0
             continue
-
-        if colons == 2 and token not in ("and", "or"):
-            raise ParseError("Suffix must be 'and' or 'or'")
 
         if colons == 2:
             suffix = token
@@ -226,7 +233,7 @@ def parse(prompt: str):
         raise ParseError("( not closed.")
 
     if prefix is not None and len(values) > 0:
-        values = sanity_check_field(prefix, values)
-        elements.append({"entity": prefix, "values": values, "args": suffix})
+        values, suffix = sanity_check_field(prefix, values, suffix)
+        elements.append({"entity": prefix, "values": values, "weight": suffix})
 
     return elements, ""
