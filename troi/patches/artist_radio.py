@@ -252,10 +252,10 @@ class LBRadioPatch(troi.patch.Patch):
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
     def create(self, inputs):
-        self.prompt = " ".join(inputs["prompt"][0])
+        self.prompt = " ".join(inputs["prompt"])
         self.mode = inputs["mode"]
 
-        print(f"'{self.prompt}'")
+        print(f"in create '{inputs['prompt']}'")
         try:
             prompt_elements = parse(self.prompt)
         except ParseError as err:
