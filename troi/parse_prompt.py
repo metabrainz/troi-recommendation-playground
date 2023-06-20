@@ -38,6 +38,7 @@ from uuid import UUID
 # years:1986-2000
 #
 # TODO: Fix tag parsing: MB comma separates!
+# improve error for "a: <mbid>"
 
 PREFIXES = {
     "a": "artist",
@@ -211,6 +212,9 @@ def parse(prompt: str):
 
         if new_prefix is not None:
             if prefix is not None:
+                if len(values) == 0:
+                    raise ParseError(f"Element {prefix} requires a value.")
+
                 values, suffix = sanity_check_field(prefix, values, suffix)
                 elements.append({"entity": prefix, "values": values, "weight": suffix})
 
@@ -236,4 +240,4 @@ def parse(prompt: str):
         values, suffix = sanity_check_field(prefix, values, suffix)
         elements.append({"entity": prefix, "values": values, "weight": suffix})
 
-    return elements, ""
+    return elements

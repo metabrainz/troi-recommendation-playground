@@ -58,13 +58,12 @@ class InterleaveRecordingsElement(troi.Element):
         return recordings
 
 
-class SimilarArtistRecordingSource(troi.Element):
+class LBRadioArtistRecordingSource(troi.Element):
 
     MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
-    KEEP_TOP_RECORDINGS_PER_ARTIST = 100
     MAX_NUM_SIMILAR_ARTISTS = 20
 
-    def __init__(self, artist_mbid, mode="easy", weight):
+    def __init__(self, artist_mbid, mode="easy", weight=1):
         troi.Element.__init__(self)
         self.artist_mbid = artist_mbid
         self.artist_name = None
@@ -115,26 +114,30 @@ class SimilarArtistRecordingSource(troi.Element):
             self.local_storage["data_cache"] = {"seed_artists": []}
 
         # Fetch similar artists for original artist
-        artists_to_lookup = self.get_similar_artists(self.artist_mbid)
-        if len(artists_to_lookup) == 0:
+        similar_artists = self.get_similar_artists(self.artist_mbid)
+        if len(similar_artists) == 0:
             raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
                                self.entity_name)
 
+
         # Verify and lookup artist mbids
-        self.artist_mbids = [ self.artist_mbid ]
-        for artist in artist_to_lookup:
-            self.artist_mbids.append(artist["artist_mbid"])
+        artists = [ { "mbid": self.artist_mbid } ]
+        for artist in similar_artists:
+            artists.append({ "mbid": artist["artist_mbid"] })
 
-        self.artist_names = self.fetch_artist_names(self.artist_mbids)
-        for artist_mbid in self.artist_mbids:
-            if artist_mbid not in self.artist_names:
+        artist_names = self.fetch_artist_names([ i["mbid"] for i in artists ])
+        for artist in artists:
+            if artist["mbid"] not in artist_names:
                 raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist_mbid)
+    
+            artist["name"] = artist_names[artist["mbid"]]
 
-        self.artist_name = self.artist_names[0]
-        print("Seed artist: %s" % self.artist_name)
+            # Store data in cache, so the post processor can create decent descriptions, title
+            self.data_cache["seed_artists"].append((artist["name"], artist["mbid"]))
+            self.data_cache[artist["mbid"]] = artist["name"]
 
-        self.data_cache[self.artist_mbid] = self.artist_name
-        self.data_cache["seed_artists"].append((self.artist_name, self.artist_mbid))
+
+        print("Seed artist: %s" % artists[0]["name"])
 
         if self.mode == "easy":
             start, stop = 0, 50
@@ -142,52 +145,25 @@ class SimilarArtistRecordingSource(troi.Element):
             start, stop = 25, 75
             start, stop = 50, 100
 
-        sa = SimilarArtistRecordingSource(self.mode,
-                                          "artist",
-                                          entity_mbid=self.artist_mbid,
-                                          entity_name=self.artist_name,
-                                          data_cache=self.local_storage["data_cache"])
-        seed_artist_recordings = plist(sa.fetch_top_recordings(self.artist_mbid))
-        mbid_plist = plist(sorted(sa.get(), key=lambda k: k["count"], reverse=True))
-
-        recordings = plist()
-        recordings.append(Recording(mbid=seed_artist_recordings.random_item(0, 25)["recording_mbid"]))
-        for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
-            recordings.append(Recording(mbid=recording["recording_mbid"]))
-
-        similar_artist_recordings = []
-        for i, similar_artist in enumerate(artists_to_lookup[start:stop]):
-            #            if similar_artist["score"] < min_similar_artists:
-            #                print("  skip artist %s (count %d)" % (similar_artist["name"], similar_artist["score"]))
-            #                continue
-
-            if similar_artist["artist_mbid"] + "_top_recordings" in self.data_cache:
-                similar_artist_recordings.append(self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"])
+        for i, artist in enumerate(artists):
+            if artist["mbid"] + "_top_recordings" in self.data_cache:
+                artist["recordings"] = self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"]
                 continue
 
-            recordings = self.fetch_top_recordings(similar_artist["artist_mbid"])
-            if len(recordings) == 0:
-                continue
+            mbid_plist = plist(sa.fetch_top_recordings(artist["mbid"]))
+            recordings = []
 
-            # Keep only a certain number of top recordings
-            recordings = recordings.dslice(None, self.KEEP_TOP_RECORDINGS_PER_ARTIST)
-
-            # normalize recording scores
-            max_count = 0
-            for rec in recordings:
-                max_count = max(max_count, rec["count"])
-
-            for rec in recordings:
-                rec["score"] = rec["count"] / float(max_count)
+            for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+                recordings.append(Recording(mbid=recording["recording_mbid"]))
 
             # Now tuck away the data for caching and interleaving
-            self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"] = recordings
-            similar_artist_recordings.append(recordings)
+            self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
+            artist["recordings"] = recordings
 
             if i >= self.MAX_NUM_SIMILAR_ARTISTS:
                 break
 
-        return interleave(similar_artist_recordings)
+        return interleave([ a["recordings"] for a in artists ])
 
 
 
@@ -239,13 +215,13 @@ class LBRadioPatch(troi.patch.Patch):
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
     def create(self, inputs):
-        self.prompt = inputs["prompt"]
+        self.prompt = " ".join(inputs["prompt"])
         self.mode = inputs["mode"]
 
         try:
             prompt_elements = parse(self.prompt)
         except ParseError as err:
-            raise RuntimeError("cannot parse prompt: 'err'"
+            raise RuntimeError(f"cannot parse prompt: '{err}'")
 
 
         if self.mode not in ("easy", "medium", "hard"):
@@ -254,7 +230,7 @@ class LBRadioPatch(troi.patch.Patch):
         elements = []
         for element in prompt_elements:
             if element["entity"] == "artist":
-                source = LBRadioArtistSourceElement(mbid, self.artist_names[mbid], self.mode, element["weight"])
+                source = LBRadioArtistRecordingSource(element["values"][0], self.mode, element["weight"])
 
 #            if element["entity"] == "tag":
 #                source = LBRadioTagSourceElement(element["values"], self.mode, "and", element["weight"])
