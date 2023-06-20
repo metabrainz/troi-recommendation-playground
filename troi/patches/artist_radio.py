@@ -60,8 +60,8 @@ class InterleaveRecordingsElement(troi.Element):
 
 class LBRadioArtistRecordingSource(troi.Element):
 
-    MAX_TOP_RECORDINGS_PER_ARTIST = 50  # should lower this when other sources of data get added
-    MAX_NUM_SIMILAR_ARTISTS = 20
+    MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
+    MAX_NUM_SIMILAR_ARTISTS = 12
 
     def __init__(self, artist_mbid, mode="easy", weight=1):
         troi.Element.__init__(self)
@@ -108,10 +108,18 @@ class LBRadioArtistRecordingSource(troi.Element):
         }])
         return plist(r.json())
 
+    def fetch_artist_names(self, artist_mbids):
+
+        data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
+        r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
+
+        return {result["artist_mbid"]: result["artist_name"] for result in r.json()}
+
     def read(self, entities):
 
         if "data_cache" not in self.local_storage:
             self.local_storage["data_cache"] = {"seed_artists": []}
+        self.data_cache = self.local_storage["data_cache"]
 
         # Fetch similar artists for original artist
         similar_artists = self.get_similar_artists(self.artist_mbid)
@@ -119,23 +127,21 @@ class LBRadioArtistRecordingSource(troi.Element):
             raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
                                self.entity_name)
 
-
         # Verify and lookup artist mbids
-        artists = [ { "mbid": self.artist_mbid } ]
-        for artist in similar_artists:
-            artists.append({ "mbid": artist["artist_mbid"] })
+        artists = [{"mbid": self.artist_mbid}]
+        for artist in similar_artists[:self.MAX_NUM_SIMILAR_ARTISTS]:
+            artists.append({"mbid": artist["artist_mbid"]})
 
-        artist_names = self.fetch_artist_names([ i["mbid"] for i in artists ])
+        artist_names = self.fetch_artist_names([i["mbid"] for i in artists])
         for artist in artists:
             if artist["mbid"] not in artist_names:
                 raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist_mbid)
-    
+
             artist["name"] = artist_names[artist["mbid"]]
 
             # Store data in cache, so the post processor can create decent descriptions, title
             self.data_cache["seed_artists"].append((artist["name"], artist["mbid"]))
             self.data_cache[artist["mbid"]] = artist["name"]
-
 
         print("Seed artist: %s" % artists[0]["name"])
 
@@ -150,7 +156,7 @@ class LBRadioArtistRecordingSource(troi.Element):
                 artist["recordings"] = self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"]
                 continue
 
-            mbid_plist = plist(sa.fetch_top_recordings(artist["mbid"]))
+            mbid_plist = plist(self.fetch_top_recordings(artist["mbid"]))
             recordings = []
 
             for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
@@ -160,11 +166,7 @@ class LBRadioArtistRecordingSource(troi.Element):
             self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
             artist["recordings"] = recordings
 
-            if i >= self.MAX_NUM_SIMILAR_ARTISTS:
-                break
-
-        return interleave([ a["recordings"] for a in artists ])
-
+        return interleave([a["recordings"] for a in artists])
 
 
 class LBRadioPatch(troi.patch.Patch):
@@ -223,7 +225,6 @@ class LBRadioPatch(troi.patch.Patch):
         except ParseError as err:
             raise RuntimeError(f"cannot parse prompt: '{err}'")
 
-
         if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
@@ -231,6 +232,7 @@ class LBRadioPatch(troi.patch.Patch):
         for element in prompt_elements:
             if element["entity"] == "artist":
                 source = LBRadioArtistRecordingSource(element["values"][0], self.mode, element["weight"])
+
 
 #            if element["entity"] == "tag":
 #                source = LBRadioTagSourceElement(element["values"], self.mode, "and", element["weight"])
@@ -245,7 +247,7 @@ class LBRadioPatch(troi.patch.Patch):
             hate_filter.set_sources(recs_lookup)
 
             elements.append(hate_filter)
-    
+
         #TODO: Add a duplicate filter
         interleave = InterleaveRecordingsElement()
         interleave.set_sources(elements)
