@@ -165,8 +165,6 @@ def parse(prompt: str):
     colons = 0
     parens = 0
 
-    print(f"in parse '{prompt}'")
-
     for token in lex(prompt):
 
         if token == "(":

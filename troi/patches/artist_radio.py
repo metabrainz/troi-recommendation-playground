@@ -86,6 +86,7 @@ class LBRadioTagRecordingElement(troi.Element):
     def read(self, entities):
         threshold = 1
 
+        self.local_storage["data_cache"]["element-descriptions"].append(f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
         recordings = []
         for rec in self.fetch_tag_data(self.tags, self.operator, threshold):
             recordings.append(Recording(mbid=rec["recording_mbid"]))
@@ -152,8 +153,6 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def read(self, entities):
 
-        if "data_cache" not in self.local_storage:
-            self.local_storage["data_cache"] = {"seed_artists": []}
         self.data_cache = self.local_storage["data_cache"]
 
         # Fetch similar artists for original artist
@@ -175,10 +174,10 @@ class LBRadioArtistRecordingElement(troi.Element):
             artist["name"] = artist_names[artist["mbid"]]
 
             # Store data in cache, so the post processor can create decent descriptions, title
-            self.data_cache["seed_artists"].append((artist["name"], artist["mbid"]))
             self.data_cache[artist["mbid"]] = artist["name"]
 
         print("Seed artist: %s" % artists[0]["name"])
+        self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
 
         if self.mode == "easy":
             start, stop = 0, 50
@@ -255,7 +254,6 @@ class LBRadioPatch(troi.patch.Patch):
         self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
 
-        print(f"'{self.prompt}'")
         try:
             prompt_elements = parse(self.prompt)
         except ParseError as err:
@@ -263,6 +261,8 @@ class LBRadioPatch(troi.patch.Patch):
 
         if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
+
+        self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt }
 
         elements = []
         for element in prompt_elements:
@@ -294,9 +294,11 @@ class LBRadioPatch(troi.patch.Patch):
 
     def post_process(self):
 
-        names = [self.local_storage["data_cache"][mbid] for mbid in self.artist_mbids]
-        name = "Artist Radio for " + ", ".join(names)
-        desc = "Experimental artist radio using %s mode, which contains tracks from the seed artists (%s) and artists similar to them." % (
-            self.mode, ", ".join(names))
+        print(self.local_storage["data_cache"]["element-descriptions"])
+
+        prompt = self.local_storage["data_cache"]["prompt"]
+        names = ", ".join(self.local_storage["data_cache"]["element-descriptions"])
+        name = f"ListenBrainz Radio for {names}"
+        desc = "Experimental ListenBrainz radio using %s mode, which was generated from this prompt: '%s'" % (self.mode, prompt)
         self.local_storage["_playlist_name"] = name
         self.local_storage["_playlist_desc"] = desc
