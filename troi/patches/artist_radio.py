@@ -235,7 +235,7 @@ class LBRadioPatch(troi.patch.Patch):
             "args": ["prompt"],
             "kwargs": {
                 "required": True,
-                "nargs": -1
+                "nargs": 1
             }
         }]
 
@@ -252,7 +252,7 @@ class LBRadioPatch(troi.patch.Patch):
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
     def create(self, inputs):
-        self.prompt = " ".join(inputs["prompt"])
+        self.prompt = inputs["prompt"][0]
         self.mode = inputs["mode"]
 
         try:
