@@ -212,9 +212,6 @@ def parse(prompt: str):
 
         if new_prefix is not None:
             if prefix is not None:
-                if len(values) == 0:
-                    raise ParseError(f"Element {prefix} requires a value.")
-
                 values, suffix = sanity_check_field(prefix, values, suffix)
                 elements.append({"entity": prefix, "values": values, "weight": suffix})
 
