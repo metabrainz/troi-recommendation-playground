@@ -22,6 +22,12 @@ OVERHYPED_SIMILAR_ARTISTS = [
     "83d91898-7763-47d7-b03b-b92132375c47",  # Pink Floyd
     "a74b1b7f-71a5-4011-9441-d0b5e4122711",  # Radiohead
     "8bfac288-ccc5-448d-9573-c33ea2aa5c30",  # Red Hot Chili Peppers
+    "9c9f1380-2516-4fc9-a3e6-f9f61941d090",  # Muse
+    "cc197bad-dc9c-440d-a5b5-d52ba2e14234",  # Coldplay
+    "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",  # Metallica
+    "5b11f4ce-a62d-471e-81fc-a69a8278c7da",  # Nirvana
+    "f59c5520-5f46-4d2c-b2c4-822eabf53419",  # Linkin Park
+    "cc0b7089-c08d-4c10-b6b0-873582c17fd6",  # System of a Down
 ]
 
 
@@ -58,8 +64,46 @@ class InterleaveRecordingsElement(troi.Element):
         return recordings
 
 
-class LBRadioTagRecordingElement(troi.Element):
+class WeighAndBlendRecordingsElement(troi.Element):
 
+    def __init__(self, weights, max_num_recordings=50):
+        troi.Element.__init__(self)
+        self.weights = weights
+        self.max_num_recordings = max_num_recordings
+
+    def inputs(self):
+        return [Recording]
+
+    def outputs(self):
+        return [Recording]
+
+    def read(self, entities):
+
+        total = sum(self.weights)
+        summed = []
+        acc = 0
+        for i in self.weights:
+            acc += i
+            summed.append(acc)
+
+        recordings = []
+        while True:
+            r = randint(0, total)
+            for i, s in enumerate(summed):
+                if r < s:
+                    try:
+                        recordings.append(entities[i].pop(0))
+                    except IndexError:
+                        pass
+                    break
+
+            if len(recordings) >= self.max_num_recordings:
+                break
+
+        return recordings
+
+
+class LBRadioTagRecordingElement(troi.Element):
 
     def __init__(self, tags, operator="and", mode="easy", weight=1):
         troi.Element.__init__(self)
@@ -76,7 +120,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def fetch_tag_data(self, tags, operator, threshold):
 
-        data = [{"[tag]": tag, "operator": operator, "threshold": threshold } for tag in tags]
+        data = [{"[tag]": tag, "operator": operator, "threshold": threshold} for tag in tags]
         r = requests.post("https://datasets.listenbrainz.org/recording-from-tag/json", json=data)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
@@ -86,7 +130,8 @@ class LBRadioTagRecordingElement(troi.Element):
     def read(self, entities):
         threshold = 1
 
-        self.local_storage["data_cache"]["element-descriptions"].append(f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
+        self.local_storage["data_cache"]["element-descriptions"].append(
+            f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
         recordings = []
         for rec in self.fetch_tag_data(self.tags, self.operator, threshold):
             recordings.append(Recording(mbid=rec["recording_mbid"]))
@@ -262,7 +307,9 @@ class LBRadioPatch(troi.patch.Patch):
         if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
 
-        self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt }
+        self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
+
+        weights = [ e["weight"] for e in prompt_elements ]
 
         elements = []
         for element in prompt_elements:
@@ -284,17 +331,15 @@ class LBRadioPatch(troi.patch.Patch):
             elements.append(hate_filter)
 
         #TODO: Add a duplicate filter
-        interleave = InterleaveRecordingsElement()
-        interleave.set_sources(elements)
+        blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
+        blend.set_sources(elements)
 
         pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=50, max_artist_occurrence=5)
-        pl_maker.set_sources(interleave)
+        pl_maker.set_sources(blend)
 
         return pl_maker
 
     def post_process(self):
-
-        print(self.local_storage["data_cache"]["element-descriptions"])
 
         prompt = self.local_storage["data_cache"]["prompt"]
         names = ", ".join(self.local_storage["data_cache"]["element-descriptions"])
