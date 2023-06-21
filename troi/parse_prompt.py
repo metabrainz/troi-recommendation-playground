@@ -160,7 +160,7 @@ def parse(prompt: str):
 
     prefix = None
     values = []
-    suffix = None
+    suffix = "1"
     elements = []
     colons = 0
     parens = 0
@@ -217,7 +217,7 @@ def parse(prompt: str):
 
             prefix = new_prefix
             values = []
-            suffix = None
+            suffix = "1"
             colons = 0
             continue
 

@@ -310,6 +310,7 @@ class LBRadioPatch(troi.patch.Patch):
         self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
 
         weights = [ e["weight"] for e in prompt_elements ]
+        print(weights)
 
         elements = []
         for element in prompt_elements:
