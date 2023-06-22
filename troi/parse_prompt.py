@@ -3,243 +3,111 @@
 import sys
 from uuid import UUID
 
-# EXAMPLES
-#
-# a:05319f96-e409-4199-b94f-3cabe7cc188a
-# artist:05319f96-e409-4199-b94f-3cabe7cc188a
-#
-# r:23f140b6-c017-4c04-9f48-cf0f3f376950
-# recording:23f140b6-c017-4c04-9f48-cf0f3f376950
-#
-# rl:bb9c4738-6b94-49a3-9021-d21db849f818
-# release:bb9c4738-6b94-49a3-9021-d21db849f818
-#
-# rg:d489a1fd-06b9-4611-b3f1-a19fccc80222
-# release-group:d489a1fd-06b9-4611-b3f1-a19fccc80222
-#
-# g:76d79cc8-2995-4005-b266-7254fd9aaba4
-# genre:76d79cc8-2995-4005-b266-7254fd9aaba4
-#
-# c:94207bbb-a877-4213-a8b1-92213226805e
-# country:94207bbb-a877-4213-a8b1-92213226805e
-# area:94207bbb-a877-4213-a8b1-92213226805e
-#
-# t:rock
-# tag:rock
-#
-# t:"trip hop"
-# tag-or:(rock pop):
-#
-# #rock
-#
-# y:1986
-# year: 1986
-#
-# years:1986-2000
-#
-# TODO: Fix tag parsing: MB comma separates!
-# improve error for "a: <mbid>"
+import pyparsing as pp
+import pyparsing.exceptions
 
-PREFIXES = {
-    "a": "artist",
-    "ar": "area",
-    "c": "country",
-    "r": "recording",
-    "rl": "release",
-    "rg": "release-group",
-    "g": "genre",
-    "c": "country",
-    "t": "tag",
-    "to": "tag-or",
-    "y": "year",
-    "ys": "years"
-}
-
-UUID_VALUES = ("artist", "recording", "release-group", "genre", "country")
-
+OPTIONS = ["easy", "hard", "medium", "and", "or"]
 
 class ParseError(Exception):
     pass
 
 
-def lex(prompt: str):
-    """ Given a string, return the space separated tokens, taking care to mind quotes. """
+def build_parser():
+    """ Build a parser using pyparsing, which is bloody brilliant! """
 
-    quote = 0
-    token = ""
-    tokens = []
+    artist_element = pp.MatchFirst((pp.Keyword("artist"), pp.Keyword("a")))
+    tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
 
-    prompt = prompt.replace("\n\r\t", "").lower()
-    prompt = " ".join(prompt.split())
-    for ch in prompt.strip():
-        if ch in (":", "(", ")"):
-            if len(token) > 0:
-                tokens.append(token.strip())
-                token = ""
+    text = pp.Word(pp.alphanums)
+    uuid = pp.pyparsing_common.uuid()
+    paren_text = pp.QuotedString("(", end_quote_char=")")
+    tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ ]")))
+    paren_tag = pp.Suppress(pp.Literal("(")) + pp.delimitedList(pp.Group(tag, aslist=True), delim=",") + pp.Suppress(
+        pp.Literal(")"))
 
-            tokens.append(ch)
-            continue
+    weight = pp.Suppress(pp.Literal(':')) + pp.pyparsing_common.integer()
+    opt_keywords = pp.Keyword("and") | pp.Keyword("or") | pp.Keyword("easy") | pp.Keyword("medium")
+    options = pp.Suppress(pp.Literal(':')) + opt_keywords
+    paren_options = pp.Suppress(pp.Literal(':')) + pp.Suppress(pp.Literal("(")) + pp.delimitedList(
+        pp.Group(opt_keywords, aslist=True), delim=",") + pp.Suppress(pp.Literal(")"))
+    optional = pp.Opt(weight + pp.Opt(pp.Group(options | paren_options), ""), 1)
 
-        if ch == "#" and len(token) == 0:
-            tokens.extend(("tag", ":"))
-            continue
+    element_uuid = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
+    element_text = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
+    element_paren_text = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_text, aslist=True) + optional
 
-        if ch == " " and quote == 0 and len(token) > 0:
-            tokens.append(token.strip())
-            token = ""
-            continue
+    element_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
+    element_paren_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_tag, aslist=True) + optional
+    element_tag_shortcut = pp.Literal('#') + pp.Group(tag, aslist=True) + optional
+    element_tag_paren_shortcut = pp.Literal('#') + pp.Group(paren_tag, aslist=True) + optional
 
-        if ch == '"':
-            if quote == 0:
-                quote = 1
-                continue
+    element = element_uuid | element_text | element_paren_text | element_tag | element_paren_tag \
+            | element_tag_shortcut | element_tag_paren_shortcut
 
-            quote = 0
-            if len(token) > 0:
-                tokens.append(token.strip())
-                token = ""
-                continue
-
-        token += ch
-
-    if quote != 0:
-        raise ParseError('Missing closing "')
-
-    if len(token) > 0:
-        tokens.append(token.strip())
-
-    return tokens
-
-
-def sanity_check_field(entity: str, values: list, weight: str):
-    """ Sanity check the given element data. If an error is found, raises ParseError().
-        returns the value list passed in, possibly modified (number strings converted to ints) """
-
-    def check_year(year):
-        try:
-            year = int(year)
-        except ValueError:
-            raise ParseError("Invalid year %s" % year)
-
-        if year < 1800 or year > 2100:  # fuck the future
-            raise ParseError("Invalid year %s. Must be between 1800 - 2100." % year)
-
-        return year
-
-    if entity == "year":
-        values[0] = check_year(values[0])
-
-    if entity == "years":
-        try:
-            from_year, to_year = values[0].split("-")
-        except ValueError:
-            raise ParseError("Year range must be in format YYYY-YYYY")
-
-        values = [check_year(from_year), check_year(to_year)]
-
-    if weight is not None:
-        try:
-            weight = int(weight)
-        except ValueError:
-            raise ParseError("Weight must be a positive, non-zero integer")
-
-        if weight < 0 or weight > 1000:
-            raise ParseError("Weight must be between 1 and 1000")
-
-    return values, weight
+    return pp.OneOrMore(pp.Group(element, aslist=True))
 
 
 def parse(prompt: str):
     """ Parse the given prompt. Return an array of dicts that contain the following keys:
           entity: str  e.g. "artist"
-          values: list e.g. "57baa3c6-ee43-4db3-9e6a-50bbc9792ee4"
+          value: list e.g. "57baa3c6-ee43-4db3-9e6a-50bbc9792ee4"
           weight: int  e.g. 1 (positive integer)
+          options: list e.g ["and", "easy"]
 
         raises ParseError if, well, a parse error is encountered. 
     """
 
-    prefix = None
-    values = []
-    suffix = "1"
-    elements = []
-    colons = 0
-    parens = 0
+    parser = build_parser()
+    try:
+        elements = parser.parseString(prompt, parseAll=True)
+    except pp.exceptions.ParseException as err:
+        raise ParserError(err)
 
-    for token in lex(prompt):
-
-        if token == "(":
-            if colons != 1:
-                raise ParseError(": not allowed here")
-
-            if parens != 0:
-                raise ParseError("More than one ( now allowed per element")
-
-            parens = 1
-            continue
-
-        if token == ")":
-            if parens > 1:
-                raise ParseError("More than one ) now allowed per element")
-
-            if parens == 0:
-                raise ParseError(") is missing (")
-
-            parens = 0
-            continue
-
-        if token == ":":
-            if parens == 1:
-                raise ParseError("Missing ) before :")
-
-            colons += 1
-            continue
-
-        # Check text token to see if prefix, value or suffix
-        if colons == 0 and token not in list(PREFIXES) + list(PREFIXES.values()):
-            raise ParseError(
-                f'"{token}" is invalid. It must be one of the following prefixes: {",".join(list(PREFIXES.keys()) + list(PREFIXES.values()))}'
-            )
-
-        if token in PREFIXES:
-            new_prefix = PREFIXES[token]
-        elif token in PREFIXES.values():
-            new_prefix = token
-        else:
-            new_prefix = None
-
-        if new_prefix is None and prefix is not None and parens == 0 and len(values) > 0 and colons < 2:
-            raise ParseError(f"Invalid prefix {token}")
-
-        if new_prefix is not None:
-            if prefix is not None:
-                values, suffix = sanity_check_field(prefix, values, suffix)
-                elements.append({"entity": prefix, "values": values, "weight": suffix})
-
-            prefix = new_prefix
+    for element in elements:
+        entity = "tag" if element[0] == '#' else element[0]
+        try:
+            values = UUID(element[1][0])
+        except (ValueError, AttributeError):
             values = []
-            suffix = "1"
-            colons = 0
-            continue
+            for value in element[1]:
+                if isinstance(value, list):
+                    values.append(value[0])
+                else:
+                    values.append(value)
 
-        if colons == 2:
-            suffix = token
-            continue
+        try:
+            weight = element[2]
+        except IndexError:
+            weight = 1
 
-        if colons == 1 and new_prefix is None:
-            if parens == 1 or len(values) == 0:
-                values.append(token)
-                continue
+        opts = []
+        try:
+            for opt in element[3]:
+                if isinstance(opt, list):
+                    opts.append(opt[0])
+                else:
+                    opts.append(opt)
+        except IndexError:
+            pass
 
-    if parens != 0:
-        raise ParseError("( not closed.")
-
-    if prefix is not None and len(values) > 0:
-        values, suffix = sanity_check_field(prefix, values, suffix)
-        elements.append({"entity": prefix, "values": values, "weight": suffix})
-
-    return elements
 
 if __name__ == "__main__":
-    e = parse("#r&b")
-    for element in e:
-        print(element)
+    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:(and)")
+    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2")
+    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2")
+    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:and")
+    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:or")
+    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:(and,easy)")
+    parse("artist:(artist name)")
+    parse("tag:rock:2:and")
+    parse("tag:rock")
+    parse("tag:(rock)")
+    parse("#rock")
+    parse("#(rock)")
+    parse("#(trip hop)")
+    parse("#(rock,pop)")
+    parse("#(rock,pop):3")
+    parse("#(rock,pop):2:easy")
+    parse("#(rock,pop):2:(easy,and)")
+    parse("#(rock,pop):2:(easy)")
+    parse("#(rock,pop):2:medium #rock")
