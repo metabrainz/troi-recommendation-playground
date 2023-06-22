@@ -204,7 +204,7 @@ class LBRadioArtistRecordingElement(troi.Element):
         similar_artists = self.get_similar_artists(self.artist_mbid)
         if len(similar_artists) == 0:
             raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
-                               self.entity_name)
+                               self.artist_name)
 
         # Verify and lookup artist mbids
         artists = [{"mbid": self.artist_mbid}]
