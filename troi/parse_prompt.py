@@ -238,3 +238,8 @@ def parse(prompt: str):
         elements.append({"entity": prefix, "values": values, "weight": suffix})
 
     return elements
+
+if __name__ == "__main__":
+    e = parse("#r&b")
+    for element in e:
+        print(element)

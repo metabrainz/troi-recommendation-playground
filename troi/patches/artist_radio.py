@@ -79,6 +79,8 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
     def read(self, entities):
 
+        total_available = sum([len(e) for e in entities])
+
         total = sum(self.weights)
         summed = []
         acc = 0
@@ -97,7 +99,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
                         pass
                     break
 
-            if len(recordings) >= self.max_num_recordings:
+            if len(recordings) >= self.max_num_recordings or len(recordings) == total_available:
                 break
 
         return recordings
@@ -310,7 +312,6 @@ class LBRadioPatch(troi.patch.Patch):
         self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
 
         weights = [ e["weight"] for e in prompt_elements ]
-        print(weights)
 
         elements = []
         for element in prompt_elements:
