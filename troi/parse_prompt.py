@@ -22,6 +22,7 @@ def build_parser():
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
     tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ ]")))
+    stag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_]")))
     paren_tag = pp.Suppress(pp.Literal("(")) + pp.delimitedList(pp.Group(tag, aslist=True), delim=",") + pp.Suppress(
         pp.Literal(")"))
 
@@ -38,7 +39,7 @@ def build_parser():
 
     element_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
     element_paren_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_tag, aslist=True) + optional
-    element_tag_shortcut = pp.Literal('#') + pp.Group(tag, aslist=True) + optional
+    element_tag_shortcut = pp.Literal('#') + pp.Group(stag, aslist=True) + optional
     element_tag_paren_shortcut = pp.Literal('#') + pp.Group(paren_tag, aslist=True) + optional
 
     element = element_uuid | element_text | element_paren_text | element_tag | element_paren_tag \
@@ -61,12 +62,21 @@ def parse(prompt: str):
     try:
         elements = parser.parseString(prompt, parseAll=True)
     except pp.exceptions.ParseException as err:
-        raise ParserError(err)
+        raise ParseError(err)
 
+    results = []
     for element in elements:
-        entity = "tag" if element[0] == '#' else element[0]
+        if element[0] == "a":
+            entity = "artist"
+        elif element[0] == "t":
+            entity = "tag"
+        elif element[0] == "#":
+            entity = "tag"
+        else:
+            entity = element[0]
+
         try:
-            values = UUID(element[1][0])
+            values = [ UUID(element[1][0]) ]
         except (ValueError, AttributeError):
             values = []
             for value in element[1]:
@@ -89,6 +99,10 @@ def parse(prompt: str):
                     opts.append(opt)
         except IndexError:
             pass
+
+        results.append({"entity": entity, "values": values, "weight": weight, "opts": opts})
+
+    return results
 
 
 if __name__ == "__main__":
