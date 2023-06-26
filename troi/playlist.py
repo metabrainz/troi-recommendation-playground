@@ -463,6 +463,8 @@ class PlaylistMakerElement(Element):
                     kept.append(r)
 
             recordings = kept[:max_num_recordings]
+        else:
+            recordings = recordings[:max_num_recordings]
 
         # Call the patch's post_process function
         self.patch.post_process()
