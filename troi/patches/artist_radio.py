@@ -3,8 +3,10 @@ from collections import defaultdict
 from datetime import datetime
 from random import randint, shuffle
 from datetime import datetime
+from uuid import UUID
 
 import requests
+from urllib.parse import quote
 
 import troi.filters
 import troi.listenbrainz.feedback
@@ -88,6 +90,8 @@ class WeighAndBlendRecordingsElement(troi.Element):
             acc += i
             summed.append(acc)
 
+        # TODO: Ensure that we dont ever pick tracks from the same artist in a row
+        # TODO: Add a duplicate filter
         recordings = []
         while True:
             r = randint(0, total)
@@ -148,8 +152,7 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def __init__(self, artist_mbid, mode="easy", weight=1):
         troi.Element.__init__(self)
-        self.artist_mbid = artist_mbid
-        self.artist_name = None
+        self.artist_mbid = str(artist_mbid)
         self.similar_artists = []
         self.mode = mode
         self.weight = weight
@@ -297,6 +300,30 @@ class LBRadioPatch(troi.patch.Patch):
     def description():
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
+    def lookup_artist_name(self, artist_name):
+
+        err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
+
+        r = requests.get(f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
+        if r.status_code == 404:
+            raise RuntimeError(err_msg)
+
+        if r.status_code != 200:
+            raise RuntimeError(f"Could not resolve artist name {artist_name}. Error {r.status_code}")
+
+        data = r.json()
+        try:
+            fetched_name = data["artists"][0]["name"]
+            mbid = data["artists"][0]["id"]
+        except (IndexError, KeyError):
+            raise RuntimeError(err_msg)
+
+        if fetched_name.lower() == artist_name.lower():
+            return mbid
+
+        raise RuntimeError(err_msg)
+
+
     def create(self, inputs):
         self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
@@ -308,6 +335,11 @@ class LBRadioPatch(troi.patch.Patch):
 
         if self.mode not in ("easy", "medium", "hard"):
             raise RuntimeError("Argument mode must be one one easy, medium or hard.")
+
+        # Lookup artist names embedded in the prompt
+        for element in prompt_elements:
+            if element["entity"] == "artist" and isinstance(element["values"][0], str):
+                element["values"][0] = UUID(self.lookup_artist_name(element["values"][0]))
 
         self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
 
@@ -332,7 +364,6 @@ class LBRadioPatch(troi.patch.Patch):
 
             elements.append(hate_filter)
 
-        #TODO: Add a duplicate filter
         blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
         blend.set_sources(elements)
 
