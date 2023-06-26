@@ -150,13 +150,14 @@ class LBRadioArtistRecordingElement(troi.Element):
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
     MAX_NUM_SIMILAR_ARTISTS = 12
 
-    def __init__(self, artist_mbid, mode="easy", weight=1):
+    def __init__(self, artist_mbid, mode="easy", weight=1, include_similar_artists=True):
         troi.Element.__init__(self)
         self.artist_mbid = str(artist_mbid)
         self.artist_name = None
         self.similar_artists = []
         self.mode = mode
         self.weight = weight
+        self.include_similar_artists = include_similar_artists
 
     def inputs(self):
         return []
@@ -205,17 +206,18 @@ class LBRadioArtistRecordingElement(troi.Element):
     def read(self, entities):
 
         self.data_cache = self.local_storage["data_cache"]
-
-        # Fetch similar artists for original artist
-        similar_artists = self.get_similar_artists(self.artist_mbid)
-        if len(similar_artists) == 0:
-            raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
-                               self.artist_name)
-
-        # Verify and lookup artist mbids
         artists = [{"mbid": self.artist_mbid}]
-        for artist in similar_artists[:self.MAX_NUM_SIMILAR_ARTISTS]:
-            artists.append({"mbid": artist["artist_mbid"]})
+
+        if self.include_similar_artists:
+            # Fetch similar artists for original artist
+            similar_artists = self.get_similar_artists(self.artist_mbid)
+            if len(similar_artists) == 0:
+                raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
+                                   self.artist_name)
+
+            # Verify and lookup artist mbids
+            for artist in similar_artists[:self.MAX_NUM_SIMILAR_ARTISTS]:
+                artists.append({"mbid": artist["artist_mbid"]})
 
         artist_names = self.fetch_artist_names([i["mbid"] for i in artists])
         for artist in artists:
@@ -234,6 +236,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             start, stop = 0, 50
         elif self.mode == "medium":
             start, stop = 25, 75
+        else:
             start, stop = 50, 100
 
         for i, artist in enumerate(artists):
@@ -356,7 +359,11 @@ class LBRadioPatch(troi.patch.Patch):
                 mode = "hard"
 
             if element["entity"] == "artist":
-                source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, weight=element["weight"])
+                include_sim = False if "nosim" in element["opts"] else True
+                source = LBRadioArtistRecordingElement(element["values"][0],
+                                                       mode=mode,
+                                                       weight=element["weight"],
+                                                       include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
                 source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", weight=element["weight"])
@@ -375,7 +382,7 @@ class LBRadioPatch(troi.patch.Patch):
         blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
         blend.set_sources(elements)
 
-        pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=50, max_artist_occurrence=5)
+        pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=50)
         pl_maker.set_sources(blend)
 
         return pl_maker
