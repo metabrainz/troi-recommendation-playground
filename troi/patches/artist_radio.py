@@ -153,6 +153,7 @@ class LBRadioArtistRecordingElement(troi.Element):
     def __init__(self, artist_mbid, mode="easy", weight=1):
         troi.Element.__init__(self)
         self.artist_mbid = str(artist_mbid)
+        self.artist_name = None
         self.similar_artists = []
         self.mode = mode
         self.weight = weight
@@ -237,7 +238,7 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         for i, artist in enumerate(artists):
             if artist["mbid"] + "_top_recordings" in self.data_cache:
-                artist["recordings"] = self.data_cache[similar_artist["artist_mbid"] + "_top_recordings"]
+                artist["recordings"] = self.data_cache[artist["mbid"] + "_top_recordings"]
                 continue
 
             mbid_plist = plist(self.fetch_top_recordings(artist["mbid"]))
