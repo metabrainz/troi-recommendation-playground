@@ -324,7 +324,6 @@ class LBRadioPatch(troi.patch.Patch):
 
         raise RuntimeError(err_msg)
 
-
     def create(self, inputs):
         self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
@@ -344,18 +343,26 @@ class LBRadioPatch(troi.patch.Patch):
 
         self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
 
-        weights = [ e["weight"] for e in prompt_elements ]
+        weights = [e["weight"] for e in prompt_elements]
 
         elements = []
         for element in prompt_elements:
+            mode = self.mode
+            if "easy" in element["opts"]:
+                mode = "easy"
+            elif "medium" in element["opts"]:
+                mode = "medium"
+            if "hard" in element["opts"]:
+                mode = "hard"
+
             if element["entity"] == "artist":
-                source = LBRadioArtistRecordingElement(element["values"][0], self.mode, element["weight"])
+                source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, weight=element["weight"])
 
             if element["entity"] == "tag":
-                source = LBRadioTagRecordingElement(element["values"], mode=self.mode, operator="and", weight=element["weight"])
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", weight=element["weight"])
 
             if element["entity"] == "tag-or":
-                source = LBRadioTagRecordingElement(element["values"], mode=self.mode, operator="or", weight=element["weight"])
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or", weight=element["weight"])
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)

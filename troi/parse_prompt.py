@@ -27,7 +27,7 @@ def build_parser():
         pp.Literal(")"))
 
     weight = pp.Suppress(pp.Literal(':')) + pp.pyparsing_common.integer()
-    opt_keywords = pp.Keyword("and") | pp.Keyword("or") | pp.Keyword("easy") | pp.Keyword("medium")
+    opt_keywords = pp.Keyword("and") | pp.Keyword("or") | pp.Keyword("easy") | pp.Keyword("medium") | pp.Keyword("hard")
     options = pp.Suppress(pp.Literal(':')) + opt_keywords
     paren_options = pp.Suppress(pp.Literal(':')) + pp.Suppress(pp.Literal("(")) + pp.delimitedList(
         pp.Group(opt_keywords, aslist=True), delim=",") + pp.Suppress(pp.Literal(")"))
