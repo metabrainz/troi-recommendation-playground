@@ -14,18 +14,17 @@ what music should be added to the playlist. A Radio prompt is composed of one or
 
 Each term generates a stream of recordings and each of the streams are then interleaved to make a single playlist. The
 entity must be either "artist" or "tag" currently. The weight argument allows the user to control how often this term
-will contribute to the final playlist. By default each term gets a value of 1, if the use didn't specify a weight value.
+will contribute to the final playlist. By default each term gets a value of 1, if the user didn't specify a weight value.
 A term with a weight of 3 will contribute 3 times more recordings than a term with weight 1. The final part of each term
 are options:
 
 
 #. **nosim**: Do not add similar artists, only output recordings from the given artist.
-#. **and**: For a tag query, if and is specified (the default) recorings will be chosen if all the given tags are applied to that recording.
-#. **or**: For a tag query, if or is specified, then recordings will be chosen if any of the tags are applied to the recording.
+#. **and**: For a tag query, if "and" is specified (the default) recordings will be chosen if all the given tags are applied to that recording.
+#. **or**: For a tag query, if "or" is specified, then recordings will be chosen if any of the tags are applied to the recording.
 #. **easy**: Use easy mode for this term. See modes below.
 #. **medium**: Use medium mode for this term.
 #. **hard**: Use hard mode for this term.
-
 
 
 Modes
@@ -97,7 +96,7 @@ More complex examples
 
 ::
 
-  artist:(pretty lights):3:easy tag:(trip hop):2 artist:(morcheeba):1:nosim
+  artist:(pretty lights):3:easy tag:(trip hop):2 artist:morcheeba:1:nosim
 
 This prompt will play 3 parts from artist "Pretty Lights", 2 parts from the tag "trip hop" and 1 part from the artist "Morcheeba" with no
 tracks from similar artists.
