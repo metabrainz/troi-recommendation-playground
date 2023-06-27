@@ -59,6 +59,7 @@ TV series Star Trek: The Next Generation.
    elements/index
    elements/musicbrainz
    elements/listenbrainz
+   lb_radio.rst
    dev/index
 
 
