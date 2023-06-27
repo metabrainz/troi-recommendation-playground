@@ -98,7 +98,8 @@ class WeighAndBlendRecordingsElement(troi.Element):
             except IndexError:
                 pass
 
-        # TODO: Ensure that we dont ever pick tracks from the same artist in a row
+        # This still allows sequential tracks to be from the same artists. I'll wait for feedback to see if this 
+        # is a problem.
         dedup_set = set()
         while True:
             r = randint(0, total)
@@ -169,6 +170,10 @@ class LBRadioArtistRecordingElement(troi.Element):
         self.mode = mode
         self.weight = weight
         self.include_similar_artists = include_similar_artists
+        if include_similar_artists:
+            self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST
+        else:
+            self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST * 2
 
     def inputs(self):
         return []
@@ -258,7 +263,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             mbid_plist = plist(self.fetch_top_recordings(artist["mbid"]))
             recordings = []
 
-            for recording in mbid_plist.random_item(start, stop, self.MAX_TOP_RECORDINGS_PER_ARTIST):
+            for recording in mbid_plist.random_item(start, stop, self.max_top_recordings_per_artist):
                 recordings.append(Recording(mbid=recording["recording_mbid"]))
 
             # Now tuck away the data for caching and interleaving
