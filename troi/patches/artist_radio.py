@@ -90,9 +90,15 @@ class WeighAndBlendRecordingsElement(troi.Element):
             acc += i
             summed.append(acc)
 
+        # Ensure seed artists are the first tracks -- doing this for all recording elements work in this case.
+        recordings = [ ]
+        for element in entities:
+            try:
+                recordings.append(element.pop(0))
+            except IndexError:
+                pass
+
         # TODO: Ensure that we dont ever pick tracks from the same artist in a row
-        # TODO: Ensure seed artist is the first track. artist recording lists always have a recording by the seed artists in [0]
-        recordings = []
         dedup_set = set()
         while True:
             r = randint(0, total)
