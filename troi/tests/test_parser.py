@@ -36,6 +36,12 @@ class TestParser(unittest.TestCase):
         r = parse('t:(trip hop, hip hop)')
         assert r[0] == {"entity": "tag", "values": ["trip hop", "hip hop"], "weight": 1, "opts": []}
 
+        r = parse("t:(r&b)")
+        assert r[0] == {"entity": "tag", "values": ["r&b"], "weight": 1, "opts": []}
+
+        r = parse("t:r&b")
+        assert r[0] == {"entity": "tag", "values": ["r&b"], "weight": 1, "opts": []}
+
     def test_tag_errors(self):
         self.assertRaises(ParseError, parse, "t:(abstract rock blues):bork")
         self.assertRaises(ParseError, parse, "tag:(foo")
