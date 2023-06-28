@@ -8,6 +8,7 @@ import pyparsing.exceptions
 
 OPTIONS = ["easy", "hard", "medium", "and", "or", "nosim"]
 
+
 class ParseError(Exception):
     pass
 
@@ -21,13 +22,13 @@ def build_parser():
     text = pp.Word(pp.alphanums)
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
-    tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ ]")))
-    stag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_]")))
-    paren_tag = pp.Suppress(pp.Literal("(")) + pp.delimitedList(pp.Group(tag, aslist=True), delim=",") + pp.Suppress(
+    ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
+    tag = pp.Word(pp.srange("[a-zA-Z0-9-_!@$%^&*=+;'/]"))
+    paren_tag = pp.Suppress(pp.Literal("(")) + pp.delimitedList(pp.Group(ws_tag, aslist=True), delim=",") + pp.Suppress(
         pp.Literal(")"))
 
     weight = pp.Suppress(pp.Literal(':')) + pp.pyparsing_common.integer()
-    opt_keywords = pp.MatchFirst([ pp.Keyword(k) for k in OPTIONS] )
+    opt_keywords = pp.MatchFirst([pp.Keyword(k) for k in OPTIONS])
     options = pp.Suppress(pp.Literal(':')) + opt_keywords
     paren_options = pp.Suppress(pp.Literal(':')) + pp.Suppress(pp.Literal("(")) + pp.delimitedList(
         pp.Group(opt_keywords, aslist=True), delim=",") + pp.Suppress(pp.Literal(")"))
@@ -37,13 +38,12 @@ def build_parser():
     element_text = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
     element_paren_text = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_text, aslist=True) + optional
 
-    element_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
+    element_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(tag, aslist=True) + optional
     element_paren_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_tag, aslist=True) + optional
-    element_tag_shortcut = pp.Literal('#') + pp.Group(stag, aslist=True) + optional
+    element_tag_shortcut = pp.Literal('#') + pp.Group(tag, aslist=True) + optional
     element_tag_paren_shortcut = pp.Literal('#') + pp.Group(paren_tag, aslist=True) + optional
 
-    element = element_uuid | element_text | element_paren_text | element_tag | element_paren_tag \
-            | element_tag_shortcut | element_tag_paren_shortcut
+    element = element_tag | element_tag_shortcut | element_uuid | element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut
 
     return pp.OneOrMore(pp.Group(element, aslist=True))
 
@@ -76,7 +76,7 @@ def parse(prompt: str):
             entity = element[0]
 
         try:
-            values = [ UUID(element[1][0]) ]
+            values = [UUID(element[1][0])]
         except (ValueError, AttributeError):
             values = []
             for value in element[1]:
