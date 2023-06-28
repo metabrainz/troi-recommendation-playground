@@ -420,6 +420,7 @@ class PlaylistMakerElement(Element):
                  max_num_recordings=None,
                  max_artist_occurrence=None,
                  shuffle=False,
+                 expires_at=False,
                  is_april_first=False):
         super().__init__()
         self.name = name
@@ -429,6 +430,7 @@ class PlaylistMakerElement(Element):
         self.max_num_recordings = max_num_recordings
         self.max_artist_occurrence = max_artist_occurrence
         self.shuffle = shuffle
+        self.expires_at = expires_at
         self.is_april_first = is_april_first
 
     @staticmethod
@@ -471,6 +473,9 @@ class PlaylistMakerElement(Element):
                             user_name=self.user_name)
         if self.shuffle:
             playlist.shuffle()
+
+        if self.expires_at is not None:
+            playlist.add_metadata({ "expires_at": self.expires_at.isoformat() })
 
         if self.is_april_first:
             try:

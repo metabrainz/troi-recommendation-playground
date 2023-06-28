@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import troi.filters
 import troi.listenbrainz.feedback
@@ -13,6 +13,26 @@ DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days
 DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
 BATCH_SIZE_RECS = 100  # the number of recommendations fetched in 1 go
 MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
+
+WEEKLY_JAMS_DESCRIPTION = """<p>The ListenBrainz Weekly Jams playlist aims to be a playlist of tracks that we believe
+    that you'll like. Designed to be a review playlist, it suits well for playing whenever you need to have comfortable
+    music to listen to that does not require active listening.</p>
+
+    <p>The playlist contains tracks that you've listened to before and that our collaborative filtering algorithm believes
+    that you might like to listen to this week.</p>
+
+    <p>ListenBrainz creates the Weekly Jams playlist every monday morning, according to the users' timezone setting.</p>
+"""
+
+WEEKLY_EXPLORATION_DESCRIPTION = """<p>The ListenBrainz Weekly Exploration aims to be a playlist of tracks that you'll like.
+    Designed to be an exploration playlist, it may help you discover some new music! However, exploration playlists require
+    more active listening and may require you to skip the occasional track that doesn't suit your taste.</p>
+
+    <p>The playlist contains tracks that you've not listened to before (as far as ListenBrainz knows) and that our
+    collaborative filtering algorithm believes that you might like.</p>
+
+    <p>ListenBrainz creates the Weekly Exploration playlist every monday morning, according to the users' timezone setting.</p>
+"""
 
 
 class PeriodicJamsPatch(troi.patch.Patch):
@@ -41,11 +61,22 @@ class PeriodicJamsPatch(troi.patch.Patch):
         JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
         can be on different dates). Required formatting for the date is 'YYYY-MM-DD'.
         """
-        return [
-            {"type": "argument", "args": ["user_name"]},
-            {"type": "argument", "args": ["type"], "kwargs": {"required": False}},
-            {"type": "argument", "args": ["jam_date"], "kwargs": {"required": False}}
-        ]
+        return [{
+            "type": "argument",
+            "args": ["user_name"]
+        }, {
+            "type": "argument",
+            "args": ["type"],
+            "kwargs": {
+                "required": False
+            }
+        }, {
+            "type": "argument",
+            "args": ["jam_date"],
+            "kwargs": {
+                "required": False
+            }
+        }]
 
     @staticmethod
     def outputs():
@@ -72,9 +103,14 @@ class PeriodicJamsPatch(troi.patch.Patch):
             if jam_type not in self.JAM_TYPES:
                 raise RuntimeError("Jam type must be one of %s" % ", ".join(jam_types))
 
-        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name, "raw", count=1000, auth_token=inputs.get("token"))
+        recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name,
+                                                                          "raw",
+                                                                          count=1000,
+                                                                          auth_token=inputs.get("token"))
 
-        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name, days=2, auth_token=inputs.get("token"))
+        recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name,
+                                                                                       days=2,
+                                                                                       auth_token=inputs.get("token"))
         recent_listens_lookup.set_sources(recs)
 
         if jam_type in ("daily-jams", "weekly-jams"):
@@ -113,6 +149,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
                                         max_num_recordings=50,
                                         max_artist_occurrence=2,
                                         shuffle=True,
+                                        expires_at=datetime.utcnow() + timedelta(weeks=2),
                                         is_april_first=(jam_date[5:10] == "04-01"))
         pl_maker.set_sources(hate_filter)
 
