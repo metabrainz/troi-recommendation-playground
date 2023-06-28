@@ -266,7 +266,7 @@ class Playlist(Entity):
     """
     def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None, ranking=None,
                  year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None, user_name=None,
-                 additional_metadata=None, expire_at=None):
+                 additional_metadata=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.filename = filename
@@ -275,7 +275,6 @@ class Playlist(Entity):
         self.description = description
         self.patch_slug = patch_slug
         self.user_name = user_name
-        self.expire_at = expire_at
         self.additional_metadata = additional_metadata
 
     def __str__(self):
