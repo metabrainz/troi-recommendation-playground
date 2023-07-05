@@ -3,6 +3,7 @@ from collections import defaultdict
 import requests
 import spotipy
 from more_itertools import chunked
+from spotipy import SpotifyException
 
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 
@@ -113,3 +114,56 @@ def fixup_spotify_playlist(sp: spotipy.Spotify, playlist_id: str, mbid_spotify_i
     # spotify API allows a max of 100 tracks in 1 request
     for chunk in chunked(finalized_ids, 100):
         sp.playlist_add_items(playlist_id, chunk)
+
+
+def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool = True,
+                      is_collaborative: bool = False, existing_url: str = None):
+    """ Submit or update an existing spotify playlist.
+
+    If existing urls are specified then is_public and is_collaborative arguments are ignored.
+    """
+    filtered_recordings = [r for r in playlist.recordings if r.mbid]
+
+    _, mbid_spotify_index, spotify_mbid_index = lookup_spotify_ids(filtered_recordings)
+    spotify_track_ids = [r.spotify_id for r in filtered_recordings if r.spotify_id]
+    if len(spotify_track_ids) == 0:
+        return None, None
+
+    print("submit %d tracks" % len(spotify_track_ids))
+
+    playlist_id, playlist_url = None, None
+    if existing_url:
+        # update existing playlist
+        playlist_url = existing_url
+        playlist_id = existing_url.split("/")[-1]
+        try:
+            spotify.playlist_change_details(playlist_id=playlist_id, name=playlist.name, description=playlist.description)
+        except SpotifyException as err:
+            # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
+            print("provided playlist url has been unfollowed/deleted by the user, creating a new one")
+            playlist_id, playlist_url = None, None
+
+    if not playlist_id:
+        # create new playlist
+        spotify_playlist = spotify.user_playlist_create(
+            user=spotify_user_id,
+            name=playlist.name,
+            public=is_public,
+            collaborative=is_collaborative,
+            description=playlist.description
+        )
+        playlist_id = spotify_playlist["id"]
+        playlist_url = spotify_playlist["external_urls"]["spotify"]
+    else:
+        # existing playlist, clear it
+        spotify.playlist_replace_items(playlist_id, [])
+
+    # spotify API allows a max of 100 tracks in 1 request
+    for chunk in chunked(spotify_track_ids, 100):
+        spotify.playlist_add_items(playlist_id, chunk)
+
+    fixup_spotify_playlist(spotify, playlist_id, mbid_spotify_index, spotify_mbid_index)
+
+    playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
+
+    return playlist_url, playlist_id

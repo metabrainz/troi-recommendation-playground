@@ -4,13 +4,11 @@ import json
 
 import requests
 import spotipy
-from more_itertools import chunked
-from spotipy import SpotifyException
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
-from troi.tools.spotify_lookup import lookup_spotify_ids, fixup_spotify_playlist
+from troi.tools.spotify_lookup import submit_to_spotify
 
 LISTENBRAINZ_SERVER_URL = "https://listenbrainz.org"
 LISTENBRAINZ_API_URL = "https://api.listenbrainz.org"
@@ -244,51 +242,15 @@ class PlaylistElement(Element):
         submitted = []
 
         for idx, playlist in enumerate(self.playlists):
-
             if len(playlist.recordings) == 0:
                 continue
-            filtered_recordings = [r for r in playlist.recordings if r.mbid]
 
-            _, mbid_spotify_index, spotify_mbid_index = lookup_spotify_ids(filtered_recordings)
-            spotify_track_ids = [r.spotify_id for r in filtered_recordings if r.spotify_id]
-            if len(spotify_track_ids) == 0:
-                continue
-
-            print("submit %d tracks" % len(spotify_track_ids))
-
-            playlist_id, playlist_url = None, None
+            existing_url = None
             if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
-                # update existing playlist
-                playlist_url = existing_urls[idx]
-                playlist_id = playlist_url.split("/")[-1]
-                try:
-                    sp.playlist_change_details(playlist_id=playlist_id, name=playlist.name, description=playlist.description)
-                except SpotifyException as err:
-                    # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
-                    print("provided playlist url has been unfollowed/deleted by the user, creating a new one")
-                    playlist_id, playlist_url = None, None
+                existing_url = existing_urls[idx]
 
-            if not playlist_id:
-                # create new playlist
-                spotify_playlist = sp.user_playlist_create(user=user_id,
-                                                           name=playlist.name,
-                                                           public=is_public,
-                                                           collaborative=is_collaborative,
-                                                           description=playlist.description)
-                playlist_id = spotify_playlist["id"]
-                playlist_url = spotify_playlist["external_urls"]["spotify"]
-            else:
-                # existing playlist, clear it
-                sp.playlist_replace_items(playlist_id, [])
-
-            # spotify API allows a max of 100 tracks in 1 request
-            for chunk in chunked(spotify_track_ids, 100):
-                sp.playlist_add_items(playlist_id, chunk)
-
-            fixup_spotify_playlist(sp, playlist_id, mbid_spotify_index, spotify_mbid_index)
+            playlist_url, playlist_id = submit_to_spotify(sp, playlist, user_id, is_public, is_collaborative, existing_url)
             submitted.append((playlist_url, playlist_id))
-
-            playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
 
         return submitted
 
@@ -420,6 +382,7 @@ class PlaylistMakerElement(Element):
                  max_num_recordings=None,
                  max_artist_occurrence=None,
                  shuffle=False,
+                 expires_at=False,
                  is_april_first=False):
         super().__init__()
         self.name = name
@@ -429,6 +392,7 @@ class PlaylistMakerElement(Element):
         self.max_num_recordings = max_num_recordings
         self.max_artist_occurrence = max_artist_occurrence
         self.shuffle = shuffle
+        self.expires_at = expires_at
         self.is_april_first = is_april_first
 
     @staticmethod
@@ -482,6 +446,9 @@ class PlaylistMakerElement(Element):
                             user_name=self.user_name)
         if self.shuffle:
             playlist.shuffle()
+
+        if self.expires_at is not None:
+            playlist.add_metadata({ "expires_at": self.expires_at.isoformat() })
 
         if self.is_april_first:
             try:
