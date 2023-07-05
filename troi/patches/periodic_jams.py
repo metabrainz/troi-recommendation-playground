@@ -5,9 +5,8 @@ import troi.listenbrainz.feedback
 import troi.listenbrainz.listens
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
-from troi import Playlist, Element, Recording
-from troi.musicbrainz.recording import RecordingListElement
-from troi.playlist import PlaylistMakerElement, PlaylistShuffleElement
+from troi import Playlist
+from troi.playlist import PlaylistMakerElement
 
 DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist
 DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
