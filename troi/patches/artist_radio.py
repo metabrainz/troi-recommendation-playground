@@ -91,14 +91,14 @@ class WeighAndBlendRecordingsElement(troi.Element):
             summed.append(acc)
 
         # Ensure seed artists are the first tracks -- doing this for all recording elements work in this case.
-        recordings = [ ]
+        recordings = []
         for element in entities:
             try:
                 recordings.append(element.pop(0))
             except IndexError:
                 pass
 
-        # This still allows sequential tracks to be from the same artists. I'll wait for feedback to see if this 
+        # This still allows sequential tracks to be from the same artists. I'll wait for feedback to see if this
         # is a problem.
         dedup_set = set()
         while True:
@@ -138,18 +138,35 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def fetch_tag_data(self, tags, operator, threshold):
 
-        data = [{"[tag]": tag, "operator": operator, "threshold": threshold} for tag in tags]
-        r = requests.post("https://datasets.listenbrainz.org/recording-from-tag/json", json=data)
+        if self.mode == "easy":
+            start, stop = 0, 50
+        elif self.mode == "medium":
+            start, stop = 25, 75
+        else:
+            start, stop = 50, 100
+
+        data = {
+            "condition": operator,
+            "count": 75,
+            "begin_percent": start / 100.0,
+            "end_percent": stop / 100.0,
+            "tag": tags,
+            "threshold": threshold
+        }
+        r = requests.get("https://test-api.listenbrainz.org/1/tags", params=data)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
-        return list(r.json())
+        return dict(r.json())
 
     def read(self, entities):
         threshold = 1
 
         self.local_storage["data_cache"]["element-descriptions"].append(
             f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
+
+        tag_data = self.fetch_tag_data(self.tags, self.operator, threshold)
+        print(tag_data["artist"])
         recordings = []
         for rec in self.fetch_tag_data(self.tags, self.operator, threshold):
             recordings.append(Recording(mbid=rec["recording_mbid"]))
