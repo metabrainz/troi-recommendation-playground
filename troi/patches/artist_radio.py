@@ -123,6 +123,10 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
 class LBRadioTagRecordingElement(troi.Element):
 
+    NUM_RECORDINGS_TO_COLLECT = 100  # 50 * 2 as a first guess
+    MIN_NUMBER_OF_RECORDINGS = 500  # enough that when you generate 10 playlists things shouldn't repeat
+    A_DECENT_NUMBER_OF_RECORDINGS = 500  # enough that when you generate 10 playlists things shouldn't repeat
+
     def __init__(self, tags, operator="and", mode="easy", weight=1):
         troi.Element.__init__(self)
         self.tags = tags
@@ -167,8 +171,30 @@ class LBRadioTagRecordingElement(troi.Element):
 
         tag_data = self.fetch_tag_data(self.tags, self.operator, threshold)
         print(tag_data["artist"])
+
         recordings = []
-        for rec in self.fetch_tag_data(self.tags, self.operator, threshold):
+        for entity in ("recording", "release-group", "artist"]:
+            # TODO: Sort by count
+            entity_recordings = tag_data[entity]
+            if len(entity_recordings) == 0:
+                continue
+
+            # Do we have loads of tagged recordings? If so, stop and use those
+            if len(entity_recordings) >= self.A_DECENT_NUMBER_OF_RECORDINGS:
+                break
+
+            recordings.extend(entity_recordings)
+
+            
+
+
+            
+
+
+        # Loop over the collected recordings and select randomly.
+        for ...
+
+
             recordings.append(Recording(mbid=rec["recording_mbid"]))
 
         return recordings
