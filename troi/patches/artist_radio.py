@@ -31,6 +31,7 @@ OVERHYPED_SIMILAR_ARTISTS = [
     "f59c5520-5f46-4d2c-b2c4-822eabf53419",  # Linkin Park
     "cc0b7089-c08d-4c10-b6b0-873582c17fd6",  # System of a Down
 ]
+TARGET_NUMBER_OF_RECORDINGS = 50
 
 
 def interleave(lists):
@@ -68,7 +69,7 @@ class InterleaveRecordingsElement(troi.Element):
 
 class WeighAndBlendRecordingsElement(troi.Element):
 
-    def __init__(self, weights, max_num_recordings=50):
+    def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS):
         troi.Element.__init__(self)
         self.weights = weights
         self.max_num_recordings = max_num_recordings
@@ -123,9 +124,8 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
 class LBRadioTagRecordingElement(troi.Element):
 
-    NUM_RECORDINGS_TO_COLLECT = 100  # 50 * 2 as a first guess
-    MIN_NUMBER_OF_RECORDINGS = 500  # enough that when you generate 10 playlists things shouldn't repeat
-    A_DECENT_NUMBER_OF_RECORDINGS = 500  # enough that when you generate 10 playlists things shouldn't repeat
+    NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
+    EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT = 4
 
     def __init__(self, tags, operator="and", mode="easy", weight=1):
         troi.Element.__init__(self)
@@ -151,7 +151,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         data = {
             "condition": operator,
-            "count": 75,
+            "count": self.NUM_RECORDINGS_TO_COLLECT,
             "begin_percent": start / 100.0,
             "end_percent": stop / 100.0,
             "tag": tags,
@@ -163,41 +163,55 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return dict(r.json())
 
-    def read(self, entities):
-        threshold = 1
+    def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None):
 
+        if min_tag_count is None:
+            candidates = tag_data[entity]
+        else:
+            candidates = []
+            for rec in tag_data[entity]:
+                if rec["tag_count"] >= min_tag_count:
+                    candidates.append(rec)
+
+        print(f"{len(candidates)} on {entity}")
+        while len(recordings) < self.NUM_RECORDINGS_TO_COLLECT and len(candidates) > 0:
+            recordings.append(candidates.pop(randint(0, len(candidates) - 1)))
+
+        return recordings, len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT
+
+    def read(self, entities):
+
+        threshold = 1
         self.local_storage["data_cache"]["element-descriptions"].append(
             f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
 
         tag_data = self.fetch_tag_data(self.tags, self.operator, threshold)
-        print(tag_data["artist"])
 
-        recordings = []
-        for entity in ("recording", "release-group", "artist"]:
-            # TODO: Sort by count
-            entity_recordings = tag_data[entity]
-            if len(entity_recordings) == 0:
-                continue
+        recordings = plist()
+        if self.mode == "easy":
+            recordings, complete = self.collect_recordings(recordings, tag_data, "recording", min_tag_count=None)
+            if not complete:
+                recordings = self.collect_recordings(recordings,
+                                                     tag_data,
+                                                     "release-group",
+                                                     min_tag_count=self.EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT)
 
-            # Do we have loads of tagged recordings? If so, stop and use those
-            if len(entity_recordings) >= self.A_DECENT_NUMBER_OF_RECORDINGS:
-                break
+                if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
+                    self.local_storage["user_feedback"].append("tag term (%s) generated too few recordings for easy mode." %
+                                                               ", ".join(self.tags))
+                    recordings = []
 
-            recordings.extend(entity_recordings)
-
-            
-
-
-            
-
+        elif mode == "medium":
+            raise RuntimeError("tag radio medium level not implemented")
+        else:
+            raise RuntimeError("tag radio hard level not implemented")
 
         # Loop over the collected recordings and select randomly.
-        for ...
+        results = []
+        for rec in recordings:
+            results.append(Recording(mbid=rec["recording_mbid"]))
 
-
-            recordings.append(Recording(mbid=rec["recording_mbid"]))
-
-        return recordings
+        return results
 
 
 class LBRadioArtistRecordingElement(troi.Element):
@@ -404,6 +418,7 @@ class LBRadioPatch(troi.patch.Patch):
                 element["values"][0] = UUID(self.lookup_artist_name(element["values"][0]))
 
         self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
+        self.local_storage["user_feedback"] = []
 
         weights = [e["weight"] for e in prompt_elements]
 
@@ -441,7 +456,7 @@ class LBRadioPatch(troi.patch.Patch):
         blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
         blend.set_sources(elements)
 
-        pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=50)
+        pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=TARGET_NUMBER_OF_RECORDINGS)
         pl_maker.set_sources(blend)
 
         return pl_maker

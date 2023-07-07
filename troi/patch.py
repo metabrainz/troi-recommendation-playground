@@ -86,3 +86,12 @@ class Patch(ABC):
             and descriptionm which may not be available when the pipeline is constructed.
         """
         return
+
+    def user_feedback(self):
+        """
+          Call this function to retrieve a list of strings that give the user feedback about the playlist that was generated, if any.
+        """
+        try:
+            return self.local_storage["user_feedback"]
+        except IndexError:
+            return []

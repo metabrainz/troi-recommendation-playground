@@ -87,6 +87,13 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
     patch_args.update(pipelineargs)
     ret = generate_playlist(patch, patch_args)
 
+    user_feedback = patch.user_feedback()
+    if len(user_feedback) > 0:
+        print("User feedback:")
+        for feedback in user_feedback:
+            print(f"  * {feedback}")
+        print()
+
     sys.exit(0 if ret else -1)
 
 

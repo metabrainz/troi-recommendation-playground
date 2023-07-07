@@ -382,7 +382,7 @@ class PlaylistMakerElement(Element):
                  max_num_recordings=None,
                  max_artist_occurrence=None,
                  shuffle=False,
-                 expires_at=False,
+                 expires_at=None,
                  is_april_first=False):
         super().__init__()
         self.name = name

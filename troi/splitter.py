@@ -211,7 +211,7 @@ class plist(list):
     def dslice(self, start=None, stop=None):
         return super().__getitem__(slice(start, stop))
 
-    def random_item(self, start_percent, stop_percent, count=1):
+    def random_item(self, start_percent=0, stop_percent=99, count=1):
         """
             Return a random item from the specified percent slice
 
