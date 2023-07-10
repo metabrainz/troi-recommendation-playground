@@ -180,19 +180,19 @@ class LBRadioTagRecordingElement(troi.Element):
         tag_count = f"highest tag count {tag_data[entity][0]['tag_count']}"
         if entity == "artist":
             if min_tag_count is None:
-                msg = f"{tag_data['count']['artist']} recordings by artists {tagged_with}, {tag_count}"
+                msg = f"{tag_data['count']['artist']:,} recordings by artists {tagged_with}, {tag_count}"
             else:
-                msg = f"{len(candidates)} recordings by artists {tagged_with} at least {min_tag_count} times, {tag_count}"
+                msg = f"{len(candidates):,} recordings by artists {tagged_with} at least {min_tag_count} times, {tag_count}"
         elif entity == "release-group":
             if min_tag_count is None:
-                msg = f"{tag_data['count']['release-group']} recordings on releases and release-groups {tagged_with}, {tag_count}"
+                msg = f"{tag_data['count']['release-group']:,} recordings on releases and release-groups {tagged_with}, {tag_count}"
             else:
-                msg = f"{len(candidates)} recordings on releases and release-groups {tagged_with} at least {min_tag_count} times, {tag_count}"
+                msg = f"{len(candidates):,} recordings on releases and release-groups {tagged_with} at least {min_tag_count} times, {tag_count}"
         else:
             if min_tag_count is None:
-                msg = f"{tag_data['count']['recording']} recordings {tagged_with}, {tag_count}"
+                msg = f"{tag_data['count']['recording']:,} recordings {tagged_with}, {tag_count}"
             else:
-                msg = f"{len(canidates)} recordings {tagged_with} at least {min_tag_count} times, {tag_count}"
+                msg = f"{len(canidates):,} recordings {tagged_with} at least {min_tag_count} times, {tag_count}"
         self.local_storage["user_feedback"].append(msg)
 
         while len(recordings) < self.NUM_RECORDINGS_TO_COLLECT and len(candidates) > 0:
