@@ -176,6 +176,25 @@ class LBRadioTagRecordingElement(troi.Element):
                 if rec["tag_count"] >= min_tag_count:
                     candidates.append(rec)
 
+        tagged_with = f"tagged with '{', '.join(self.tags)}'"
+        tag_count = f"highest tag count {tag_data[entity][0]['tag_count']}"
+        if entity == "artist":
+            if min_tag_count is None:
+                msg = f"{tag_data['count']['artist']} recordings by artists {tagged_with}, {tag_count}"
+            else:
+                msg = f"{len(candidates)} recordings by artists {tagged_with} at least {min_tag_count} times, {tag_count}"
+        elif entity == "release-group":
+            if min_tag_count is None:
+                msg = f"{tag_data['count']['release-group']} recordings on releases and release-groups {tagged_with}, {tag_count}"
+            else:
+                msg = f"{len(candidates)} recordings on releases and release-groups {tagged_with} at least {min_tag_count} times, {tag_count}"
+        else:
+            if min_tag_count is None:
+                msg = f"{tag_data['count']['recording']} recordings {tagged_with}, {tag_count}"
+            else:
+                msg = f"{len(canidates)} recordings {tagged_with} at least {min_tag_count} times, {tag_count}"
+        self.local_storage["user_feedback"].append(msg)
+
         while len(recordings) < self.NUM_RECORDINGS_TO_COLLECT and len(candidates) > 0:
             recordings.append(candidates.pop(randint(0, len(candidates) - 1)))
 
@@ -199,7 +218,7 @@ class LBRadioTagRecordingElement(troi.Element):
                                                      min_tag_count=self.EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT)
 
                 if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
-                    self.local_storage["user_feedback"].append("tag term (%s) generated too few recordings for easy mode." %
+                    self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for easy mode." %
                                                                ", ".join(self.tags))
                     recordings = []
 
@@ -212,13 +231,13 @@ class LBRadioTagRecordingElement(troi.Element):
                                                      min_tag_count=self.MEDIUM_MODE_RELEASE_GROUP_MIN_TAG_COUNT)
 
                 if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
-                    self.local_storage["user_feedback"].append("tag term (%s) generated too few recordings for medium mode." %
+                    self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for medium mode." %
                                                                ", ".join(self.tags))
                     recordings = []
         else:
             recordings, complete = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=None)
             if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
-                self.local_storage["user_feedback"].append("tag term (%s) generated too few recordings for hard mode." %
+                self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for hard mode." %
                                                            ", ".join(self.tags))
                 recordings = []
 
