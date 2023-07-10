@@ -110,6 +110,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
                         if len(entities[i]) > 0:
                             rec = entities[i].pop(0)
                             if rec.mbid in dedup_set:
+                                total_available -= 1
                                 continue
 
                             recordings.append(rec)
@@ -126,6 +127,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
     EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT = 4
+    MEDIUM_MODE_ARTIST_MIN_TAG_COUNT = 4
 
     def __init__(self, tags, operator="and", mode="easy", weight=1):
         troi.Element.__init__(self)
@@ -165,6 +167,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None):
 
+
         if min_tag_count is None:
             candidates = tag_data[entity]
         else:
@@ -173,7 +176,6 @@ class LBRadioTagRecordingElement(troi.Element):
                 if rec["tag_count"] >= min_tag_count:
                     candidates.append(rec)
 
-        print(f"{len(candidates)} on {entity}")
         while len(recordings) < self.NUM_RECORDINGS_TO_COLLECT and len(candidates) > 0:
             recordings.append(candidates.pop(randint(0, len(candidates) - 1)))
 
@@ -201,12 +203,26 @@ class LBRadioTagRecordingElement(troi.Element):
                                                                ", ".join(self.tags))
                     recordings = []
 
-        elif mode == "medium":
-            raise RuntimeError("tag radio medium level not implemented")
-        else:
-            raise RuntimeError("tag radio hard level not implemented")
+        elif self.mode == "medium":
+            recordings, complete = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=None)
+            if not complete:
+                recordings = self.collect_recordings(recordings,
+                                                     tag_data,
+                                                     "artist",
+                                                     min_tag_count=self.MEDIUM_MODE_RELEASE_GROUP_MIN_TAG_COUNT)
 
-        # Loop over the collected recordings and select randomly.
+                if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
+                    self.local_storage["user_feedback"].append("tag term (%s) generated too few recordings for medium mode." %
+                                                               ", ".join(self.tags))
+                    recordings = []
+        else:
+            recordings, complete = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=None)
+            if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
+                self.local_storage["user_feedback"].append("tag term (%s) generated too few recordings for hard mode." %
+                                                           ", ".join(self.tags))
+                recordings = []
+
+        # Convert results into recordings
         results = []
         for rec in recordings:
             results.append(Recording(mbid=rec["recording_mbid"]))
@@ -465,7 +481,7 @@ class LBRadioPatch(troi.patch.Patch):
 
         prompt = self.local_storage["data_cache"]["prompt"]
         names = ", ".join(self.local_storage["data_cache"]["element-descriptions"])
-        name = f"ListenBrainz Radio for {names}"
+        name = f"LB Radio for {names} on {self.mode} mode"
         desc = "Experimental ListenBrainz radio using %s mode, which was generated from this prompt: '%s'" % (self.mode, prompt)
         self.local_storage["_playlist_name"] = name
         self.local_storage["_playlist_desc"] = desc
