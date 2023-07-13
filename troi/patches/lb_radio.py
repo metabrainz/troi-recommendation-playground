@@ -167,7 +167,6 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None):
 
-
         if min_tag_count is None:
             candidates = tag_data[entity]
         else:
@@ -175,7 +174,6 @@ class LBRadioTagRecordingElement(troi.Element):
             for rec in tag_data[entity]:
                 if rec["tag_count"] >= min_tag_count:
                     candidates.append(rec)
-
 
         tagged_with = f"tagged with '{', '.join(self.tags)}'"
         if len(tag_data[entity]) > 0:
@@ -205,9 +203,29 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return recordings, len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT
 
+
+    def get_lowest_tag_count(self, highest_tag_count):
+        """ Return the lowest tag that should be accepted for this entityt, given the highest_tag_count """
+        if highest_tag_count <= 1:
+            return highest_tag_count + 1  # This effectively means no tags will be collected
+
+        if highest_tag_count <= 3:
+            return highest_tag_count - 1  # use only the highest tagged recordings
+
+        if highest_tag_count <= 5:
+            return highest_tag_count - 2
+
+        if highest_tag_count <= 8:
+            return highest_tag_count - 3
+
+        return highest_tag_count // 2
+
+
     def read(self, entities):
 
+        # TODO: Should this be set lower for harder modes and loads of tags?
         threshold = 1
+
         self.local_storage["data_cache"]["element-descriptions"].append(
             f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
 
@@ -215,12 +233,23 @@ class LBRadioTagRecordingElement(troi.Element):
 
         recordings = plist()
         if self.mode == "easy":
-            recordings, complete = self.collect_recordings(recordings, tag_data, "recording", min_tag_count=None)
+            entity = "recording"
+            recordings, complete = self.collect_recordings(recordings, tag_data, entity, min_tag_count=None)
+            complete = False
             if not complete:
-                recordings = self.collect_recordings(recordings,
-                                                     tag_data,
-                                                     "release-group",
-                                                     min_tag_count=self.EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT)
+                try:
+                    highest_tag_count = tag_data[entity][0]["tag_count"]
+                except IndexError:
+                    highest_tag_count = 0
+                lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
+                print(f"tag range: {highest_tag_count} {lowest_tag_count}")
+                for tag_count in range(highest_tag_count, lowest_tag_count, -1):
+                    recordings, complete = self.collect_recordings(recordings,
+                                                         tag_data,
+                                                         "release-group",
+                                                         min_tag_count=tag_count)
+                    if complete:
+                        break
 
                 if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
                     self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for easy mode." %
@@ -229,11 +258,22 @@ class LBRadioTagRecordingElement(troi.Element):
 
         elif self.mode == "medium":
             recordings, complete = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=None)
+            entity = "release-group"
+            complete = False
             if not complete:
-                recordings = self.collect_recordings(recordings,
-                                                     tag_data,
-                                                     "artist",
-                                                     min_tag_count=self.MEDIUM_MODE_RELEASE_GROUP_MIN_TAG_COUNT)
+                try:
+                    highest_tag_count = tag_data[entity][0]["tag_count"]
+                except IndexError:
+                    highest_tag_count = 0
+                lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
+                print("tag range: {highest_tag_count} {lowest_tag_count}")
+                for tag_count in range(highest_tag_count, lowest_tag_count, -1):
+                    recordings = self.collect_recordings(recordings,
+                                                         tag_data,
+                                                         "artist",
+                                                         min_tag_count=tag_count)
+                    if complete:
+                        break
 
                 if len(recordings) < self.NUM_RECORDINGS_TO_COLLECT:
                     self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for medium mode." %
@@ -344,7 +384,7 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         msg = "artist: using seed artist %s" % artists[0]["name"]
         if self.include_similar_artists:
-            msg += " and similar artists: " + ", ".join([ a["name"] for a in artists[1:] ])
+            msg += " and similar artists: " + ", ".join([a["name"] for a in artists[1:]])
         else:
             msg += " only"
 
