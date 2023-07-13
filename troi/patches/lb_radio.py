@@ -342,7 +342,13 @@ class LBRadioArtistRecordingElement(troi.Element):
             # Store data in cache, so the post processor can create decent descriptions, title
             self.data_cache[artist["mbid"]] = artist["name"]
 
-        print("Seed artist: %s" % artists[0]["name"])
+        msg = "artist: using seed artist %s" % artists[0]["name"]
+        if self.include_similar_artists:
+            msg += " and similar artists: " + ", ".join([ a["name"] for a in artists[1:] ])
+        else:
+            msg += " only"
+
+        self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
 
         if self.mode == "easy":
