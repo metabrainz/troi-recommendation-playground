@@ -141,10 +141,15 @@ class LBRadioCollectionRecordingElement(troi.Element):
     def read(self, entities):
         params = {"collection": self.mbid, "fmt": "json"}
         r = requests.get("http://musicbrainz.org/ws/2/recording", params=params)
+        if r.status_code == 404:
+            raise RuntimeError(f"Cannot find collection {mbid}.")
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
 
-        mbid_list = [ r["id"] for r in r.json()["recordings"] ]
+        mbid_list = []
+        for r in r.json()["recordings"]:
+            if not r["video"]:
+                mbid_list.append(r["id"]) 
         shuffle(mbid_list)
 
         recordings = []
