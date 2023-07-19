@@ -144,18 +144,12 @@ class LBRadioCollectionRecordingElement(troi.Element):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
 
-        # TODO: Work out how to centralize this. A new class element to derive from?
-        if self.mode == "easy":
-            start, stop = 0, 50
-        elif self.mode == "medium":
-            start, stop = 25, 75
-        else:
-            start, stop = 50, 100
+        mbid_list = [ r["id"] for r in r.json()["recordings"] ]
+        shuffle(mbid_list)
 
-        mbid_plist = plist([ { "mbid": r["id"] } for r in r.json()["recordings"] ])
         recordings = []
-        for recording in mbid_plist.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT):
-            recordings.append(Recording(mbid=recording["mbid"]))
+        for mbid in mbid_list[:self.NUM_RECORDINGS_TO_COLLECT]:
+            recordings.append(Recording(mbid=mbid))
 
         return recordings
 
