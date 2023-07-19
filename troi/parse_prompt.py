@@ -18,6 +18,7 @@ def build_parser():
 
     artist_element = pp.MatchFirst((pp.Keyword("artist"), pp.Keyword("a")))
     tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
+    collection_element = pp.MatchFirst((pp.Keyword("collection")))
 
     text = pp.Word(pp.alphanums)
     uuid = pp.pyparsing_common.uuid()
@@ -43,7 +44,9 @@ def build_parser():
     element_tag_shortcut = pp.Literal('#') + pp.Group(tag, aslist=True) + optional
     element_tag_paren_shortcut = pp.Literal('#') + pp.Group(paren_tag, aslist=True) + optional
 
-    element = element_tag | element_tag_shortcut | element_uuid | element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut
+    element_collection = collection_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
+
+    element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut 
 
     return pp.OneOrMore(pp.Group(element, aslist=True))
 
@@ -103,25 +106,3 @@ def parse(prompt: str):
         results.append({"entity": entity, "values": values, "weight": weight, "opts": opts})
 
     return results
-
-
-if __name__ == "__main__":
-    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:(and)")
-    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2")
-    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2")
-    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:and")
-    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:or")
-    parse("artist:ff2e249b-b64a-445a-9cd0-d655cff573c2:2:(and,easy)")
-    parse("artist:(artist name)")
-    parse("tag:rock:2:and")
-    parse("tag:rock")
-    parse("tag:(rock)")
-    parse("#rock")
-    parse("#(rock)")
-    parse("#(trip hop)")
-    parse("#(rock,pop)")
-    parse("#(rock,pop):3")
-    parse("#(rock,pop):2:easy")
-    parse("#(rock,pop):2:(easy,and)")
-    parse("#(rock,pop):2:(easy)")
-    parse("#(rock,pop):2:medium #rock")

@@ -71,3 +71,8 @@ class TestParser(unittest.TestCase):
         self.assertRaises(ParseError, parse,
                           "a:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 a:f54ba4c6-12dd-4358-9136-c64ad89420c5:fussy")
         self.assertRaises(ParseError, parse, "a:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 a:f54ba4c6-12dd-4358-9136-c64ad89420c5:.5")
+
+    def test_collection(self):
+
+        r = parse("collection:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        assert r[0] == {"entity": "collection", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}

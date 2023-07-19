@@ -91,6 +91,14 @@ in order to specify the or option.
 
 Tags that have a space in them must be enclosed in (). Specifying multiple tags requires the tags to be enclosed in () as well as comma separated.
 
+::
+
+  collection:8be1a919-a386-45f3-8cc2-0d9249b02aa4
+
+Will select random recordings from a recording collection -- the modes wont have much affect on collections, since collections have no inherent
+ranking that could be used to select recordings according to mode. :(
+
+
 More complex examples
 ---------------------
 

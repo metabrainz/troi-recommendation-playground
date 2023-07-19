@@ -123,18 +123,54 @@ class WeighAndBlendRecordingsElement(troi.Element):
         return recordings
 
 
+class LBRadioCollectionRecordingElement(troi.Element):
+
+    NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
+
+    def __init__(self, mbid, mode="easy"):
+        troi.Element.__init__(self)
+        self.mbid = mbid
+        self.mode = mode
+
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Recording]
+
+    def read(self, entities):
+        params = {"collection": self.mbid, "fmt": "json"}
+        r = requests.get("http://musicbrainz.org/ws/2/recording", params=params)
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
+
+        # TODO: Work out how to centralize this. A new class element to derive from?
+        if self.mode == "easy":
+            start, stop = 0, 50
+        elif self.mode == "medium":
+            start, stop = 25, 75
+        else:
+            start, stop = 50, 100
+
+        mbid_plist = plist([ { "mbid": r["id"] } for r in r.json()["recordings"] ])
+        recordings = []
+        for recording in mbid_plist.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT):
+            recordings.append(Recording(mbid=recording["mbid"]))
+
+        return recordings
+
+
 class LBRadioTagRecordingElement(troi.Element):
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
     EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT = 4
     MEDIUM_MODE_ARTIST_MIN_TAG_COUNT = 4
 
-    def __init__(self, tags, operator="and", mode="easy", weight=1):
+    def __init__(self, tags, operator="and", mode="easy"):
         troi.Element.__init__(self)
         self.tags = tags
         self.operator = operator
         self.mode = mode
-        self.weight = weight
 
     def inputs(self):
         return []
@@ -166,7 +202,6 @@ class LBRadioTagRecordingElement(troi.Element):
         return dict(r.json())
 
     def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None):
-
 
         if min_tag_count is None:
             candidates = tag_data[entity]
@@ -254,13 +289,12 @@ class LBRadioArtistRecordingElement(troi.Element):
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
     MAX_NUM_SIMILAR_ARTISTS = 12
 
-    def __init__(self, artist_mbid, mode="easy", weight=1, include_similar_artists=True):
+    def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
         self.artist_mbid = str(artist_mbid)
         self.artist_name = None
         self.similar_artists = []
         self.mode = mode
-        self.weight = weight
         self.include_similar_artists = include_similar_artists
         if include_similar_artists:
             self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST
@@ -471,14 +505,16 @@ class LBRadioPatch(troi.patch.Patch):
                 include_sim = False if "nosim" in element["opts"] else True
                 source = LBRadioArtistRecordingElement(element["values"][0],
                                                        mode=mode,
-                                                       weight=element["weight"],
                                                        include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", weight=element["weight"])
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and")
 
             if element["entity"] == "tag-or":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or", weight=element["weight"])
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or")
+
+            if element["entity"] == "collection":
+                source = LBRadioCollectionRecordingElement(element["values"][0], mode=mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
