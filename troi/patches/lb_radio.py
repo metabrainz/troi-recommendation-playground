@@ -122,6 +122,41 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
         return recordings
 
+class LBRadioFeedbackRecordingElement(troi.Element):
+
+    NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
+
+    def __init__(self, loved=True, count=-1, mode="easy"):
+        troi.Element.__init__(self)
+        self.loved = 1 if loved else -1
+        self.count = count
+        self.mode = mode
+
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Recording]
+
+    def read(self, entities):
+
+        try:
+            self.count = int(self.count)
+        except ValueError:
+            raise RuntimeError("count must be an integer 0 or greater.")
+
+        data =  [{ "score": self.loved, "min_count": self.count}]
+        params = { "count": self.NUM_RECORDINGS_TO_COLLECT }
+        r = requests.post("https://datasets.listenbrainz.org/feedback-lookup/json", json=data, params=params)
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch feedback. {r.text}")
+
+        results = []
+        for rec in r.json():
+            results.append(Recording(mbid=rec["recording_mbid"]))
+
+        return results
+
 
 class LBRadioTagRecordingElement(troi.Element):
 
@@ -129,12 +164,11 @@ class LBRadioTagRecordingElement(troi.Element):
     EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT = 4
     MEDIUM_MODE_ARTIST_MIN_TAG_COUNT = 4
 
-    def __init__(self, tags, operator="and", mode="easy", weight=1):
+    def __init__(self, tags, operator="and", mode="easy"):
         troi.Element.__init__(self)
         self.tags = tags
         self.operator = operator
         self.mode = mode
-        self.weight = weight
 
     def inputs(self):
         return []
@@ -299,13 +333,12 @@ class LBRadioArtistRecordingElement(troi.Element):
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
     MAX_NUM_SIMILAR_ARTISTS = 12
 
-    def __init__(self, artist_mbid, mode="easy", weight=1, include_similar_artists=True):
+    def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
         self.artist_mbid = str(artist_mbid)
         self.artist_name = None
         self.similar_artists = []
         self.mode = mode
-        self.weight = weight
         self.include_similar_artists = include_similar_artists
         if include_similar_artists:
             self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST
@@ -522,14 +555,19 @@ class LBRadioPatch(troi.patch.Patch):
                 include_sim = False if "nosim" in element["opts"] else True
                 source = LBRadioArtistRecordingElement(element["values"][0],
                                                        mode=mode,
-                                                       weight=element["weight"],
                                                        include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", weight=element["weight"])
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and")
 
             if element["entity"] == "tag-or":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or", weight=element["weight"])
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or")
+
+            if element["entity"] == "loved":
+                source = LBRadioFeedbackRecordingElement(True, count=element["values"][0], mode=mode)
+
+            if element["entity"] == "hated":
+                source = LBRadioFeedbackRecordingElement(False, count=element["values"][0], mode=mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
