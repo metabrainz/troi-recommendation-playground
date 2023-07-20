@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys
 from uuid import UUID
 
@@ -49,7 +47,7 @@ def build_parser():
     element_playlist = playlist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
 
     element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
-              element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut 
+              element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut
 
     return pp.OneOrMore(pp.Group(element, aslist=True))
 
