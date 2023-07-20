@@ -19,6 +19,7 @@ def build_parser():
     artist_element = pp.MatchFirst((pp.Keyword("artist"), pp.Keyword("a")))
     tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
     collection_element = pp.MatchFirst((pp.Keyword("collection")))
+    playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
 
     text = pp.Word(pp.alphanums)
     uuid = pp.pyparsing_common.uuid()
@@ -45,8 +46,10 @@ def build_parser():
     element_tag_paren_shortcut = pp.Literal('#') + pp.Group(paren_tag, aslist=True) + optional
 
     element_collection = collection_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
+    element_playlist = playlist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
 
-    element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut 
+    element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
+              element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut 
 
     return pp.OneOrMore(pp.Group(element, aslist=True))
 
@@ -73,6 +76,8 @@ def parse(prompt: str):
             entity = "artist"
         elif element[0] == "t":
             entity = "tag"
+        elif element[0] == "p":
+            entity = "playlist"
         elif element[0] == "#":
             entity = "tag"
         else:

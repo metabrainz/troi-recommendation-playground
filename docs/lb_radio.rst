@@ -39,6 +39,16 @@ This idea comes from video games, where players can choose how hard the game sho
 the resultant playlist will also be more work to listen to the harder the mode. Which mode to use is entirely up to the user -- easy
 is likely going to create a playlist with familiar music, and a hard playlist may expose you to less familiar music.
 
+Entities
+--------
+
+The LB Radio supports the following entities:
+
+#. **artist**: Play tracks from this artists and similar artists
+#. **tag**: Play tracks from one of more tags
+#. **collection**: Use a MusicBrainz collection as a source of recordings. (mode does not apply to collections)
+#. **playlist**: Use a ListenBrainz playlist as a source of recordings. (mode also does not apply to playlists)
+
 
 Simple examples
 ---------------
@@ -95,8 +105,16 @@ Tags that have a space in them must be enclosed in (). Specifying multiple tags 
 
   collection:8be1a919-a386-45f3-8cc2-0d9249b02aa4
 
-Will select random recordings from a MusicBrainz recording collection -- the modes wont have much affect on collections, since
+Will select random recordings from a MusicBrainz recording collection -- the modes wont have any affect on collections, since
 collections have no inherent ranking that could be used to select recordings according to mode. :(
+
+
+::
+
+  playlist:8be1a919-a386-45f3-8cc2-0d9249b02aa4
+
+Will select random recordings from a ListenBrainz playlist -- the modes wont have any affect on collections, since
+plylists have no inherent ranking that could be used to select recordings according to mode. :(
 
 
 More complex examples

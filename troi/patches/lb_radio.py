@@ -123,6 +123,39 @@ class WeighAndBlendRecordingsElement(troi.Element):
         return recordings
 
 
+class LBRadioPlaylistRecordingElement(troi.Element):
+
+    NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
+
+    def __init__(self, mbid, mode="easy"):
+        troi.Element.__init__(self)
+        self.mbid = mbid
+        self.mode = mode
+
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Recording]
+
+    def read(self, entities):
+        r = requests.get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
+        if r.status_code == 404:
+            raise RuntimeError(f"Cannot find playlist {self.mbid}.")
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
+
+        mbid_list = [r["identifier"][34:] for r in r.json()["playlist"]["track"]]
+        print(mbid_list)
+        shuffle(mbid_list)
+
+        recordings = []
+        for mbid in mbid_list[:self.NUM_RECORDINGS_TO_COLLECT]:
+            recordings.append(Recording(mbid=mbid))
+
+        return recordings
+
+
 class LBRadioCollectionRecordingElement(troi.Element):
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
@@ -140,7 +173,7 @@ class LBRadioCollectionRecordingElement(troi.Element):
 
     def read(self, entities):
         params = {"collection": self.mbid, "fmt": "json"}
-        r = requests.get("http://musicbrainz.org/ws/2/recording", params=params)
+        r = requests.get("https://musicbrainz.org/ws/2/recording", params=params)
         if r.status_code == 404:
             raise RuntimeError(f"Cannot find collection {mbid}.")
         if r.status_code != 200:
@@ -149,7 +182,7 @@ class LBRadioCollectionRecordingElement(troi.Element):
         mbid_list = []
         for r in r.json()["recordings"]:
             if not r["video"]:
-                mbid_list.append(r["id"]) 
+                mbid_list.append(r["id"])
         shuffle(mbid_list)
 
         recordings = []
@@ -238,7 +271,6 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return recordings, len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT
 
-
     def get_lowest_tag_count(self, highest_tag_count):
         """ Return the lowest tag that should be accepted for this entityt, given the highest_tag_count """
         if highest_tag_count <= 1:
@@ -254,7 +286,6 @@ class LBRadioTagRecordingElement(troi.Element):
             return highest_tag_count - 3
 
         return highest_tag_count // 2
-
 
     def read(self, entities):
 
@@ -279,10 +310,7 @@ class LBRadioTagRecordingElement(troi.Element):
                 lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
                 print(f"tag range: {highest_tag_count} {lowest_tag_count}")
                 for tag_count in range(highest_tag_count, lowest_tag_count, -1):
-                    recordings, complete = self.collect_recordings(recordings,
-                                                         tag_data,
-                                                         "release-group",
-                                                         min_tag_count=tag_count)
+                    recordings, complete = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=tag_count)
                     if complete:
                         break
 
@@ -303,10 +331,7 @@ class LBRadioTagRecordingElement(troi.Element):
                 lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
                 print("tag range: {highest_tag_count} {lowest_tag_count}")
                 for tag_count in range(highest_tag_count, lowest_tag_count, -1):
-                    recordings = self.collect_recordings(recordings,
-                                                         tag_data,
-                                                         "artist",
-                                                         min_tag_count=tag_count)
+                    recordings = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=tag_count)
                     if complete:
                         break
 
@@ -554,9 +579,7 @@ class LBRadioPatch(troi.patch.Patch):
 
             if element["entity"] == "artist":
                 include_sim = False if "nosim" in element["opts"] else True
-                source = LBRadioArtistRecordingElement(element["values"][0],
-                                                       mode=mode,
-                                                       include_similar_artists=include_sim)
+                source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
                 source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and")
@@ -566,6 +589,9 @@ class LBRadioPatch(troi.patch.Patch):
 
             if element["entity"] == "collection":
                 source = LBRadioCollectionRecordingElement(element["values"][0], mode=mode)
+
+            if element["entity"] == "playlist":
+                source = LBRadioPlaylistRecordingElement(element["values"][0], mode=mode)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
