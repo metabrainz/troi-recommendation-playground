@@ -1,6 +1,6 @@
 import unittest
 
-from troi.splitter import DataSetSplitter
+from troi.splitter import DataSetSplitter, plist
 
 
 class TestSplitter(unittest.TestCase):
@@ -60,3 +60,17 @@ class TestSplitter(unittest.TestCase):
         assert dss % 0 == {'score': 4}
         assert dss % 1 == {'score': 3}
         assert dss % 2 == {'score': 2}
+
+    def test_plist(self):
+        pl = plist([0,1,2,3,4,5,6,7,8,9])
+
+        assert pl[0:10] == [0]
+        assert pl[0:20] == [0,1]
+        assert pl[50:100] == [5,6,7,8,9]
+        assert pl.uslice(0, 10) == [0]
+        assert pl.uslice(0, 20) == [0,1]
+        assert pl.uslice(50, 100) == [5,6,7,8,9]
+
+        assert pl.dslice(0, 2) == [0,1]
+
+        assert pl.random_item(50, 100) in [5,6,7,8,9]

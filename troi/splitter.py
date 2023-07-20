@@ -228,8 +228,6 @@ class plist(list):
 
         data = super().__getitem__(slice(start_index, stop_index))
         items = [data[randint(0, len(data) - 1)] for i in range(min(count, len(data)))]
-        items = [dict(t) for t in {tuple(d.items()) for d in items}]
-
         if count > 1:
             return items
 
