@@ -49,7 +49,6 @@ def generate_playlist(patch: Patch, args: Dict):
     patch_args = {**default_patch_args, **args}
     pipeline = patch.create(patch_args)
     _set_element_patch(patch, pipeline)
-    patch.local_storage["__test"] = "foo"
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
