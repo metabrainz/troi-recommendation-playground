@@ -39,6 +39,9 @@ def interleave(lists):
 
 
 class InterleaveRecordingsElement(troi.Element):
+    """
+        This element round-robins the various input sources into one list until all sources are all empty.
+    """
 
     def __init__(self):
         troi.Element.__init__(self)
@@ -68,6 +71,12 @@ class InterleaveRecordingsElement(troi.Element):
 
 
 class WeighAndBlendRecordingsElement(troi.Element):
+    """
+        This element will weight all the given sources according to weights passed to __init__ and
+        then combine all the input sources into one weighted output stream.
+
+        A source that has a weight of 2 will be chosen 2 times more often than a source with weight 1.
+    """
 
     def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS):
         troi.Element.__init__(self)
@@ -124,6 +133,10 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
 
 class LBRadioPlaylistRecordingElement(troi.Element):
+    """
+        Given an LB playlist, fetch its tracks and randomly include recordiungs from it. mode does not
+        apply to this element.
+    """
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
 
@@ -145,10 +158,11 @@ class LBRadioPlaylistRecordingElement(troi.Element):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
 
+        # Fetch the recordings, then shuffle
         mbid_list = [r["identifier"][34:] for r in r.json()["playlist"]["track"]]
-        print(mbid_list)
         shuffle(mbid_list)
 
+        # Select and convert the first n MBIDs into Recordings
         recordings = []
         for mbid in mbid_list[:self.NUM_RECORDINGS_TO_COLLECT]:
             recordings.append(Recording(mbid=mbid))
@@ -157,6 +171,10 @@ class LBRadioPlaylistRecordingElement(troi.Element):
 
 
 class LBRadioCollectionRecordingElement(troi.Element):
+    """
+        Given an MB recording collection, fetch it and randomly include recordings from it. mode does not
+        apply to this element.
+    """
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
 
@@ -179,12 +197,14 @@ class LBRadioCollectionRecordingElement(troi.Element):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
 
+        # Fetch the recordings, then shuffle
         mbid_list = []
         for r in r.json()["recordings"]:
             if not r["video"]:
                 mbid_list.append(r["id"])
         shuffle(mbid_list)
 
+        # Select and convert the first n MBIDs into Recordings
         recordings = []
         for mbid in mbid_list[:self.NUM_RECORDINGS_TO_COLLECT]:
             recordings.append(Recording(mbid=mbid))
@@ -211,6 +231,9 @@ class LBRadioTagRecordingElement(troi.Element):
         return [Recording]
 
     def fetch_tag_data(self, tags, operator, threshold):
+        """
+            Fetch the tag data from the LB API and return it as a dict.
+        """
 
         if self.mode == "easy":
             start, stop = 0, 50
@@ -234,6 +257,15 @@ class LBRadioTagRecordingElement(troi.Element):
         return dict(r.json())
 
     def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None):
+        """ 
+            This function takes a list of recordings already collected (could be empty),
+            the tag_data from the LB tag endpoint and an entity (artist, release-group, recording)
+            and a minimum_tag_count that will be used to select recordings from the tag_data.
+
+            Selected recordings will be added to the recordings and return as the first
+            item in a tuple, with the second item being a boolean if the list is not full. 
+            (and processing can stop).
+        """
 
         if min_tag_count is None:
             candidates = tag_data[entity]
@@ -272,7 +304,8 @@ class LBRadioTagRecordingElement(troi.Element):
         return recordings, len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT
 
     def get_lowest_tag_count(self, highest_tag_count):
-        """ Return the lowest tag that should be accepted for this entityt, given the highest_tag_count """
+        """ Given a highest tag count, return the lower bound for the tag_count based on how many tags exist."""
+
         if highest_tag_count <= 1:
             return highest_tag_count + 1  # This effectively means no tags will be collected
 
@@ -289,7 +322,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def read(self, entities):
 
-        # TODO: Should this be set lower for harder modes and loads of tags?
+        # TODO: Should this be set lower for harder modes and loads of tags? We need to wait for more user feedback on this.
         threshold = 1
 
         self.local_storage["data_cache"]["element-descriptions"].append(
@@ -297,6 +330,9 @@ class LBRadioTagRecordingElement(troi.Element):
 
         tag_data = self.fetch_tag_data(self.tags, self.operator, threshold)
 
+        # Now that we've fetched the tag data, depending on mode, start collecting recordings from it. The idea
+        # is to start on recordings for easy mode, release-group for medium and artist for hard mode. If not enough
+        # recordings are collected, descend one level and attempt to collect more.
         recordings = plist()
         if self.mode == "easy":
             entity = "recording"
@@ -355,6 +391,10 @@ class LBRadioTagRecordingElement(troi.Element):
 
 
 class LBRadioArtistRecordingElement(troi.Element):
+    """
+        Given an artist, find its similar artists and their popular tracks and return one 
+        stream of recodings from it.
+    """
 
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
     MAX_NUM_SIMILAR_ARTISTS = 12
@@ -378,6 +418,7 @@ class LBRadioArtistRecordingElement(troi.Element):
         return [Recording]
 
     def get_similar_artists(self, artist_mbid):
+        """ Fetch similar artists, given an artist_mbid. Returns a sored plist of artists. """
 
         r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
                           json=[{
@@ -402,6 +443,9 @@ class LBRadioArtistRecordingElement(troi.Element):
         return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
 
     def fetch_top_recordings(self, artist_mbid):
+        """
+            Given and artist_mbid, fetch top recordings for this artist and retun them in a plist.
+        """
 
         r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
             '[artist_mbid]': artist_mbid,
@@ -409,6 +453,9 @@ class LBRadioArtistRecordingElement(troi.Element):
         return plist(r.json())
 
     def fetch_artist_names(self, artist_mbids):
+        """
+            Fetch artists names for a given list of artist_mbids 
+        """
 
         data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
         r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
@@ -420,6 +467,7 @@ class LBRadioArtistRecordingElement(troi.Element):
         self.data_cache = self.local_storage["data_cache"]
         artists = [{"mbid": self.artist_mbid}]
 
+        # First, fetch similar artists if the user didn't override that.
         if self.include_similar_artists:
             # Fetch similar artists for original artist
             similar_artists = self.get_similar_artists(self.artist_mbid)
@@ -431,6 +479,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             for artist in similar_artists[:self.MAX_NUM_SIMILAR_ARTISTS]:
                 artists.append({"mbid": artist["artist_mbid"]})
 
+        # For all fetched artists, fetcht their names
         artist_names = self.fetch_artist_names([i["mbid"] for i in artists])
         for artist in artists:
             if artist["mbid"] not in artist_names:
@@ -441,6 +490,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             # Store data in cache, so the post processor can create decent descriptions, title
             self.data_cache[artist["mbid"]] = artist["name"]
 
+        # start crafting user feedback messages
         msg = "artist: using seed artist %s" % artists[0]["name"]
         if self.include_similar_artists:
             msg += " and similar artists: " + ", ".join([a["name"] for a in artists[1:]])
@@ -450,6 +500,7 @@ class LBRadioArtistRecordingElement(troi.Element):
         self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
 
+        # Deremine percent ranges based on mode -- this will likely need further tweaking
         if self.mode == "easy":
             start, stop = 0, 50
         elif self.mode == "medium":
@@ -457,6 +508,8 @@ class LBRadioArtistRecordingElement(troi.Element):
         else:
             start, stop = 50, 100
 
+        # Now collect recordings from the artist and similar artists and return an interleaved
+        # strem of recordings.
         for i, artist in enumerate(artists):
             if artist["mbid"] + "_top_recordings" in self.data_cache:
                 artist["recordings"] = self.data_cache[artist["mbid"] + "_top_recordings"]
@@ -523,6 +576,7 @@ class LBRadioPatch(troi.patch.Patch):
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
     def lookup_artist_name(self, artist_name):
+        """ Fetch artist names for validation purposes """
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
 
@@ -549,6 +603,7 @@ class LBRadioPatch(troi.patch.Patch):
         self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
 
+        # First parse the prompt
         try:
             prompt_elements = parse(self.prompt)
         except ParseError as err:
@@ -562,11 +617,13 @@ class LBRadioPatch(troi.patch.Patch):
             if element["entity"] == "artist" and isinstance(element["values"][0], str):
                 element["values"][0] = UUID(self.lookup_artist_name(element["values"][0]))
 
+        # Save descriptions to local storage
         self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
         self.local_storage["user_feedback"] = []
 
         weights = [e["weight"] for e in prompt_elements]
 
+        # Now create the graph, based on the mode and the entities desired
         elements = []
         for element in prompt_elements:
             mode = self.mode
@@ -601,6 +658,7 @@ class LBRadioPatch(troi.patch.Patch):
 
             elements.append(hate_filter)
 
+        # Finish the pipeline with the element that blends and weighs the streams
         blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
         blend.set_sources(elements)
 
@@ -610,6 +668,9 @@ class LBRadioPatch(troi.patch.Patch):
         return pl_maker
 
     def post_process(self):
+        """ 
+            Take the information saved in local_storage and create proper playlist names and descriptions.
+        """
 
         prompt = self.local_storage["data_cache"]["prompt"]
         names = ", ".join(self.local_storage["data_cache"]["element-descriptions"])
