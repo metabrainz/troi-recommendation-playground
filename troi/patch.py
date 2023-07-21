@@ -12,6 +12,9 @@ class Patch(ABC):
         logging.basicConfig(level=level)
         self.logger = logging.getLogger(type(self).__name__)
 
+        # Dict used for local storage
+        self.local_storage = {}
+
     def log(self, msg):
         '''
             Log a message with the info log level, which is the default for troi. 
@@ -75,3 +78,20 @@ class Patch(ABC):
                input_args: the arguments passed to the patch.
         """
         return None
+
+    def post_process(self):
+        """
+            This function is called once the pipeline has produced its playlist, just before the Playlist object is created.
+            This function could be used to inspect data in patch local storage to create the detailed playlist name
+            and descriptionm which may not be available when the pipeline is constructed.
+        """
+        return
+
+    def user_feedback(self):
+        """
+          Call this function to retrieve a list of strings that give the user feedback about the playlist that was generated, if any.
+        """
+        try:
+            return self.local_storage["user_feedback"]
+        except IndexError:
+            return None

@@ -48,6 +48,7 @@ def generate_playlist(patch: Patch, args: Dict):
 
     patch_args = {**default_patch_args, **args}
     pipeline = patch.create(patch_args)
+    _set_element_patch(patch, pipeline)
     try:
         playlist = troi.playlist.PlaylistElement()
         playlist.set_sources(pipeline)
@@ -116,6 +117,15 @@ def generate_playlist(patch: Patch, args: Dict):
             print("%d playlists were generated." % len(playlist.playlists))
 
     return playlist
+
+def _set_element_patch(patch, pipeline):
+    """ 
+        Go through the pipeline, setting the patch objects for each Element
+    """
+    pipeline.set_patch_object(patch)
+    for src in pipeline.sources:
+        _set_element_patch(patch, src)
+
 
 
 def list_patches():

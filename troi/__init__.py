@@ -13,9 +13,28 @@ class Element(ABC):
         Base class for elements
     """
 
-    def __init__(self):
+    def __init__(self, patch=None):
         self.sources = []
         self.logger = logging.getLogger(type(self).__name__)
+        self.patch = patch
+
+    def set_patch_object(self, patch):
+        """
+            Set patch object -- this is so that each element has a reference to the 
+            parent Patch. To keep pipeline construction easy, this is done automatically
+            once the pipeline starts executing.
+        """
+        self.patch = patch
+
+    @property
+    def local_storage(self):
+        if self.patch is None:
+            raise RuntimeError("This Element does not have a patch set. Pass in the patch to the constructor " +
+                               "if you need the patch (for local storage) to be available before the pipeline " +
+                               "starts executing.")
+
+        return self.patch.local_storage
+
 
     def log(self, msg):
         '''
@@ -44,12 +63,15 @@ class Element(ABC):
         # type check the source
         if len(self.inputs()) > 0:
             for source in sources:
+                matched = False if len(source.outputs()) > 0 else True
                 for output_type in source.outputs() or []:
                     if output_type in self.inputs():
+                        matched = True
                         break
-                    else:
-                        raise RuntimeError("Element %s cannot accept %s as input." %
-                                           (type(self).__name__, output_type)) 
+
+                if not matched:
+                    raise RuntimeError("Element %s cannot accept any of %s as input." %
+                                       (type(self).__name__, self.inputs())) 
 
 
     def check(self):
