@@ -250,7 +250,7 @@ class LBRadioTagRecordingElement(troi.Element):
             "tag": tags,
             "threshold": threshold
         }
-        r = requests.get("https://test-api.listenbrainz.org/1/tags", params=data)
+        r = requests.get("https://api.listenbrainz.org/1/lb-radio/tags", params=data)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 

@@ -34,23 +34,7 @@ class DataSetFetcherElement(Element):
             if 'artist_credit_id' in row:
                 r.artist.artist_credit_id = row['artist_credit_id']
 
-        artist = None
-        if 'artist_credit_name' in row:
-            artist = Artist(name=row['artist_credit_name'])
-
-        if 'artist_credit_id' in row:
-            if artist is None:
-                artist = Artist(artist_credit_id=row['artist_credit_id'])
-            else:
-                artist.artist_credit_id = row['artist_credit_id']
-
-        if 'artist_mbids' in row:
-            if artist is None:
-                artist = Artist(mbids=row['artist_mbids'])
-            else:
-                artist.mbids = row['artist_mbids']
-
-        r.artist = artist
+        r.artist = self.create_artist(row)
 
         if 'recording_name' in row:
             r.name = row['recording_name']
