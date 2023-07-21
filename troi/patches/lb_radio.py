@@ -245,8 +245,8 @@ class LBRadioTagRecordingElement(troi.Element):
         data = {
             "condition": operator,
             "count": self.NUM_RECORDINGS_TO_COLLECT,
-            "begin_percent": start / 100.0,
-            "end_percent": stop / 100.0,
+            "begin_percent": start,
+            "end_percent": stop,
             "tag": tags,
             "threshold": threshold
         }
