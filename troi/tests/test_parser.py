@@ -85,14 +85,14 @@ class TestParser(unittest.TestCase):
 
     def test_user(self):
 
-        r = parse("user:rob:1:year")
-        assert r[0] == {"entity": "user", "values": ["rob"], "weight": 1, "opts": ["year"]}
+        r = parse("user:mr_monkey:1:year")
+        assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 1, "opts": ["year"]}
 
         r = parse("u:rob:1:week")
         assert r[0] == {"entity": "user", "values": ["rob"], "weight": 1, "opts": ["week"]}
 
-        r = parse("user:(rob):2:month")
-        assert r[0] == {"entity": "user", "values": ["rob"], "weight": 2, "opts": ["month"]}
+        r = parse("user:(mr_monkey):2:month")
+        assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 2, "opts": ["month"]}
 
         r = parse("user:(rob zombie)")
         assert r[0] == {"entity": "user", "values": ["rob zombie"], "weight": 1, "opts": []}

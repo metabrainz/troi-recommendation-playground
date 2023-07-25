@@ -22,7 +22,7 @@ def build_parser():
     playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
     user_element = pp.MatchFirst((pp.Keyword("user"), pp.Keyword("u")))
 
-    text = pp.Word(pp.alphanums)
+    text = pp.Word(pp.alphanums + "_")
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
     ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
