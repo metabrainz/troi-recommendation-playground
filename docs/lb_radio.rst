@@ -48,6 +48,7 @@ The LB Radio supports the following entities:
 #. **tag**: Play tracks from one of more tags
 #. **collection**: Use a MusicBrainz collection as a source of recordings. (mode does not apply to collections)
 #. **playlist**: Use a ListenBrainz playlist as a source of recordings. (mode also does not apply to playlists)
+#. **user**: Use a ListenBrainz user's statistics as a source of recordings.
 
 
 Simple examples
@@ -115,6 +116,14 @@ collections have no inherent ranking that could be used to select recordings acc
 
 Will select random recordings from a ListenBrainz playlist -- the modes wont have any affect on collections, since
 plylists have no inherent ranking that could be used to select recordings according to mode. :(
+
+
+::
+
+  user:lucifer:1:all_time
+
+Will select random recordings from the ListenBrainz user lucifer recording's statistics for all time. The time_range option must be one of the
+following: week, month, quarter, half_yearly, year, all_time, this_week, this_month, this_year.
 
 
 More complex examples

@@ -94,6 +94,5 @@ class TestParser(unittest.TestCase):
         r = parse("user:(rob):2:month")
         assert r[0] == {"entity": "user", "values": ["rob"], "weight": 2, "opts": ["month"]}
 
-        r = parse("user:(rob,monkey)")
-        assert r[0] == {"entity": "user", "values": ["rob", "monkey"], "weight": 1, "opts": []}
-
+        r = parse("user:(rob zombie)")
+        assert r[0] == {"entity": "user", "values": ["rob zombie"], "weight": 1, "opts": []}

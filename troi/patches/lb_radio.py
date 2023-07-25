@@ -8,6 +8,8 @@ from uuid import UUID
 import requests
 from urllib.parse import quote
 
+import pylistenbrainz
+import pylistenbrainz.errors
 import troi.filters
 import troi.listenbrainz.feedback
 import troi.listenbrainz.listens
@@ -17,7 +19,7 @@ from troi import Playlist, Element, Recording, Artist, PipelineError
 from troi.splitter import DataSetSplitter, plist
 from troi.playlist import PlaylistMakerElement
 from troi.listenbrainz.dataset_fetcher import DataSetFetcherElement
-from troi.parse_prompt import parse, ParseError
+from troi.parse_prompt import parse, ParseError, TIME_RANGES
 
 OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
@@ -132,6 +134,55 @@ class WeighAndBlendRecordingsElement(troi.Element):
         return recordings
 
 
+class LBRadioUserRecordingElement(troi.Element):
+    """
+        Given a LB user, fetch their recording stats and then include recordings from it.
+    """
+
+    NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
+
+    def __init__(self, user_name, time_range, mode="easy"):
+        troi.Element.__init__(self)
+        self.user_name = user_name
+        self.time_range = time_range
+        self.mode = mode
+        self.client = pylistenbrainz.ListenBrainz()
+
+        if time_range not in TIME_RANGES:
+            raise RuntimeError("entity user must specify one of the following time range options: " + ", ".join(TIME_RANGES))
+
+    def inputs(self):
+        return []
+
+    def outputs(self):
+        return [Recording]
+
+    def read(self, entities):
+
+        if self.mode == "easy":
+            offset = 0
+        elif self.mode == "medium":
+            offset = 100
+        else:
+            offset = 200
+
+        try:
+            result = self.client.get_user_recordings(self.user_name, 100, offset, self.time_range)
+        except pylistenbrainz.errors.ListenBrainzAPIException as err:
+            raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
+
+        self.local_storage["data_cache"]["element-descriptions"].append(f"user {self.user_name} stats for {self.time_range}")
+
+        recordings = []
+        for r in result['payload']['recordings']:
+            if r['recording_mbid'] is not None:
+                recordings.append(Recording(mbid=r['recording_mbid']))
+
+        shuffle(recordings)
+
+        return recordings
+
+
 class LBRadioPlaylistRecordingElement(troi.Element):
     """
         Given an LB playlist, fetch its tracks and randomly include recordiungs from it. mode does not
@@ -158,6 +209,7 @@ class LBRadioPlaylistRecordingElement(troi.Element):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
 
+        self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")
         # Fetch the recordings, then shuffle
         mbid_list = [r["identifier"][34:] for r in r.json()["playlist"]["track"]]
         shuffle(mbid_list)
@@ -190,12 +242,15 @@ class LBRadioCollectionRecordingElement(troi.Element):
         return [Recording]
 
     def read(self, entities):
+
         params = {"collection": self.mbid, "fmt": "json"}
         r = requests.get("https://musicbrainz.org/ws/2/recording", params=params)
         if r.status_code == 404:
             raise RuntimeError(f"Cannot find collection {mbid}.")
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
+
+        self.local_storage["data_cache"]["element-descriptions"].append(f"collection {self.mbid}")
 
         # Fetch the recordings, then shuffle
         mbid_list = []
@@ -649,6 +704,13 @@ class LBRadioPatch(troi.patch.Patch):
 
             if element["entity"] == "playlist":
                 source = LBRadioPlaylistRecordingElement(element["values"][0], mode=mode)
+
+            if element["entity"] == "user":
+                if len(element["values"]) == 0:
+                        raise RuntimeError("user name cannot be blank for user entity.")
+                if len(element["opts"]) != 1:
+                        raise RuntimeError("The user entity needs to define one time range option.")
+                source = LBRadioUserRecordingElement(element["values"][0], mode=mode, time_range=element["opts"][0])
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)

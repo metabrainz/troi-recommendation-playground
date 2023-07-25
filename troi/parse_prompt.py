@@ -4,10 +4,9 @@ from uuid import UUID
 import pyparsing as pp
 import pyparsing.exceptions
 
-OPTIONS = [
-    "easy", "hard", "medium", "and", "or", "nosim", "week", "month", "quarter,"
-    "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"
-]
+TIME_RANGES = ["week", "month", "quarter", "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"]
+
+OPTIONS = ["easy", "hard", "medium", "and", "or", "nosim"] + TIME_RANGES
 
 
 class ParseError(Exception):
@@ -50,7 +49,7 @@ def build_parser():
     element_collection = collection_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
     element_playlist = playlist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
     element_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
-    element_paren_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_tag, aslist=True) + optional
+    element_paren_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_text, aslist=True) + optional
 
     element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
               element_text | element_user | element_paren_user | element_paren_text | element_paren_tag | \
