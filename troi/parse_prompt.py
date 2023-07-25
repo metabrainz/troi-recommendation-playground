@@ -4,7 +4,10 @@ from uuid import UUID
 import pyparsing as pp
 import pyparsing.exceptions
 
-OPTIONS = ["easy", "hard", "medium", "and", "or", "nosim"]
+OPTIONS = [
+    "easy", "hard", "medium", "and", "or", "nosim", "week", "month", "quarter,"
+    "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"
+]
 
 
 class ParseError(Exception):
@@ -18,6 +21,7 @@ def build_parser():
     tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
     collection_element = pp.MatchFirst((pp.Keyword("collection")))
     playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
+    user_element = pp.MatchFirst((pp.Keyword("user"), pp.Keyword("u")))
 
     text = pp.Word(pp.alphanums)
     uuid = pp.pyparsing_common.uuid()
@@ -45,9 +49,12 @@ def build_parser():
 
     element_collection = collection_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
     element_playlist = playlist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
+    element_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
+    element_paren_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_tag, aslist=True) + optional
 
     element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
-              element_text | element_paren_text | element_paren_tag | element_tag_paren_shortcut
+              element_text | element_user | element_paren_user | element_paren_text | element_paren_tag | \
+              element_tag_paren_shortcut
 
     return pp.OneOrMore(pp.Group(element, aslist=True))
 
@@ -72,6 +79,8 @@ def parse(prompt: str):
     for element in elements:
         if element[0] == "a":
             entity = "artist"
+        elif element[0] == "u":
+            entity = "user"
         elif element[0] == "t":
             entity = "tag"
         elif element[0] == "p":

@@ -82,3 +82,18 @@ class TestParser(unittest.TestCase):
 
         r = parse("p:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
         assert r[0] == {"entity": "playlist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
+
+    def test_user(self):
+
+        r = parse("user:rob:1:year")
+        assert r[0] == {"entity": "user", "values": ["rob"], "weight": 1, "opts": ["year"]}
+
+        r = parse("u:rob:1:week")
+        assert r[0] == {"entity": "user", "values": ["rob"], "weight": 1, "opts": ["week"]}
+
+        r = parse("user:(rob):2:month")
+        assert r[0] == {"entity": "user", "values": ["rob"], "weight": 2, "opts": ["month"]}
+
+        r = parse("user:(rob,monkey)")
+        assert r[0] == {"entity": "user", "values": ["rob", "monkey"], "weight": 1, "opts": []}
+
