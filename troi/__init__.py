@@ -7,6 +7,9 @@ from troi.utils import recursively_update_dict
 
 DEVELOPMENT_SERVER_URL = "https://datasets.listenbrainz.org"
 
+# Number of recordings that each patch should aim to generate
+TARGET_NUMBER_OF_RECORDINGS = 50
+
 
 class Element(ABC):
     """

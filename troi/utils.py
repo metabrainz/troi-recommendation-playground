@@ -35,7 +35,7 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
         if path in ['.', '..']:
             continue
 
-        if path.startswith("__init__"):
+        if os.path.isdir(os.path.join(patch_dir, path)):
             continue
 
         if path.endswith(".py"):
