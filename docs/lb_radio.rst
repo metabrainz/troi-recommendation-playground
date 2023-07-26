@@ -135,8 +135,7 @@ plylists have no inherent ranking that could be used to select recordings accord
 
   user:lucifer::all_time
 
-Will select random recordings from the ListenBrainz user lucifer recording's statistics for all time. The time_range option must be one of the
-following: week, month, quarter, half_yearly, year, all_time, this_week, this_month, this_year.
+Will select random recordings from the ListenBrainz user lucifer recording's statistics for all time. 
 
 
 More complex examples
