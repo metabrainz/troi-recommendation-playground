@@ -13,7 +13,7 @@ what music should be added to the playlist. A Radio prompt is composed of one or
 
 
 Each term generates a stream of recordings and each of the streams are then interleaved to make a single playlist. The
-entity must be either "artist" or "tag" currently. The weight argument allows the user to control how often this term
+entity must be either "artist" or "tag" currently. The optional weight argument allows the user to control how often this term
 will contribute to the final playlist. By default each term gets a value of 1, if the user didn't specify a weight value.
 A term with a weight of 3 will contribute 3 times more recordings than a term with weight 1. The final part of each term
 are options:
@@ -104,10 +104,10 @@ with both the "rock" AND "pop" tags.
 
 ::
 
-  tag:(rock,pop):1:or
+  tag:(rock,pop)::or
 
-This prompt generates a playlist with recordings that have been tagged with either the "rock" OR "pop" tags. The weight 1 must be specified
-in order to specify the or option.
+This prompt generates a playlist with recordings that have been tagged with either the "rock" OR "pop" tags. The weight can be omitted and will
+be assumed to be 1.
 
 ::
 
@@ -133,7 +133,7 @@ plylists have no inherent ranking that could be used to select recordings accord
 
 ::
 
-  user:lucifer:1:all_time
+  user:lucifer::all_time
 
 Will select random recordings from the ListenBrainz user lucifer recording's statistics for all time. The time_range option must be one of the
 following: week, month, quarter, half_yearly, year, all_time, this_week, this_month, this_year.
@@ -144,7 +144,7 @@ More complex examples
 
 ::
 
-  artist:(pretty lights):3:easy tag:(trip hop):2 artist:morcheeba:1:nosim
+  artist:(pretty lights):3:easy tag:(trip hop):2 artist:morcheeba::nosim
 
 This prompt will play 3 parts from artist "Pretty Lights", 2 parts from the tag "trip hop" and 1 part from the artist "Morcheeba" with no
 tracks from similar artists.

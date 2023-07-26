@@ -707,7 +707,7 @@ class LBRadioPatch(troi.patch.Patch):
 
             if element["entity"] == "user":
                 if len(element["values"]) == 0:
-                        raise RuntimeError("user name cannot be blank for user entity.")
+                        raise RuntimeError("user name cannot be blank for user entity. (at least not yet -- soon it will be)")
                 if len(element["opts"]) != 1:
                         raise RuntimeError("The user entity needs to define one time range option.")
                 source = LBRadioUserRecordingElement(element["values"][0], mode=mode, time_range=element["opts"][0])

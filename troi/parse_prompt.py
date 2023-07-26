@@ -35,7 +35,7 @@ def build_parser():
               + pp.delimitedList(pp.Group(ws_tag, aslist=True), delim=",") \
               + pp.Suppress(pp.Literal(")"))
     weight = pp.Suppress(pp.Literal(':')) \
-           + pp.pyparsing_common.integer()
+           + pp.Opt(pp.pyparsing_common.integer(), 1)
     opt_keywords = pp.MatchFirst([pp.Keyword(k) for k in OPTIONS])
     options = pp.Suppress(pp.Literal(':')) \
             + opt_keywords
@@ -86,7 +86,7 @@ def build_parser():
                      + optional
     element_user = user_element \
                  + pp.Suppress(pp.Literal(':')) \
-                 + pp.Group(text, aslist=True) \
+                 + pp.Opt(pp.Group(text, aslist=True), "") \
                  + optional
     element_paren_user = user_element \
                        + pp.Suppress(pp.Literal(':')) \
@@ -96,7 +96,7 @@ def build_parser():
     # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
     # complex
     elements = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
-               element_text | element_user | element_paren_user | element_paren_text | element_paren_tag | \
+               element_text | element_paren_user | element_user | element_paren_text | element_paren_tag | \
                element_tag_paren_shortcut
 
     # All of the above was to parse one single term, now allow the user to define more than one if they want
@@ -136,14 +136,13 @@ def parse(prompt: str):
 
         try:
             values = [UUID(element[1][0])]
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError, IndexError):
             values = []
             for value in element[1]:
                 if isinstance(value, list):
                     values.append(value[0])
                 else:
                     values.append(value)
-
         try:
             weight = element[2]
         except IndexError:

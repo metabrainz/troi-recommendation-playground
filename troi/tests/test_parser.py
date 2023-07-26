@@ -16,7 +16,6 @@ class TestParser(unittest.TestCase):
         self.assertRaises(ParseError, parse, "wrong:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
 
     def test_tags(self):
-
         r = parse("t:abstract t:rock t:blues")
         assert r[0] == {"entity": "tag", "values": ["abstract"], "weight": 1, "opts": []}
         assert r[1] == {"entity": "tag", "values": ["rock"], "weight": 1, "opts": []}
@@ -72,6 +71,12 @@ class TestParser(unittest.TestCase):
                           "a:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 a:f54ba4c6-12dd-4358-9136-c64ad89420c5:fussy")
         self.assertRaises(ParseError, parse, "a:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 a:f54ba4c6-12dd-4358-9136-c64ad89420c5:.5")
 
+        r = parse("a:portishead::easy")
+        assert r[0] == {"entity": "artist", "values": ["portishead"], "weight": 1, "opts": ["easy"]}
+
+        r = parse("a:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4::easy")
+        assert r[0] == {"entity": "artist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": ["easy"]}
+
     def test_collection_playlist(self):
 
         r = parse("collection:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
@@ -85,11 +90,17 @@ class TestParser(unittest.TestCase):
 
     def test_user(self):
 
+        r = parse("user:")
+        assert r[0] == {"entity": "user", "values": [], "weight": 1, "opts": []}
+
         r = parse("user:mr_monkey:1:year")
         assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 1, "opts": ["year"]}
 
         r = parse("u:rob:1:week")
         assert r[0] == {"entity": "user", "values": ["rob"], "weight": 1, "opts": ["week"]}
+
+        r = parse("user:(mr_monkey)::month")
+        assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 1, "opts": ["month"]}
 
         r = parse("user:(mr_monkey):2:month")
         assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 2, "opts": ["month"]}
