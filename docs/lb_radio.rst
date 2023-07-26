@@ -18,13 +18,26 @@ will contribute to the final playlist. By default each term gets a value of 1, i
 A term with a weight of 3 will contribute 3 times more recordings than a term with weight 1. The final part of each term
 are options:
 
+All terms have the following options:
 
-#. **nosim**: Do not add similar artists, only output recordings from the given artist.
-#. **and**: For a tag query, if "and" is specified (the default) recordings will be chosen if all the given tags are applied to that recording.
-#. **or**: For a tag query, if "or" is specified, then recordings will be chosen if any of the tags are applied to the recording.
 #. **easy**: Use easy mode for this term. See modes below.
 #. **medium**: Use medium mode for this term.
 #. **hard**: Use hard mode for this term.
+
+For artist terms, the following option applies:
+
+#. **nosim**: Do not add similar artists, only output recordings from the given artist.
+
+For tag queries, the following options exist:
+
+#. **and**: For a tag query, if "and" is specified (the default) recordings will be chosen if all the given tags are applied to that recording.
+#. **or**: For a tag query, if "or" is specified, then recordings will be chosen if any of the tags are applied to the recording.
+
+For the user term, the following options apply:
+
+#. **week**, **month**, **quarter**, **half_yearly**, **year**: Stats for the user for the past week, month, quarter, half_yearly, year, respectively.
+#. **all_time**: Stats for all time, covering all listens for the user.
+#. **this_week**, **this_month**, **this_year**: Stats for the user for the current week, month, year, respectively.
 
 
 Modes
