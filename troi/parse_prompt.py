@@ -16,46 +16,91 @@ class ParseError(Exception):
 def build_parser():
     """ Build a parser using pyparsing, which is bloody brilliant! """
 
+    # Define the entities and their keywords
     artist_element = pp.MatchFirst((pp.Keyword("artist"), pp.Keyword("a")))
     tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
     collection_element = pp.MatchFirst((pp.Keyword("collection")))
     playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
     user_element = pp.MatchFirst((pp.Keyword("user"), pp.Keyword("u")))
 
+    # Define the various text fragments/identifiers that we plan to use
     text = pp.Word(pp.alphanums + "_")
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
     ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
     tag = pp.Word(pp.srange("[a-zA-Z0-9-_!@$%^&*=+;'/]"))
-    paren_tag = pp.Suppress(pp.Literal("(")) + pp.delimitedList(pp.Group(ws_tag, aslist=True), delim=",") + pp.Suppress(
-        pp.Literal(")"))
 
-    weight = pp.Suppress(pp.Literal(':')) + pp.pyparsing_common.integer()
+    # Define supporting fragments that will be used multiple times
+    paren_tag = pp.Suppress(pp.Literal("(")) \
+              + pp.delimitedList(pp.Group(ws_tag, aslist=True), delim=",") \
+              + pp.Suppress(pp.Literal(")"))
+    weight = pp.Suppress(pp.Literal(':')) \
+           + pp.pyparsing_common.integer()
     opt_keywords = pp.MatchFirst([pp.Keyword(k) for k in OPTIONS])
-    options = pp.Suppress(pp.Literal(':')) + opt_keywords
-    paren_options = pp.Suppress(pp.Literal(':')) + pp.Suppress(pp.Literal("(")) + pp.delimitedList(
-        pp.Group(opt_keywords, aslist=True), delim=",") + pp.Suppress(pp.Literal(")"))
+    options = pp.Suppress(pp.Literal(':')) \
+            + opt_keywords
+    paren_options = pp.Suppress(pp.Literal(':')) \
+                  + pp.Suppress(pp.Literal("(")) \
+                  + pp.delimitedList(pp.Group(opt_keywords, aslist=True), delim=",") \
+                  + pp.Suppress(pp.Literal(")"))
     optional = pp.Opt(weight + pp.Opt(pp.Group(options | paren_options), ""), 1)
 
-    element_uuid = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
-    element_text = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
-    element_paren_text = artist_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_text, aslist=True) + optional
+    # Define artist element
+    element_uuid = artist_element \
+                 + pp.Suppress(pp.Literal(':')) \
+                 + pp.Group(uuid, aslist=True) \
+                 + optional
+    element_text = artist_element  \
+                 + pp.Suppress(pp.Literal(':')) \
+                 + pp.Group(text, aslist=True) \
+                 + optional
+    element_paren_text = artist_element \
+                       + pp.Suppress(pp.Literal(':')) \
+                       + pp.Group(paren_text, aslist=True) \
+                       + optional
 
-    element_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(tag, aslist=True) + optional
-    element_paren_tag = tag_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_tag, aslist=True) + optional
-    element_tag_shortcut = pp.Literal('#') + pp.Group(tag, aslist=True) + optional
-    element_tag_paren_shortcut = pp.Literal('#') + pp.Group(paren_tag, aslist=True) + optional
+    # Define tag element
+    element_tag = tag_element \
+                + pp.Suppress(pp.Literal(':')) \
+                + pp.Group(tag, aslist=True) \
+                + optional
+    element_paren_tag = tag_element \
+                      + pp.Suppress(pp.Literal(':')) \
+                      + pp.Group(paren_tag, aslist=True) \
+                      + optional
+    element_tag_shortcut = pp.Literal('#') \
+                         + pp.Group(tag, aslist=True) \
+                         + optional
+    element_tag_paren_shortcut = pp.Literal('#') \
+                               + pp.Group(paren_tag, aslist=True) \
+                               + optional
 
-    element_collection = collection_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
-    element_playlist = playlist_element + pp.Suppress(pp.Literal(':')) + pp.Group(uuid, aslist=True) + optional
-    element_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(text, aslist=True) + optional
-    element_paren_user = user_element + pp.Suppress(pp.Literal(':')) + pp.Group(paren_text, aslist=True) + optional
+    # Collection, playlist and user elements
+    element_collection = collection_element \
+                       + pp.Suppress(pp.Literal(':')) \
+                       + pp.Group(uuid, aslist=True) \
+                       + optional
+    element_playlist = playlist_element \
+                     + pp.Suppress(pp.Literal(':')) \
+                     + pp.Group(uuid, aslist=True) \
+                     + optional
+    element_user = user_element \
+                 + pp.Suppress(pp.Literal(':')) \
+                 + pp.Group(text, aslist=True) \
+                 + optional
+    element_paren_user = user_element \
+                       + pp.Suppress(pp.Literal(':')) \
+                       + pp.Group(paren_text, aslist=True) \
+                       + optional
 
-    element = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
-              element_text | element_user | element_paren_user | element_paren_text | element_paren_tag | \
-              element_tag_paren_shortcut
+    # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
+    # complex
+    elements = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
+               element_text | element_user | element_paren_user | element_paren_text | element_paren_tag | \
+               element_tag_paren_shortcut
 
-    return pp.OneOrMore(pp.Group(element, aslist=True))
+    # All of the above was to parse one single term, now allow the user to define more than one if they want
+    return pp.OneOrMore(pp.Group(elements, aslist=True))
 
 
 def parse(prompt: str):
