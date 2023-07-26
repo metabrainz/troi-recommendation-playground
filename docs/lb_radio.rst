@@ -12,8 +12,8 @@ what music should be added to the playlist. A Radio prompt is composed of one or
   entity:values:weight:option
 
 
-Each term generates a stream of recordings and each of the streams are then interleaved to make a single playlist. The
-entity must be either "artist" or "tag" currently. The optional weight argument allows the user to control how often this term
+Each term generates a stream of recordings and recordings from each of the streams are then interleaved to make a single playlist.
+The entity must be either "artist" or "tag" currently. The optional weight argument allows the user to control how often this term
 will contribute to the final playlist. By default each term gets a value of 1, if the user didn't specify a weight value.
 A term with a weight of 3 will contribute 3 times more recordings than a term with weight 1. The final part of each term
 are options:
