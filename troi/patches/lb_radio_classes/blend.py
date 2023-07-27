@@ -59,6 +59,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
         total_available = sum([len(e) for e in entities])
 
+        # prepare the weights
         total = sum(self.weights)
         summed = []
         acc = 0

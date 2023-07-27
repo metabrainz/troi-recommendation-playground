@@ -83,6 +83,9 @@ class LBRadioArtistRecordingElement(troi.Element):
         r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
             '[artist_mbid]': artist_mbid,
         }])
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch top artist recordings: {r.status_code} ({r.text})")
+
         return plist(r.json())
 
     def fetch_artist_names(self, artist_mbids):
@@ -92,6 +95,8 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
         r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot artist names: {r.status_code} ({r.text})")
 
         return {result["artist_mbid"]: result["artist_name"] for result in r.json()}
 

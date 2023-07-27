@@ -28,6 +28,7 @@ class LBRadioCollectionRecordingElement(troi.Element):
 
     def read(self, entities):
 
+        # Fetch collection recordings
         params = {"collection": self.mbid, "fmt": "json"}
         r = requests.get("https://musicbrainz.org/ws/2/recording", params=params)
         if r.status_code == 404:
@@ -35,6 +36,7 @@ class LBRadioCollectionRecordingElement(troi.Element):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
 
+        # Give feedback about what we collected
         self.local_storage["data_cache"]["element-descriptions"].append(f"collection {self.mbid}")
 
         # Fetch the recordings, then shuffle

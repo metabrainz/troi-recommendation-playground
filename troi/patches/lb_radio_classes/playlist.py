@@ -27,13 +27,17 @@ class LBRadioPlaylistRecordingElement(troi.Element):
         return [Recording]
 
     def read(self, entities):
+
+        # Fetch the playlist
         r = requests.get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
         if r.status_code == 404:
             raise RuntimeError(f"Cannot find playlist {self.mbid}.")
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
 
+        # Give feedback about the playlist
         self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")
+
         # Fetch the recordings, then shuffle
         mbid_list = [r["identifier"][34:] for r in r.json()["playlist"]["track"]]
         shuffle(mbid_list)
