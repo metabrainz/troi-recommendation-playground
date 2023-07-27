@@ -25,6 +25,9 @@ class LBRadioPatch(troi.patch.Patch):
        ListenBrainz radio experimentation.
     """
 
+    # If the user specifies no time_range, default to this one
+    DEFAULT_TIME_RANGE = "month"
+
     def __init__(self, debug=False):
         super().__init__(debug)
         self.artist_mbids = []
@@ -143,6 +146,8 @@ class LBRadioPatch(troi.patch.Patch):
                 source = LBRadioPlaylistRecordingElement(element["values"][0], mode=mode)
 
             if element["entity"] == "user":
+                if len(element["opts"]) == 0:
+                    element["opts"].append(self.DEFAULT_TIME_RANGE)
                 if len(element["values"]) == 0:
                     raise RuntimeError("user name cannot be blank for user entity. (at least not yet -- soon it will be)")
                 if len(element["opts"]) != 1:
