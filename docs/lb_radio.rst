@@ -39,6 +39,10 @@ For the user term, the following options apply:
 #. **all_time**: Stats for all time, covering all listens for the user.
 #. **this_week**, **this_month**, **this_year**: Stats for the user for the current week, month, year, respectively.
 
+For the recs term, the following options apply:
+
+#. **listened**: Fetch recommeded recordings that the user has listened to. Useful for making "safe" playlists.
+#. **unlistened**: Fetch recommeded recordings that the user has not listened to. Useful for making "exploration" playlists.
 
 Modes
 -----
@@ -62,6 +66,7 @@ The LB Radio supports the following entities:
 #. **collection**: Use a MusicBrainz collection as a source of recordings. (mode does not apply to collections)
 #. **playlist**: Use a ListenBrainz playlist as a source of recordings. (mode also does not apply to playlists)
 #. **user**: Use a ListenBrainz user's statistics as a source of recordings.
+#. **recs**: Use a ListenBrainz user's recommended recordings as a source of recordings.
 
 
 Simple examples
@@ -135,7 +140,14 @@ plylists have no inherent ranking that could be used to select recordings accord
 
   user:lucifer::all_time
 
-Will select random recordings from the ListenBrainz user lucifer recording's statistics for all time. 
+Will select random recordings from the ListenBrainz user lucifer recordings statistics for all time. 
+
+
+::
+
+  recs:mr_monkey::unlistened
+
+Will select random recordings from the ListenBrainz user mr_monkey's recommended recordings that mr_monkey hasn't listened to.
 
 
 More complex examples

@@ -97,14 +97,14 @@ def build_parser():
                  + pp.Suppress(pp.Literal(':')) \
                  + pp.Opt(pp.Group(text, aslist=True), "") \
                  + optional
-    element_paren_recs = user_element \
+    element_paren_recs = recs_element \
                        + pp.Suppress(pp.Literal(':')) \
                        + pp.Group(paren_text, aslist=True) \
                        + optional
 
     # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
     # complex
-    elements = element_tag | element_tag_shortcut | element_uuid | element_collection | element_playlist | \
+    elements = element_tag | element_tag_shortcut | element_uuid | element_paren_recs | element_collection | element_playlist | \
                element_text | element_paren_user | element_paren_recs | element_recs | element_user | \
                element_paren_text | element_paren_tag | element_tag_paren_shortcut
 

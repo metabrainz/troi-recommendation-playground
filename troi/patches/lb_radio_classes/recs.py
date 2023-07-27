@@ -24,6 +24,7 @@ class LBRadioRecommendationRecordingElement(troi.Element):
         self.listened = listened
         self.mode = mode
         self.client = pylistenbrainz.ListenBrainz()
+        print(self.listened)
 
     def inputs(self):
         return []
@@ -40,6 +41,8 @@ class LBRadioRecommendationRecordingElement(troi.Element):
         else:
             offset = self.MAX_RECOMMENDED_RECORDINGS * 2 // 3
 
+        added = 0
+        skipped = 0
         recordings = []
         count = self.MAX_RECOMMENDED_RECORDINGS // 3
         while count > 0:
@@ -50,19 +53,34 @@ class LBRadioRecommendationRecordingElement(troi.Element):
             except pylistenbrainz.errors.ListenBrainzAPIException as err:
                 raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
-            # Give feedback on what we collected
-            self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s recommended songs")
+            if len(result['payload']['mbids']) == 0:
+                break
 
             # Turn them into recordings
             for r in result['payload']['mbids']:
                 if r['recording_mbid'] is not None:
-                    count -= 1
                     offset += 1
-                    recordings.append(Recording(mbid=r['recording_mbid']))
+                    latest = r.get("latest_listened_at", None)
+                    if self.listened == "all" or (self.listened == "unlistened" and latest is None) or \
+                            (self.listened == "listened" and latest is not None):
+                        count -= 1
+                        recordings.append(Recording(mbid=r['recording_mbid']))
+                        added += 1
+                    else:
+                        skipped += 1
 
             # Shuffle the recordings
             shuffle(recordings)
 
+        # Give feedback on what we collected
+        listened = ""
+        if self.listened != "all":
+            listened = f"previously {self.listened} "
+
+        self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s {listened}recommended songs")
+
         # How do we prevent sequential tracks by the same artist?
+
+        print(f"addded {added} skipped {skipped}")
 
         return recordings

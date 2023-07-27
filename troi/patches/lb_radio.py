@@ -158,7 +158,11 @@ class LBRadioPatch(troi.patch.Patch):
             if element["entity"] == "recs":
                 if len(element["values"]) == 0:
                     raise RuntimeError("user name cannot be blank for user entity. (at least not yet -- soon it will be)")
-                source = LBRadioRecommendationRecordingElement(element["values"][0], mode=mode, listened="all")
+                if len(element["opts"]) == 0:
+                    listened = "all"
+                else:
+                    listened = element["opts"][0]
+                source = LBRadioRecommendationRecordingElement(element["values"][0], mode=mode, listened=listened)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
