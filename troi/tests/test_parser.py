@@ -1,4 +1,4 @@
-from uuid import UUID 
+from uuid import UUID
 import unittest
 
 from troi.parse_prompt import parse, ParseError
@@ -55,9 +55,7 @@ class TestParser(unittest.TestCase):
         assert r[2] == {"entity": "tag", "values": ["blues"], "weight": 1, "opts": []}
 
     def test_compound(self):
-        r = parse(
-            'artist:05319f96-e409-4199-b94f-3cabe7cc188a:2 #downtempo:1 tag:(trip hop, abstract):2'
-        )
+        r = parse('artist:05319f96-e409-4199-b94f-3cabe7cc188a:2 #downtempo:1 tag:(trip hop, abstract):2')
         assert r[0] == {"entity": "artist", "values": [UUID("05319f96-e409-4199-b94f-3cabe7cc188a")], "weight": 2, "opts": []}
         assert r[1] == {"entity": "tag", "values": ["downtempo"], "weight": 1, "opts": []}
         assert r[2] == {"entity": "tag", "values": ["trip hop", "abstract"], "weight": 2, "opts": []}
@@ -107,3 +105,23 @@ class TestParser(unittest.TestCase):
 
         r = parse("user:(rob zombie)")
         assert r[0] == {"entity": "user", "values": ["rob zombie"], "weight": 1, "opts": []}
+
+    def test_recs(self):
+
+        r = parse("recs:")
+        assert r[0] == {"entity": "recs", "values": [], "weight": 1, "opts": []}
+
+        r = parse("recs:mr_monkey::listened")
+        assert r[0] == {"entity": "recs", "values": ["mr_monkey"], "weight": 1, "opts": ["listened"]}
+
+        r = parse("r:rob:1:unlistened")
+        assert r[0] == {"entity": "recs", "values": ["rob"], "weight": 1, "opts": ["unlistened"]}
+
+        r = parse("recs:(mr_monkey):1:listened")
+        assert r[0] == {"entity": "recs", "values": ["mr_monkey"], "weight": 1, "opts": ["listened"]}
+
+        r = parse("recs:(mr_monkey):2:unlistened")
+        assert r[0] == {"entity": "recs", "values": ["mr_monkey"], "weight": 2, "opts": ["unlistened"]}
+
+        r = parse("recs:(rob zombie)")
+        assert r[0] == {"entity": "recs", "values": ["rob zombie"], "weight": 1, "opts": []}

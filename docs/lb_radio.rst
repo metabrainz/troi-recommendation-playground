@@ -39,18 +39,10 @@ For the user term, the following options apply:
 #. **all_time**: Stats for all time, covering all listens for the user.
 #. **this_week**, **this_month**, **this_year**: Stats for the user for the current week, month, year, respectively.
 
+For the recs term, the following options apply:
 
-Modes
------
-
-Along with a prompt, the user will need to specify which mode they would like to use to generate the playlist: easy, medium or hard.
-In easy mode, only recordings from and similar artists are chosen that are strongly related to the seed artists/seed tag. In medium 
-mode, recordings and similar artists are chosen that have a medium relation and in hard mode, the recordings and similar artists with
-low relations will be chosen.
-
-This idea comes from video games, where players can choose how hard the game should be to play. In the context of LB Radio,
-the resultant playlist will also be more work to listen to the harder the mode. Which mode to use is entirely up to the user -- easy
-is likely going to create a playlist with familiar music, and a hard playlist may expose you to less familiar music.
+#. **listened**: Fetch recommeded recordings that the user has listened to. Useful for making "safe" playlists.
+#. **unlistened**: Fetch recommeded recordings that the user has not listened to. Useful for making "exploration" playlists.
 
 Entities
 --------
@@ -62,6 +54,29 @@ The LB Radio supports the following entities:
 #. **collection**: Use a MusicBrainz collection as a source of recordings. (mode does not apply to collections)
 #. **playlist**: Use a ListenBrainz playlist as a source of recordings. (mode also does not apply to playlists)
 #. **user**: Use a ListenBrainz user's statistics as a source of recordings.
+#. **recs**: Use a ListenBrainz user's recommended recordings as a source of recordings.
+
+Modes
+-----
+
+Along with a prompt, the user will need to specify which mode they would like to use to generate the playlist: easy, medium or hard.
+
+The core functionality of LB radio is to intelligently, yet sloppily, pick from vast lists of data to form pleasing playlists. Almost all
+of the data sources (similar artists, top recordings of an artist, user stats, etc) are ordered lists of data, with the most relevant data
+near the top and less revelvant data near the bottom. Broadly speaking, the three modes divide each of these datasets into three chunks: easy 
+mode will focus on the most relevant data, medium on the middle relevant data and hard on the tail end.
+
+For almost all of the source entities (see above), this applies in a pretty staightforward manner: Whenever an ordered list of data
+exists, we use the modes to inform which section of data we look at. However, the tag element is an entirely different beast. Roughly speaking,
+easy mode attempts to fetch recordings tagged with the given tag, medium mode picks tags from release/release-group tags and hard mode picks
+tagged recordings from artists. In reality there are a lot more nuances in this process. What if there aren't enough tracks to make a reliable easy
+playlist? Then don't make one and let the user know they could try again on medium mode and that they would get a playlist. There are other heuristics
+baked into the tag query that are not easy to describe and quite likely will change in the near future as we respond to community feedback. Once
+we're comfortable that the tag entities is working well, we will improve these docs.
+
+This idea of modes comes from video games, where players can choose how hard the game should be to play. In the context of LB Radio,
+the resultant playlist will also be more work to listen to the harder the mode. Which mode to use is entirely up to the user -- easy
+is likely going to create a playlist with familiar music, and a hard playlist may expose you to less familiar music.
 
 
 Simple examples
@@ -135,7 +150,14 @@ plylists have no inherent ranking that could be used to select recordings accord
 
   user:lucifer::all_time
 
-Will select random recordings from the ListenBrainz user lucifer recording's statistics for all time. 
+Will select random recordings from the ListenBrainz user lucifer recordings statistics for all time. 
+
+
+::
+
+  recs:mr_monkey::unlistened
+
+Will select random recordings from the ListenBrainz user mr_monkey's recommended recordings that mr_monkey hasn't listened to.
 
 
 More complex examples

@@ -17,6 +17,7 @@ from troi.patches.lb_radio_classes.collection import LBRadioCollectionRecordingE
 from troi.patches.lb_radio_classes.playlist import LBRadioPlaylistRecordingElement
 from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio_classes.user import LBRadioUserRecordingElement
+from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS
 
 
@@ -153,6 +154,15 @@ class LBRadioPatch(troi.patch.Patch):
                 if len(element["opts"]) != 1:
                     raise RuntimeError("The user entity needs to define one time range option.")
                 source = LBRadioUserRecordingElement(element["values"][0], mode=mode, time_range=element["opts"][0])
+
+            if element["entity"] == "recs":
+                if len(element["values"]) == 0:
+                    raise RuntimeError("user name cannot be blank for user entity. (at least not yet -- soon it will be)")
+                if len(element["opts"]) == 0:
+                    listened = "all"
+                else:
+                    listened = element["opts"][0]
+                source = LBRadioRecommendationRecordingElement(element["values"][0], mode=mode, listened=listened)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
