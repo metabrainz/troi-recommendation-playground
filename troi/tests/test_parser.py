@@ -86,25 +86,25 @@ class TestParser(unittest.TestCase):
         r = parse("p:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
         assert r[0] == {"entity": "playlist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
-    def test_user(self):
+    def test_stats(self):
 
-        r = parse("user:")
-        assert r[0] == {"entity": "user", "values": [], "weight": 1, "opts": []}
+        r = parse("stats:")
+        assert r[0] == {"entity": "stats", "values": [], "weight": 1, "opts": []}
 
-        r = parse("user:mr_monkey:1:year")
-        assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 1, "opts": ["year"]}
+        r = parse("stats:mr_monkey:1:year")
+        assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 1, "opts": ["year"]}
 
-        r = parse("u:rob:1:week")
-        assert r[0] == {"entity": "user", "values": ["rob"], "weight": 1, "opts": ["week"]}
+        r = parse("s:rob:1:week")
+        assert r[0] == {"entity": "stats", "values": ["rob"], "weight": 1, "opts": ["week"]}
 
-        r = parse("user:(mr_monkey)::month")
-        assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 1, "opts": ["month"]}
+        r = parse("stats:(mr_monkey)::month")
+        assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 1, "opts": ["month"]}
 
-        r = parse("user:(mr_monkey):2:month")
-        assert r[0] == {"entity": "user", "values": ["mr_monkey"], "weight": 2, "opts": ["month"]}
+        r = parse("stats:(mr_monkey):2:month")
+        assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 2, "opts": ["month"]}
 
-        r = parse("user:(rob zombie)")
-        assert r[0] == {"entity": "user", "values": ["rob zombie"], "weight": 1, "opts": []}
+        r = parse("stats:(rob zombie)")
+        assert r[0] == {"entity": "stats", "values": ["rob zombie"], "weight": 1, "opts": []}
 
     def test_recs(self):
 

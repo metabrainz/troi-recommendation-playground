@@ -21,7 +21,7 @@ def build_parser():
     tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
     collection_element = pp.MatchFirst((pp.Keyword("collection")))
     playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
-    stats_element = pp.MatchFirst((pp.Keyword("stats"), pp.Keyword("u")))
+    stats_element = pp.MatchFirst((pp.Keyword("stats"), pp.Keyword("s")))
     recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
 
     # Define the various text fragments/identifiers that we plan to use
