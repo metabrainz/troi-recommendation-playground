@@ -16,7 +16,22 @@ Each term generates a stream of recordings and recordings from each of the strea
 The entity must be either "artist" or "tag" currently. The optional weight argument allows the user to control how often this term
 will contribute to the final playlist. By default each term gets a value of 1, if the user didn't specify a weight value.
 A term with a weight of 3 will contribute 3 times more recordings than a term with weight 1. The final part of each term
-are options:
+are options, documented in the options section.
+
+Entities
+--------
+
+The LB Radio supports the following entities:
+
+#. **artist**: Play tracks from this artists and similar artists
+#. **tag**: Play tracks from one of more tags
+#. **collection**: Use a MusicBrainz collection as a source of recordings. (mode does not apply to collections)
+#. **playlist**: Use a ListenBrainz playlist as a source of recordings. (mode also does not apply to playlists)
+#. **stats**: Use a ListenBrainz user's statistics as a source of recordings.
+#. **recs**: Use a ListenBrainz user's recommended recordings as a source of recordings.
+
+Options
+-------
 
 All terms have the following options:
 
@@ -33,7 +48,7 @@ For tag queries, the following options exist:
 #. **and**: For a tag query, if "and" is specified (the default) recordings will be chosen if all the given tags are applied to that recording.
 #. **or**: For a tag query, if "or" is specified, then recordings will be chosen if any of the tags are applied to the recording.
 
-For the user term, the following options apply:
+For the stats term, the following options apply:
 
 #. **week**, **month**, **quarter**, **half_yearly**, **year**: Stats for the user for the past week, month, quarter, half_yearly, year, respectively.
 #. **all_time**: Stats for all time, covering all listens for the user.
@@ -43,18 +58,6 @@ For the recs term, the following options apply:
 
 #. **listened**: Fetch recommeded recordings that the user has listened to. Useful for making "safe" playlists.
 #. **unlistened**: Fetch recommeded recordings that the user has not listened to. Useful for making "exploration" playlists.
-
-Entities
---------
-
-The LB Radio supports the following entities:
-
-#. **artist**: Play tracks from this artists and similar artists
-#. **tag**: Play tracks from one of more tags
-#. **collection**: Use a MusicBrainz collection as a source of recordings. (mode does not apply to collections)
-#. **playlist**: Use a ListenBrainz playlist as a source of recordings. (mode also does not apply to playlists)
-#. **user**: Use a ListenBrainz user's statistics as a source of recordings.
-#. **recs**: Use a ListenBrainz user's recommended recordings as a source of recordings.
 
 Modes
 -----
@@ -148,7 +151,7 @@ plylists have no inherent ranking that could be used to select recordings accord
 
 ::
 
-  user:lucifer::all_time
+  stats:lucifer::all_time
 
 Will select random recordings from the ListenBrainz user lucifer recordings statistics for all time. 
 

@@ -10,7 +10,7 @@ from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.parse_prompt import TIME_RANGES
 
 
-class LBRadioUserRecordingElement(troi.Element):
+class LBRadioStatsRecordingElement(troi.Element):
     """
         Given a LB user, fetch their recording stats and then include recordings from it.
     """
@@ -25,7 +25,7 @@ class LBRadioUserRecordingElement(troi.Element):
         self.client = pylistenbrainz.ListenBrainz()
 
         if time_range not in TIME_RANGES:
-            raise RuntimeError("entity user must specify one of the following time range options: " + ", ".join(TIME_RANGES))
+            raise RuntimeError("entity stats must specify one of the following time range options: " + ", ".join(TIME_RANGES))
 
     def inputs(self):
         return []

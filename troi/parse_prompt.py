@@ -21,7 +21,7 @@ def build_parser():
     tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
     collection_element = pp.MatchFirst((pp.Keyword("collection")))
     playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
-    user_element = pp.MatchFirst((pp.Keyword("user"), pp.Keyword("u")))
+    stats_element = pp.MatchFirst((pp.Keyword("stats"), pp.Keyword("u")))
     recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
 
     # Define the various text fragments/identifiers that we plan to use
@@ -76,7 +76,7 @@ def build_parser():
                                + pp.Group(paren_tag, aslist=True) \
                                + optional
 
-    # Collection, playlist and user, rec elements
+    # Collection, playlist and stats, rec elements
     element_collection = collection_element \
                        + pp.Suppress(pp.Literal(':')) \
                        + pp.Group(uuid, aslist=True) \
@@ -85,11 +85,11 @@ def build_parser():
                      + pp.Suppress(pp.Literal(':')) \
                      + pp.Group(uuid, aslist=True) \
                      + optional
-    element_user = user_element \
+    element_stats = stats_element \
                  + pp.Suppress(pp.Literal(':')) \
                  + pp.Opt(pp.Group(text, aslist=True), "") \
                  + optional
-    element_paren_user = user_element \
+    element_paren_stats = stats_element \
                        + pp.Suppress(pp.Literal(':')) \
                        + pp.Group(paren_text, aslist=True) \
                        + optional
@@ -105,10 +105,10 @@ def build_parser():
     # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
     # complex
     elements = element_tag | element_tag_shortcut | element_uuid | element_paren_recs | element_collection | element_playlist | \
-               element_text | element_paren_user | element_paren_recs | element_recs | element_user | \
+               element_text | element_paren_stats | element_paren_recs | element_recs | element_stats | \
                element_paren_text | element_paren_tag | element_tag_paren_shortcut
 
-    # All of the above was to parse one single term, now allow the user to define more than one if they want
+    # All of the above was to parse one single term, now allow the stats to define more than one if they want
     return pp.OneOrMore(pp.Group(elements, aslist=True))
 
 
@@ -132,8 +132,8 @@ def parse(prompt: str):
     for element in elements:
         if element[0] == "a":
             entity = "artist"
-        elif element[0] == "u":
-            entity = "user"
+        elif element[0] == "s":
+            entity = "stats"
         elif element[0] == "r":
             entity = "recs"
         elif element[0] == "t":
