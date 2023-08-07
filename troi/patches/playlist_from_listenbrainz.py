@@ -13,7 +13,8 @@ class TransferPlaylistPatch(troi.patch.Patch):
         A dummy patch that retrieves an existing playlist from ListenBrainz or raw JSPF for use in Troi.
 
         \b
-        MBID is the playlist mbid to save again.
+        MBID is the playlist mbid to save. Specify this OR JSPF.
+        JSPF is the actual JSPF playlist to transfer. Specify this OR MBID.
         READ_ONLY_TOKEN is the listenbrainz auth token to retrieve the playlist if its private. If not specified,
         fallback to TOKEN. Both arguments take the same value but specifying TOKEN may also upload the playlist
         to LB again which is many times not desirable.
@@ -40,12 +41,17 @@ class TransferPlaylistPatch(troi.patch.Patch):
 
         mbid = inputs.get("mbid", None)
         jspf = inputs.get("jspf", None)
+    
+        if mbid == "":
+            mbid = None
+        if jspf == "":
+            jspf = None
 
         if mbid is not None and jspf is not None:
             raise RuntimeError("Cannot pass both playlist mbid and jspf to TransferPlaylistPatch.")
 
         if mbid is None and jspf is None:
-            raise RuntimeError("Must pass either playlist mbid or jspf to TransferPlaylistPatch, not both.")
+            raise RuntimeError("Must pass either playlist mbid or jspf to TransferPlaylistPatch.")
 
         if jspf is not None:
             if isinstance(jspf, str):
