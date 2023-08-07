@@ -95,9 +95,13 @@ def _deserialize_from_jspf(data) -> Playlist:
 
         recordings.append(recording)
 
+    try:
+        ident = data["identifier"].split("/")[-1],
+    except KeyError:
+        ident = ""
     playlist = Playlist(name=data["title"],
                         description=data.get("annotation"),
-                        mbid=data["identifier"].split("/")[-1],
+                        mbid=ident,
                         recordings=recordings)
     return playlist
 
