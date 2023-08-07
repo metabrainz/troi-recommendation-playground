@@ -39,8 +39,8 @@ class TransferPlaylistPatch(troi.patch.Patch):
 
     def create(self, inputs):
 
-        mbid = inputs.get("mbid", None)
-        jspf = inputs.get("jspf", None)
+        mbid = inputs["mbid"]
+        jspf = inputs["jspf"]
     
         if mbid == "":
             mbid = None
@@ -55,7 +55,7 @@ class TransferPlaylistPatch(troi.patch.Patch):
 
         if jspf is not None:
             if isinstance(jspf, str):
-                jspf = json.reads(jspf)
+                jspf = json.loads(jspf)
 
         token = inputs.get("read_only_token") or inputs.get("token")
         return PlaylistFromJSPFElement(playlist_mbid=mbid, jspf=jspf, token=token)
