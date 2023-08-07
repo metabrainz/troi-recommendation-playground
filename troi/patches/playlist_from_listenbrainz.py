@@ -1,3 +1,5 @@
+import json
+
 from troi import Playlist
 from troi.playlist import PlaylistFromJSPFElement
 import troi.musicbrainz.recording_lookup
@@ -8,7 +10,7 @@ class TransferPlaylistPatch(troi.patch.Patch):
     @staticmethod
     def inputs():
         """
-        A dummy patch that retrieves an existing playlist from ListenBrainz.
+        A dummy patch that retrieves an existing playlist from ListenBrainz or raw JSPF for use in Troi.
 
         \b
         MBID is the playlist mbid to save again.
@@ -17,7 +19,8 @@ class TransferPlaylistPatch(troi.patch.Patch):
         to LB again which is many times not desirable.
         """
         return [
-            {"type": "argument", "args": ["mbid"]},
+            {"type": "argument", "args": ["mbid"], "kwargs": {"required": False}},
+            {"type": "argument", "args": ["jspf"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["read_only_token"], "kwargs": {"required": False}}
         ]
 
@@ -34,5 +37,17 @@ class TransferPlaylistPatch(troi.patch.Patch):
         return "Retrieve a playlist from the ListenBrainz"
 
     def create(self, inputs):
+
+        if inputs["mbid"] is not None and inputs["jspf"] is not None:
+            raise RuntimeError("Cannot pass both playlist mbid and jspf to TransferPlaylistPatch.")
+
+        if inputs["mbid"] is None and inputs["jspf"] is None:
+            raise RuntimeError("Must pass either playlist mbid or jspf to TransferPlaylistPatch, not both.")
+
+        if inputs["jspf"] is not None:
+            jspf = inputs["jspf"]
+            if isinstance(jspf, str):
+                jspf = json.reads(str)
+
         token = inputs.get("read_only_token") or inputs.get("token")
-        return PlaylistFromJSPFElement(inputs["mbid"], token)
+        return PlaylistFromJSPFElement(playlist_mbid=inputs["mbid"], jspf=jspf, token=token)
