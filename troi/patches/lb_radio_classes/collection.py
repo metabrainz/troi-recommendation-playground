@@ -32,9 +32,9 @@ class LBRadioCollectionRecordingElement(troi.Element):
         params = {"collection": self.mbid, "fmt": "json"}
         r = requests.get("https://musicbrainz.org/ws/2/recording", params=params)
         if r.status_code == 404:
-            raise RuntimeError(f"Cannot find collection {mbid}.")
+            raise RuntimeError(f"Cannot find collection {self.mbid}.")
         if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch collection {mbid}. {r.text}")
+            raise RuntimeError(f"Cannot fetch collection {self.mbid}. {r.text}")
 
         # Give feedback about what we collected
         self.local_storage["data_cache"]["element-descriptions"].append(f"collection {self.mbid}")

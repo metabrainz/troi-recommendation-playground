@@ -94,7 +94,7 @@ class LBRadioTagRecordingElement(troi.Element):
             if min_tag_count is None:
                 msg = f"{tag_data['count']['recording']:,} recordings {tagged_with}{tag_count}"
             else:
-                msg = f"{len(canidates):,} recordings {tagged_with} at least {min_tag_count} times, {tag_count}"
+                msg = f"{len(candidates):,} recordings {tagged_with} at least {min_tag_count} times, {tag_count}"
 
         if not quiet:
             self.local_storage["user_feedback"].append(msg)
