@@ -41,7 +41,7 @@ class TransferPlaylistPatch(troi.patch.Patch):
 
         mbid = inputs["mbid"]
         jspf = inputs["jspf"]
-    
+
         if mbid == "":
             mbid = None
         if jspf == "":
@@ -53,9 +53,8 @@ class TransferPlaylistPatch(troi.patch.Patch):
         if mbid is None and jspf is None:
             raise RuntimeError("Must pass either playlist mbid or jspf to TransferPlaylistPatch.")
 
-        if jspf is not None:
-            if isinstance(jspf, str):
-                jspf = json.loads(jspf)
+        if isinstance(jspf, str):
+            jspf = json.loads(jspf)
 
         token = inputs.get("read_only_token") or inputs.get("token")
         return PlaylistFromJSPFElement(playlist_mbid=mbid, jspf=jspf, token=token)
