@@ -186,6 +186,14 @@ class PlaylistElement(Element):
             else:
                 file_obj.write(json.dumps(_serialize_to_jspf(playlist, track_count=track_count)))
 
+    def get_jspf(self, playlist_index=0):
+        """Get the JSPF for the playlist at the given playlist index. Defaults to index 0."""
+
+        try:
+            return _serialize_to_jspf(self.playlists[playlist_index])
+        except IndexError:
+            return None
+
     def submit(self, token, created_for=None):
         """
             Submit the playlist to ListenBrainz.
