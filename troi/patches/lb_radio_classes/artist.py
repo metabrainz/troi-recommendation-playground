@@ -121,7 +121,7 @@ class LBRadioArtistRecordingElement(troi.Element):
         artist_names = self.fetch_artist_names([i["mbid"] for i in artists])
         for artist in artists:
             if artist["mbid"] not in artist_names:
-                raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist_mbid)
+                raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist["artist_mbid"])
 
             artist["name"] = artist_names[artist["mbid"]]
 
