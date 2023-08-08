@@ -95,9 +95,13 @@ def _deserialize_from_jspf(data) -> Playlist:
 
         recordings.append(recording)
 
+    try:
+        ident = data["identifier"].split("/")[-1],
+    except KeyError:
+        ident = ""
     playlist = Playlist(name=data["title"],
                         description=data.get("annotation"),
-                        mbid=data["identifier"].split("/")[-1],
+                        mbid=ident,
                         recordings=recordings)
     return playlist
 
@@ -468,30 +472,39 @@ class PlaylistMakerElement(Element):
 
 
 class PlaylistFromJSPFElement(Element):
-    """ Create a troi.Playlist entity from a ListenBrainz JSPF playlist """
+    """ Create a troi.Playlist entity from a ListenBrainz JSPF playlist or LB playlist."""
 
-    def __init__(self, playlist_mbid, token=None):
+    def __init__(self, playlist_mbid=None, jspf=None, token=None):
         """
+            The caller must pass either playlist_mbid or the jspf itself, but not both.
             Args:
                 playlist_mbid: mbid of the ListenBrainz playlist to be used for creating the playlist element
+                jspf: The actual JSPF for the playlist.
                 token: the listenbrainz auth token to fetch the playlist, only needed for private playlists
         """
         super().__init__()
         self.playlist_mbid = playlist_mbid
         self.token = token
+        self.jspf = jspf
+
+        if self.jspf is not None and self.playlist_mbid is not None:
+            raise RuntimeError("Pass either jspf or playlist_mbid to PlaylistFromJSPFElement, not both.")
 
     @staticmethod
     def outputs():
         return [Playlist]
 
     def read(self, inputs):
-        headers = None
-        if self.token:
-            headers = {"Authorization": f"Token {self.token}"}
-        response = requests.get(LISTENBRAINZ_PLAYLIST_FETCH_URL + self.playlist_mbid, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        return [_deserialize_from_jspf(data)]
+        if self.playlist_mbid:
+            headers = None
+            if self.token:
+                headers = {"Authorization": f"Token {self.token}"}
+            response = requests.get(LISTENBRAINZ_PLAYLIST_FETCH_URL + self.playlist_mbid, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            return [_deserialize_from_jspf(data)]
+        else:
+            return [_deserialize_from_jspf(self.jspf)]
 
 
 class DumpElement(Element):

@@ -93,5 +93,5 @@ class Patch(ABC):
         """
         try:
             return self.local_storage["user_feedback"]
-        except IndexError:
-            return None
+        except KeyError:
+            return []
