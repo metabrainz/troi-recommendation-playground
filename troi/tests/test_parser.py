@@ -125,3 +125,14 @@ class TestParser(unittest.TestCase):
 
         r = parse("recs:(rob zombie)")
         assert r[0] == {"entity": "recs", "values": ["rob zombie"], "weight": 1, "opts": []}
+
+    def test_global_options(self):
+
+        r = parse("$filter:recent:false")
+        assert r[0] == {"option": "filter", "opt_values": ["recent"], "arg": False}
+
+        r = parse("$filter:hate:true")
+        assert r[0] == {"option": "filter", "opt_values": ["hate"], "arg": True}
+
+        self.assertRaises(ParseError, parse, "$filter:recent:bad")
+        self.assertRaises(ParseError, parse, "$filter:hippie:bad")

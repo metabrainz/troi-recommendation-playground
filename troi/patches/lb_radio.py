@@ -188,7 +188,7 @@ class LBRadioPatch(troi.patch.Patch):
 
         prompt = self.local_storage["data_cache"]["prompt"]
         names = ", ".join(self.local_storage["data_cache"]["element-descriptions"])
-        name = f"LB Radio for {names} on {self.mode} mode"
-        desc = "Experimental ListenBrainz radio using %s mode, which was generated from this prompt: '%s'" % (self.mode, prompt)
+        name = f"Listenbrainz Radio for {names} on {self.mode} mode"
+        desc = "ListenBrainz Radio playlist created from prompt '%s' on %s mode, : '%s'" % (prompt, self.mode)
         self.local_storage["_playlist_name"] = name
         self.local_storage["_playlist_desc"] = desc

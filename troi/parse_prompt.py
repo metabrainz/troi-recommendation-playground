@@ -46,6 +46,14 @@ def build_parser():
                   + pp.Suppress(pp.Literal(")"))
     optional = pp.Opt(weight + pp.Opt(pp.Group(options | paren_options), ""), 1)
 
+    # Define global options ($)
+    global_opts = pp.Literal("$") \
+                + pp.Group(text, aslist=True) \
+                + pp.Suppress(pp.Literal(':')) \
+                + pp.Group(text, aslist=True) \
+                + pp.Suppress(pp.Literal(':')) \
+                + pp.Group(text, aslist=True)
+
     # Define artist element
     element_uuid = artist_element \
                  + pp.Suppress(pp.Literal(':')) \
@@ -104,12 +112,29 @@ def build_parser():
 
     # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
     # complex
-    elements = element_tag | element_tag_shortcut | element_uuid | element_paren_recs | element_collection | element_playlist | \
-               element_text | element_paren_stats | element_paren_recs | element_recs | element_stats | \
-               element_paren_text | element_paren_tag | element_tag_paren_shortcut
+    elements = global_opts | element_tag | element_tag_shortcut | element_uuid | element_paren_recs \
+             | element_collection | element_playlist | element_text | element_paren_stats | element_paren_recs \
+             | element_recs | element_stats | element_paren_text | element_paren_tag | element_tag_paren_shortcut
 
     # All of the above was to parse one single term, now allow the stats to define more than one if they want
     return pp.OneOrMore(pp.Group(elements, aslist=True))
+
+
+def parse_global_options(element):
+
+    if element[1][0] == "filter":
+        if element[2][0] in ("recent", "hate"):
+            if element[3][0].lower() not in ("true", "false"):
+                raise ParseError("Parameter to $filter:recent must be 'true' or 'false'")
+
+            if element[3][0].lower() == "true":
+                element[3][0] = True
+            else:
+                element[3][0] = False
+        else:
+            raise ParseError("Global option filter must be one of 'recent' or 'hate'")
+
+    return {"option": element[1][0], "opt_values": element[2], "arg": element[3][0] }
 
 
 def parse(prompt: str):
@@ -130,6 +155,9 @@ def parse(prompt: str):
 
     results = []
     for element in elements:
+        if element[0] == "$":
+            results.append(parse_global_options(element))
+            continue
         if element[0] == "a":
             entity = "artist"
         elif element[0] == "s":
