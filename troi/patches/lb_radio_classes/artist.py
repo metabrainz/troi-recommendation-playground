@@ -30,7 +30,7 @@ class LBRadioArtistRecordingElement(troi.Element):
     """
 
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
-    MAX_NUM_SIMILAR_ARTISTS = 12
+    MAX_NUM_SIMILAR_ARTISTS = 6
 
     def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)

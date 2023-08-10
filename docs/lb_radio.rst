@@ -81,13 +81,49 @@ This idea of modes comes from video games, where players can choose how hard the
 the resultant playlist will also be more work to listen to the harder the mode. Which mode to use is entirely up to the user -- easy
 is likely going to create a playlist with familiar music, and a hard playlist may expose you to less familiar music.
 
+Syntax Notes
+------------
+
+The syntax attempts to be intuitive and simple, but it does have some limitations. The artist: entity has the most tricky restrictions
+because it should accept the full name of an artist. For latin character sets, the short form for an artist name can be used:
+
+::
+
+  artist:Blümchen
+  artist:The Knife
+
+But, if you need other unicode characters, the name must be enclosed by ():
+
+::
+
+  artist:(Мумий Тролль)
+
+Furthermore, artist names must be spelled exactly as their appear in MusicBrainz.
+
+Tags have similar restrictions. If a tag you'd like to specify has no spaces or non-latin unicode characters you may use:
+
+::
+
+  tag:punk 
+  #punk
+
+But with spaces or non-latin unicode characters, wrap it in ():
+
+::
+
+  tag:(hip hop)
+
+::
+
+  tag:(あなたを決して裏切りません)
+
 
 Simple examples
 ---------------
 
 ::
 
-  artist:(Rick Astley)
+  artist:Rick Astley
 
 Create a single stream, from artist Rick Astley and similar artists. Artist names must be spelled here exactly as they are
 spelled in MusicBrainz. If for some reason the artist name is not recognized, specify an MBID instead. See below.

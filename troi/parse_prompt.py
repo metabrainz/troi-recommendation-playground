@@ -25,7 +25,7 @@ def build_parser():
     recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
 
     # Define the various text fragments/identifiers that we plan to use
-    text = pp.Word(pp.alphanums + "_")
+    text = pp.Word(pp.identbodychars + " ")
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
     ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
@@ -124,7 +124,7 @@ def parse(prompt: str):
 
     parser = build_parser()
     try:
-        elements = parser.parseString(prompt, parseAll=True)
+        elements = parser.parseString(prompt.lower(), parseAll=True)
     except pp.exceptions.ParseException as err:
         raise ParseError(err)
 
