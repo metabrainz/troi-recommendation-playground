@@ -124,7 +124,7 @@ def parse(prompt: str):
 
     parser = build_parser()
     try:
-        elements = parser.parseString(prompt, parseAll=True)
+        elements = parser.parseString(prompt.lower(), parseAll=True)
     except pp.exceptions.ParseException as err:
         raise ParseError(err)
 
