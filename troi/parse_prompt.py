@@ -25,7 +25,7 @@ def build_parser():
     recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
 
     # Define the various text fragments/identifiers that we plan to use
-    text = pp.Word(pp.identbodychars)
+    text = pp.Word(pp.identbodychars + " ")
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
     ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
