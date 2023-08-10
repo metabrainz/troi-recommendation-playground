@@ -48,6 +48,9 @@ class LBRadioStatsRecordingElement(troi.Element):
         except pylistenbrainz.errors.ListenBrainzAPIException as err:
             raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
+        if result is None or "recordings" not in result["payload"]:
+            raise RuntimeError("There are no stats available for user '%s' for the %s time_range." % (self.user_name, self.time_range))
+
         # Give feedback on what we collected
         self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s stats for {self.time_range}")
 
