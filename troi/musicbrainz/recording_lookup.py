@@ -38,7 +38,12 @@ class RecordingLookupElement(Element):
 
         data = []
         for r in recordings:
-            data.append({ '[recording_mbid]': r.mbid })
+            if r.artist.name == "" or len(r.artist.mbids) == 0 or r.name == "":
+                data.append({ '[recording_mbid]': r.mbid })
+
+        # If we have all the data for all the recordings, no need to lookup anything and simply pass the data along
+        if len(data) == 0:
+            return inputs[0]
 
         self.debug("- debug %d recordings" % len(recordings))
 
