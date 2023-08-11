@@ -113,6 +113,19 @@ def build_parser():
     return pp.OneOrMore(pp.Group(elements, aslist=True))
 
 
+def common_error_check(prompt: str):
+    """ Pyparsing is amazing, but the error messages leave a lot to be desired. This function attempts
+    to scan for common problems and give better error messages."""
+
+    parts = prompt.split(":")
+    try:
+        if parts[2] in OPTIONS:
+            sugg = f"{parts[0]}:{parts[1]}::{parts[2]}"
+            raise ParseError("Syntax error: options specified in the weight field, since a : is missing. Did you mean '%s'?" % sugg)
+    except IndexError:
+        pass
+
+
 def parse(prompt: str):
     """ Parse the given prompt. Return an array of dicts that contain the following keys:
           entity: str  e.g. "artist"
@@ -122,6 +135,8 @@ def parse(prompt: str):
 
         raises ParseError if, well, a parse error is encountered. 
     """
+
+    common_error_check(prompt)
 
     parser = build_parser()
     try:
@@ -148,7 +163,7 @@ def parse(prompt: str):
 
         try:
             if entity == "tag" and element[1][0].find(",") > 0:
-                element[1] = [ s.strip() for s in element[1][0].split(",") ]
+                element[1] = [s.strip() for s in element[1][0].split(",")]
         except IndexError:
             pass
 

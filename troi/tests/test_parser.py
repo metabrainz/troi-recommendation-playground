@@ -18,6 +18,8 @@ class TestParser(unittest.TestCase):
         r = parse("artist:the knife")
         assert r[0] == {"entity": "artist", "values": ["the knife"], "weight": 1, "opts": []}
 
+        self.assertRaises(ParseError, parse, "artist:u2:nosim")
+
     def test_tags(self):
         r = parse("t:abstract t:rock t:blues")
         assert r[0] == {"entity": "tag", "values": ["abstract"], "weight": 1, "opts": []}
