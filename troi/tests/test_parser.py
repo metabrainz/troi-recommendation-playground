@@ -14,10 +14,6 @@ class TestParser(unittest.TestCase):
         assert r[0] == {"entity": "artist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
         self.assertRaises(ParseError, parse, "wrong:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
-
-        r = parse("artist:the knife")
-        assert r[0] == {"entity": "artist", "values": ["the knife"], "weight": 1, "opts": []}
-
         self.assertRaises(ParseError, parse, "artist:u2:nosim")
 
     def test_tags(self):
@@ -145,8 +141,12 @@ class TestParser(unittest.TestCase):
         r = parse("$filter:recent:false")
         assert r[0] == {"option": "filter", "opt_values": ["recent"], "arg": False}
 
-        r = parse("$filter:hate:true")
-        assert r[0] == {"option": "filter", "opt_values": ["hate"], "arg": True}
+        r = parse("$filter:hated:true")
+        assert r[0] == {"option": "filter", "opt_values": ["hated"], "arg": True}
+
+        r = parse("artist:u2 $filter:recent:false")
+        assert r[0] == {"entity": "artist", "values": ["u2"], "weight": 1, "opts": []}
+        assert r[1] == {"option": "filter", "opt_values": ["recent"], "arg": False}
 
         self.assertRaises(ParseError, parse, "$filter:recent:bad")
-        self.assertRaises(ParseError, parse, "$filter:hippie:bad")
+        self.assertRaises(ParseError, parse, "$filter:hippie:true")

@@ -25,12 +25,15 @@ def build_parser():
     recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
 
     # Define the various text fragments/identifiers that we plan to use
-    text = pp.Word(pp.identbodychars + " ")
+    text = pp.Word(pp.identbodychars)
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
     tag_chars = pp.identbodychars + "&!-@$%^*=+;'"
     ws_tag = pp.OneOrMore(pp.Word(tag_chars + " "))
     tag = pp.Word(tag_chars)
+
+    # define keywords
+    opt_keywords = pp.MatchFirst([pp.Keyword(k) for k in OPTIONS])
 
     # Define supporting fragments that will be used multiple times
     paren_tag = pp.Suppress(pp.Literal("(")) \
@@ -38,7 +41,6 @@ def build_parser():
               + pp.Suppress(pp.Literal(")"))
     weight = pp.Suppress(pp.Literal(':')) \
            + pp.Opt(pp.pyparsing_common.integer(), 1)
-    opt_keywords = pp.MatchFirst([pp.Keyword(k) for k in OPTIONS])
     options = pp.Suppress(pp.Literal(':')) \
             + opt_keywords
     paren_options = pp.Suppress(pp.Literal(':')) \
@@ -46,14 +48,16 @@ def build_parser():
                   + pp.delimitedList(pp.Group(opt_keywords, aslist=True), delim=",") \
                   + pp.Suppress(pp.Literal(")"))
     optional = pp.Opt(weight + pp.Opt(pp.Group(options | paren_options), ""), 1)
+    boolean = pp.MatchFirst((pp.Keyword("true"), pp.Keyword("false")))
+    filter = pp.MatchFirst((pp.Keyword("recent"), pp.Keyword("hated")))
 
     # Define global options ($)
     global_opts = pp.Literal("$") \
-                + pp.Group(text, aslist=True) \
+                + pp.Group(pp.Keyword("filter"), aslist=True) \
                 + pp.Suppress(pp.Literal(':')) \
-                + pp.Group(text, aslist=True) \
+                + pp.Group(filter, aslist=True) \
                 + pp.Suppress(pp.Literal(':')) \
-                + pp.Group(text, aslist=True)
+                + pp.Group(boolean, aslist=True)
 
     # Define artist element
     element_uuid = artist_element \
@@ -124,7 +128,7 @@ def build_parser():
 def parse_global_options(element):
 
     if element[1][0] == "filter":
-        if element[2][0] in ("recent", "hate"):
+        if element[2][0] in ("recent", "hated"):
             if element[3][0].lower() not in ("true", "false"):
                 raise ParseError("Parameter to $filter:recent must be 'true' or 'false'")
 
@@ -133,7 +137,7 @@ def parse_global_options(element):
             else:
                 element[3][0] = False
         else:
-            raise ParseError("Global option filter must be one of 'recent' or 'hate'")
+            raise ParseError("Global option filter must be one of 'recent' or 'hated'")
 
     return {"option": element[1][0], "opt_values": element[2], "arg": element[3][0]}
 

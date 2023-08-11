@@ -57,6 +57,13 @@ class LBRadioPatch(troi.patch.Patch):
                 "required": True,
                 "nargs": 1
             }
+        }, {
+            "type": "argument",
+            "args": ["user_name"],
+            "kwargs": {
+                "required": False,
+                "nargs": 1
+            }
         }]
 
     @staticmethod
@@ -119,6 +126,26 @@ class LBRadioPatch(troi.patch.Patch):
 
         weights = [e["weight"] for e in prompt_elements]
 
+        # seperate entity elements from options
+        filtered_elements = []
+        options = []
+        for element in prompt_elements:
+            print(element)
+            if element[0] == "$filter":
+                options.append(element)
+            else:
+                filtered_elements.append(element)
+        elements = filtered_elements
+
+        # Sift through the options and set boolean flags
+        filter_hated_recordings = False
+        filter_recent_listens = False  # Not yet in use
+        for option in options:
+            if option == ["$filter", "recent", True]:
+                filter_recent_listens = True
+            if option == ["$filter", "hated", True]:
+                filter_hated_recordings = True
+
         # Now create the graph, based on the mode and the entities desired
         elements = []
         for element in prompt_elements:
@@ -167,10 +194,13 @@ class LBRadioPatch(troi.patch.Patch):
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
             recs_lookup.set_sources(source)
 
-            hate_filter = troi.filters.HatedRecordingsFilterElement()
-            hate_filter.set_sources(recs_lookup)
-
-            elements.append(hate_filter)
+            if filter_hated_recordings and user_name is not None:
+                print("FILTER HATED!")
+                feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name)
+                feedback_lookup.set_sources(recs_lookup)
+                elements.append(feedback_lookup)
+            else:
+                elements.append(recs_lookup)
 
         # Finish the pipeline with the element that blends and weighs the streams
         blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)

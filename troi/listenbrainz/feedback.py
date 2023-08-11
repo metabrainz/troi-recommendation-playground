@@ -14,10 +14,9 @@ class ListensFeedbackLookup(Element):
         :param user_name: The ListenBrainz user_name for whom to fetch feedback information.
     """
 
-    def __init__(self, user_name, auth_token=None):
+    def __init__(self, user_name):
         super().__init__()
         self.user_name = user_name
-        self.auth_token = auth_token
 
     @staticmethod
     def inputs():
@@ -37,8 +36,6 @@ class ListensFeedbackLookup(Element):
             mbids.add(r.mbid)
         mbids = list(mbids)
 
-        headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
-
         feedback_map = {}
         batch_size = 50
         for idx in range(0, len(mbids), batch_size):
@@ -47,8 +44,7 @@ class ListensFeedbackLookup(Element):
             while True:
                 response = requests.get(
                     f"https://api.listenbrainz.org/1/feedback/user/{self.user_name}/get-feedback-for-recordings",
-                    params={"recording_mbids": ",".join(recording_mbids)},
-                    headers=headers
+                    params={"recording_mbids": ",".join(recording_mbids)}
                 )
                 if response.status_code == 429:
                     sleep(2)

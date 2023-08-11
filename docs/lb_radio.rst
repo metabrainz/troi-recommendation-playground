@@ -13,10 +13,9 @@ what music should be added to the playlist. A Radio prompt is composed of one or
 
 
 Each term generates a stream of recordings and recordings from each of the streams are then interleaved to make a single playlist.
-The entity must be either "artist" or "tag" currently. The optional weight argument allows the user to control how often this term
-will contribute to the final playlist. By default each term gets a value of 1, if the user didn't specify a weight value.
-A term with a weight of 3 will contribute 3 times more recordings than a term with weight 1. The final part of each term
-are options, documented in the options section.
+The optional weight argument allows the user to control how often this term will contribute to the final playlist. By default each
+term gets a value of 1, if the user didn't specify a weight value. A term with a weight of 3 will contribute 3 times more recordings
+than a term with weight 1. The final part of each term are options, documented in the options section.
 
 Entities
 --------
@@ -90,9 +89,9 @@ because it should accept the full name of an artist. For latin character sets, t
 ::
 
   artist:Blümchen
-  artist:The Knife
+  artist:Metallica
 
-But, if you need other unicode characters, the name must be enclosed by ():
+But, if you need to include spaces non-latin unicode characters, the name must be enclosed by ():
 
 ::
 
@@ -123,7 +122,7 @@ Simple examples
 
 ::
 
-  artist:Rick Astley
+  artist:(Rick Astley)
 
 Create a single stream, from artist Rick Astley and similar artists. Artist names must be spelled here exactly as they are
 spelled in MusicBrainz. If for some reason the artist name is not recognized, specify an MBID instead. See below.
