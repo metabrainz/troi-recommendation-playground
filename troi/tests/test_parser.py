@@ -44,6 +44,15 @@ class TestParser(unittest.TestCase):
         r = parse("t:r&b")
         assert r[0] == {"entity": "tag", "values": ["r&b"], "weight": 1, "opts": []}
 
+        r = parse("t:blümchen")
+        assert r[0] == {"entity": "tag", "values": ["blümchen"], "weight": 1, "opts": []}
+
+        r = parse("t:(blümchen)")
+        assert r[0] == {"entity": "tag", "values": ["blümchen"], "weight": 1, "opts": []}
+
+#        r = parse("t:(モーニング娘。)")
+#        assert r[0] == {"entity": "tag", "values": ["モーニング娘。"], "weight": 1, "opts": []}
+
     def test_tag_errors(self):
         self.assertRaises(ParseError, parse, "t:(abstract rock blues):bork")
         self.assertRaises(ParseError, parse, "tag:(foo")

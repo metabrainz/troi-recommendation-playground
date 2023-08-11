@@ -28,8 +28,9 @@ def build_parser():
     text = pp.Word(pp.identbodychars + " ")
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
-    ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
-    tag = pp.Word(pp.srange("[a-zA-Z0-9-_!@$%^&*=+;'/]"))
+    tag_chars = pp.identbodychars + "&!-@$%^*=+;'"
+    ws_tag = pp.OneOrMore(pp.Word(tag_chars + " "))
+    tag = pp.Word(tag_chars)
 
     # Define supporting fragments that will be used multiple times
     paren_tag = pp.Suppress(pp.Literal("(")) \
