@@ -68,7 +68,7 @@ def build_parser():
                 + optional
     element_paren_tag = tag_element \
                       + pp.Suppress(pp.Literal(':')) \
-                      + pp.Group(paren_tag, aslist=True) \
+                      + pp.Group(paren_text, aslist=True) \
                       + optional
     element_tag_shortcut = pp.Literal('#') \
                          + pp.Group(tag, aslist=True) \
@@ -145,6 +145,12 @@ def parse(prompt: str):
             entity = "tag"
         else:
             entity = element[0]
+
+        try:
+            if entity == "tag" and element[1][0].find(",") > 0:
+                element[1] = [ s.strip() for s in element[1][0].split(",") ]
+        except IndexError:
+            pass
 
         try:
             values = [UUID(element[1][0])]
