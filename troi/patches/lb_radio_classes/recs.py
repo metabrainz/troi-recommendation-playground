@@ -53,7 +53,7 @@ class LBRadioRecommendationRecordingElement(troi.Element):
             except pylistenbrainz.errors.ListenBrainzAPIException as err:
                 raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
-            if len(result['payload']['mbids']) == 0:
+            if result is None or len(result['payload']['mbids']) == 0:
                 break
 
             # Turn them into recordings

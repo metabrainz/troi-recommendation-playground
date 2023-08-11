@@ -30,7 +30,7 @@ class LBRadioArtistRecordingElement(troi.Element):
     """
 
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
-    MAX_NUM_SIMILAR_ARTISTS = 12
+    MAX_NUM_SIMILAR_ARTISTS = 8
 
     def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
@@ -80,13 +80,20 @@ class LBRadioArtistRecordingElement(troi.Element):
             Given and artist_mbid, fetch top recordings for this artist and retun them in a plist.
         """
 
-        r = requests.post("https://datasets.listenbrainz.org/popular-recordings/json", json=[{
-            '[artist_mbid]': artist_mbid,
-        }])
+        r = requests.get("https://api.listenbrainz.org/1/popularity/top-recordings-for-artist", params={"artist_mbid": artist_mbid})
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch top artist recordings: {r.status_code} ({r.text})")
 
-        return plist(r.json())
+        recordings = plist()
+        for recording in r.json():
+            artist = Artist(mbids=recording["artist_mbids"], name=recording["artist_name"])
+            recordings.append(
+                Recording(mbid=recording["recording_mbid"],
+                          name=recording["recording_name"],
+                          length=recording["length"],
+                          artist=artist))
+
+        return recordings
 
     def fetch_artist_names(self, artist_mbids):
         """
@@ -138,7 +145,7 @@ class LBRadioArtistRecordingElement(troi.Element):
         self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
 
-        # Deremine percent ranges based on mode -- this will likely need further tweaking
+        # Determine percent ranges based on mode -- this will likely need further tweaking
         if self.mode == "easy":
             start, stop = 0, 50
         elif self.mode == "medium":
@@ -153,11 +160,10 @@ class LBRadioArtistRecordingElement(troi.Element):
                 artist["recordings"] = self.data_cache[artist["mbid"] + "_top_recordings"]
                 continue
 
-            mbid_plist = plist(self.fetch_top_recordings(artist["mbid"]))
+            recs_plist = plist(self.fetch_top_recordings(artist["mbid"]))
             recordings = []
-
-            for recording in mbid_plist.random_item(start, stop, self.max_top_recordings_per_artist):
-                recordings.append(Recording(mbid=recording["recording_mbid"]))
+            for recording in recs_plist.random_item(start, stop, self.max_top_recordings_per_artist):
+                recordings.append(recording)
 
             # Now tuck away the data for caching and interleaving
             self.data_cache[artist["mbid"] + "_top_recordings"] = recordings

@@ -15,6 +15,11 @@ class TestParser(unittest.TestCase):
 
         self.assertRaises(ParseError, parse, "wrong:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
 
+        r = parse("artist:the knife")
+        assert r[0] == {"entity": "artist", "values": ["the knife"], "weight": 1, "opts": []}
+
+        self.assertRaises(ParseError, parse, "artist:u2:nosim")
+
     def test_tags(self):
         r = parse("t:abstract t:rock t:blues")
         assert r[0] == {"entity": "tag", "values": ["abstract"], "weight": 1, "opts": []}
@@ -40,6 +45,15 @@ class TestParser(unittest.TestCase):
 
         r = parse("t:r&b")
         assert r[0] == {"entity": "tag", "values": ["r&b"], "weight": 1, "opts": []}
+
+        r = parse("t:blümchen")
+        assert r[0] == {"entity": "tag", "values": ["blümchen"], "weight": 1, "opts": []}
+
+        r = parse("t:(blümchen)")
+        assert r[0] == {"entity": "tag", "values": ["blümchen"], "weight": 1, "opts": []}
+
+        r = parse("t:(モーニング娘。)")
+        assert r[0] == {"entity": "tag", "values": ["モーニング娘。"], "weight": 1, "opts": []}
 
     def test_tag_errors(self):
         self.assertRaises(ParseError, parse, "t:(abstract rock blues):bork")

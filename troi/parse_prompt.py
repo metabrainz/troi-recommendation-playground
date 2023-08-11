@@ -25,11 +25,12 @@ def build_parser():
     recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
 
     # Define the various text fragments/identifiers that we plan to use
-    text = pp.Word(pp.alphanums + "_")
+    text = pp.Word(pp.identbodychars + " ")
     uuid = pp.pyparsing_common.uuid()
     paren_text = pp.QuotedString("(", end_quote_char=")")
-    ws_tag = pp.OneOrMore(pp.Word(pp.srange("[a-zA-Z0-9-_ !@$%^&*=+;'/]")))
-    tag = pp.Word(pp.srange("[a-zA-Z0-9-_!@$%^&*=+;'/]"))
+    tag_chars = pp.identbodychars + "&!-@$%^*=+;'"
+    ws_tag = pp.OneOrMore(pp.Word(tag_chars + " "))
+    tag = pp.Word(tag_chars)
 
     # Define supporting fragments that will be used multiple times
     paren_tag = pp.Suppress(pp.Literal("(")) \
@@ -75,7 +76,7 @@ def build_parser():
                 + optional
     element_paren_tag = tag_element \
                       + pp.Suppress(pp.Literal(':')) \
-                      + pp.Group(paren_tag, aslist=True) \
+                      + pp.Group(paren_text, aslist=True) \
                       + optional
     element_tag_shortcut = pp.Literal('#') \
                          + pp.Group(tag, aslist=True) \
@@ -134,7 +135,20 @@ def parse_global_options(element):
         else:
             raise ParseError("Global option filter must be one of 'recent' or 'hate'")
 
-    return {"option": element[1][0], "opt_values": element[2], "arg": element[3][0] }
+    return {"option": element[1][0], "opt_values": element[2], "arg": element[3][0]}
+
+
+def common_error_check(prompt: str):
+    """ Pyparsing is amazing, but the error messages leave a lot to be desired. This function attempts
+    to scan for common problems and give better error messages."""
+
+    parts = prompt.split(":")
+    try:
+        if parts[2] in OPTIONS:
+            sugg = f"{parts[0]}:{parts[1]}::{parts[2]}"
+            raise ParseError("Syntax error: options specified in the weight field, since a : is missing. Did you mean '%s'?" % sugg)
+    except IndexError:
+        pass
 
 
 def parse(prompt: str):
@@ -147,9 +161,11 @@ def parse(prompt: str):
         raises ParseError if, well, a parse error is encountered. 
     """
 
+    common_error_check(prompt)
+
     parser = build_parser()
     try:
-        elements = parser.parseString(prompt, parseAll=True)
+        elements = parser.parseString(prompt.lower(), parseAll=True)
     except pp.exceptions.ParseException as err:
         raise ParseError(err)
 
@@ -172,6 +188,12 @@ def parse(prompt: str):
             entity = "tag"
         else:
             entity = element[0]
+
+        try:
+            if entity == "tag" and element[1][0].find(",") > 0:
+                element[1] = [s.strip() for s in element[1][0].split(",")]
+        except IndexError:
+            pass
 
         try:
             values = [UUID(element[1][0])]
