@@ -24,7 +24,6 @@ class LBRadioRecommendationRecordingElement(troi.Element):
         self.listened = listened
         self.mode = mode
         self.client = pylistenbrainz.ListenBrainz()
-        print(self.listened)
 
     def inputs(self):
         return []
@@ -80,7 +79,5 @@ class LBRadioRecommendationRecordingElement(troi.Element):
         self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s {listened}recommended songs")
 
         # How do we prevent sequential tracks by the same artist?
-
-        print(f"addded {added} skipped {skipped}")
 
         return recordings
