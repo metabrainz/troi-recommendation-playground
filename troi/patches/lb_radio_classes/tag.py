@@ -34,12 +34,8 @@ class LBRadioTagRecordingElement(troi.Element):
             Fetch the tag data from the LB API and return it as a dict.
         """
 
-        if self.mode == "easy":
-            start, stop = 0, 50
-        elif self.mode == "medium":
-            start, stop = 25, 75
-        else:
-            start, stop = 50, 100
+        # Fetch our mode ranges
+        start, stop = self.local_storage["modes"][self.mode]
 
         data = {
             "condition": operator,

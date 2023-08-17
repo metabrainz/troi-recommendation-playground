@@ -130,6 +130,15 @@ class LBRadioPatch(troi.patch.Patch):
             if "hard" in element["opts"]:
                 mode = "hard"
 
+            # Determine percent ranges based on mode -- this will likely need further tweaking
+            if mode == "easy":
+                start, stop = 0, 33
+            elif self.mode == "medium":
+                start, stop = 33, 66
+            else:
+                start, stop = 66, 100
+            self.local_storage["modes"] = {"easy": (0, 33), "medium": (33, 66), "hard": (66, 100)}
+
             if element["entity"] == "artist":
                 include_sim = False if "nosim" in element["opts"] else True
                 source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, include_similar_artists=include_sim)
