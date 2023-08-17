@@ -16,6 +16,7 @@ OVERHYPED_SIMILAR_ARTISTS = [
     "5b11f4ce-a62d-471e-81fc-a69a8278c7da",  # Nirvana
     "f59c5520-5f46-4d2c-b2c4-822eabf53419",  # Linkin Park
     "cc0b7089-c08d-4c10-b6b0-873582c17fd6",  # System of a Down
+    "ebfc1398-8d96-47e3-82c3-f782abcdb13d",  # Beach boys
 ]
 
 

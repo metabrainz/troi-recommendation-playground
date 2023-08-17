@@ -51,7 +51,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return dict(r.json())
 
-    def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None, quiet=False):
+    def collect_recordings(self, recordings, tag_data, entity, min_tag_count=None):
         """ 
             This function takes a list of recordings already collected (could be empty),
             the tag_data from the LB tag endpoint and an entity (artist, release-group, recording)
@@ -70,35 +70,10 @@ class LBRadioTagRecordingElement(troi.Element):
                 if rec["tag_count"] >= min_tag_count:
                     candidates.append(rec)
 
-        tagged_with = f"tagged with '{', '.join(self.tags)}'"
-        if len(tag_data[entity]) > 0:
-            tag_count = f", highest tag count {tag_data[entity][0]['tag_count']}"
-        else:
-            tag_count = ""
-
-        if entity == "artist":
-            if min_tag_count is None:
-                msg = f"{tag_data['count']['artist']:,} recordings by artists {tagged_with}{tag_count}"
-            else:
-                msg = f"{len(candidates):,} recordings by artists {tagged_with} at least {min_tag_count} times{tag_count}"
-        elif entity == "release-group":
-            if min_tag_count is None:
-                msg = f"{tag_data['count']['release-group']:,} recordings on releases and release-groups {tagged_with}{tag_count}"
-            else:
-                msg = f"{len(candidates):,} recordings on releases and release-groups {tagged_with} at least {min_tag_count} times{tag_count}"
-        else:
-            if min_tag_count is None:
-                msg = f"{tag_data['count']['recording']:,} recordings {tagged_with}{tag_count}"
-            else:
-                msg = f"{len(candidates):,} recordings {tagged_with} at least {min_tag_count} times, {tag_count}"
-
-        if not quiet:
-            self.local_storage["user_feedback"].append(msg)
-
         while len(recordings) < self.NUM_RECORDINGS_TO_COLLECT and len(candidates) > 0:
             recordings.append(candidates.pop(randint(0, len(candidates) - 1)))
 
-        return recordings
+        return recordings, len(candidates)
 
     def get_lowest_tag_count(self, highest_tag_count):
         """ Given a highest tag count, return the lower bound for the tag_count based on how many tags exist."""
@@ -117,6 +92,110 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return highest_tag_count // 2
 
+    def select_recordings_on_easy(self, recordings, tag_data):
+        tag_count = None
+        recordings, canididate_count = self.collect_recordings(recordings, tag_data, "recording")
+        if len(recordings) < self.MIN_RECORDINGS_EASY:
+            try:
+                highest_tag_count = tag_data["recording"][0]["tag_count"]
+            except IndexError:
+                highest_tag_count = 0
+            lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
+            for tag_count in range(highest_tag_count, lowest_tag_count, -1):
+                recordings, canididate_count = self.collect_recordings(recordings,
+                                                                       tag_data,
+                                                                       "release-group",
+                                                                       min_tag_count=tag_count)
+                if len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT:
+                    break
+
+            if len(recordings) < self.MIN_RECORDINGS_EASY:
+                msg = "tag '%s' generated too few recordings for easy mode." % ", ".join(self.tags)
+                recordings, _ = self.collect_recordings(recordings, tag_data, "release-group")
+                if len(recordings) >= self.MIN_RECORDINGS_MEDIUM:
+                    msg += " Try medium mode instead."
+                self.local_storage["user_feedback"].append(msg)
+
+                recordings = []
+
+        tagged_with = f"tagged with '{', '.join(self.tags)}'"
+        if len(tag_data["recording"]) > 0:
+            tag_count_text = f", highest tag count {tag_data['recording'][0]['tag_count']}"
+        else:
+            tag_count_text = ""
+
+        if tag_count is None:
+            msg = f"{tag_data['count']['recording']:,} recordings {tagged_with}{tag_count_text}"
+        else:
+            msg = f"{candidate_count:,} recordings {tagged_with} at least {tag_count} times, {tag_count_text}"
+        self.local_storage["user_feedback"].append(msg)
+
+        return recordings
+
+    def select_recordings_on_medium(self, recordings, tag_data):
+        tag_count = None
+        recordings, candidate_count = self.collect_recordings(recordings, tag_data, "release-group")
+        if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
+            try:
+                highest_tag_count = tag_data["release-group"][0]["tag_count"]
+            except IndexError:
+                highest_tag_count = 0
+            lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
+            for tag_count in range(highest_tag_count, lowest_tag_count, -1):
+                recordings = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=tag_count)
+                if len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT:
+                    break
+
+            if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
+                # Check to see if there are tagged recordings we can use
+                recording_count = len(recordings)
+                recordings, candidate_count = self.collect_recordings(recordings, tag_data, "recording")
+                if len(recordings) > recording_count:
+                    self.local_storage["user_feedback"].append("Stole some tagged recordings, since they were going to waste.")
+                if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
+                    self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for medium mode." %
+                                                               ", ".join(self.tags))
+                    recordings = []
+
+        tagged_with = f"tagged with '{', '.join(self.tags)}'"
+        if len(tag_data["recording"]) > 0:
+            tag_count_text = f", highest tag count {tag_data['recording'][0]['tag_count']}"
+        else:
+            tag_count_text = ""
+
+        if tag_count is None:
+            msg = f"{tag_data['count']['release-group']:,} recordings on releases and release-groups {tagged_with}{tag_count_text}"
+        else:
+            msg = f"{candidate_count:,} recordings on releases and release-groups {tagged_with} at least {min_tag_count} times{tag_count_text}"
+
+        self.local_storage["user_feedback"].append(msg)
+
+        return recordings
+
+    def select_recordings_on_hard(self, recordings, tag_data):
+        recordings, candidate_count = self.collect_recordings(recordings, tag_data, "artist")
+        if len(recordings) < self.MIN_RECORDINGS_HARD:
+            # Check to see if the medium mode could produce something
+            recordings, candidate_count = self.collect_recordings(recordings, tag_data, "release-group")
+            if len(recordings) >= self.MIN_RECORDINGS_MEDIUM:
+                self.local_storage["user_feedback"].append(
+                    "tag '%s' generated too few recordings for hard mode. Try medium mode instead." % ", ".join(self.tags))
+            else:
+                self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for hard mode." %
+                                                           ", ".join(self.tags))
+            recordings = []
+
+        tagged_with = f"tagged with '{', '.join(self.tags)}'"
+        if len(tag_data["recording"]) > 0:
+            tag_count_text = f", highest tag count {tag_data['recording'][0]['tag_count']}"
+        else:
+            tag_count_text = ""
+
+        msg = f"{tag_data['count']['artist']:,} recordings by artists {tagged_with}{tag_count_text}"
+        self.local_storage["user_feedback"].append(msg)
+
+        return recordings
+
     def read(self, entities):
 
         # TODO: Should this be set lower for harder modes and loads of tags? We need to wait for more user feedback on this.
@@ -132,54 +211,11 @@ class LBRadioTagRecordingElement(troi.Element):
         # recordings are collected, descend one level and attempt to collect more.
         recordings = plist()
         if self.mode == "easy":
-            recordings = self.collect_recordings(recordings, tag_data, "recording", min_tag_count=None)
-            if len(recordings) < self.MIN_RECORDINGS_EASY:
-                try:
-                    highest_tag_count = tag_data["recording"][0]["tag_count"]
-                except IndexError:
-                    highest_tag_count = 0
-                lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
-                for tag_count in range(highest_tag_count, lowest_tag_count, -1):
-                    recordings = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=tag_count)
-                    if len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT:
-                        break
-
-                if len(recordings) < self.MIN_RECORDINGS_EASY:
-                    self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for easy mode." %
-                                                               ", ".join(self.tags))
-                    if len(recordings) >= self.MIN_RECORDINGS_MEDIUM:
-                        self.local_storage["user_feedback"].append("There are enough tags for medium mode, try it!")
-                    recordings = []
-
+            recordings = self.select_recordings_on_easy(recordings, tag_data)
         elif self.mode == "medium":
-            recordings = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=None)
-            if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
-                try:
-                    highest_tag_count = tag_data["release-group"][0]["tag_count"]
-                except IndexError:
-                    highest_tag_count = 0
-                lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
-                for tag_count in range(highest_tag_count, lowest_tag_count, -1):
-                    recordings = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=tag_count)
-                    if len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT:
-                        break
-
-                if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
-                    # Check to see if there are tagged recordings we can use
-                    recording_count = len(recordings)
-                    recordings = self.collect_recordings(recordings, tag_data, "recording", min_tag_count=None)
-                    if len(recordings) > recording_count:
-                        self.local_storage["user_feedback"].append("Stole some tagged recordings, since they were going to waste.")
-                    if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
-                        self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for medium mode." %
-                                                                   ", ".join(self.tags))
-                        recordings = []
+            recordings = self.select_recordings_on_medium(recordings, tag_data)
         else:
-            recordings = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=None)
-            if len(recordings) < self.MIN_RECORDINGS_HARD:
-                self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for hard mode." %
-                                                           ", ".join(self.tags))
-                recordings = []
+            recordings = self.select_recordings_on_hard(recordings, tag_data)
 
         # Convert results into recordings
         results = []
