@@ -73,3 +73,9 @@ def recursively_update_dict(source, overrides):
             source[key] = overrides[key]
     return source
 
+
+def interleave(lists):
+    """ Return a list with all items from the given lists. Stops when the shortest list end is reached. """
+
+    return [val for tup in zip(*lists) for val in tup]
+

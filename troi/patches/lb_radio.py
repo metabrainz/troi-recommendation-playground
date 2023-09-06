@@ -19,6 +19,7 @@ from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio_classes.stats import LBRadioStatsRecordingElement
 from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS, Playlist
+from troi.utils import interleave
 
 
 class LBRadioPatch(troi.patch.Patch):
