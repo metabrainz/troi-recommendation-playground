@@ -20,11 +20,12 @@ class LBRadioTagRecordingElement(troi.Element):
 
     TAG_THRESHOLD_MAPPING = {"easy": 3, "medium": 2, "hard": 1}
 
-    def __init__(self, tags, operator="and", mode="easy"):
+    def __init__(self, tags, operator="and", mode="easy", include_similar_tags=True):
         troi.Element.__init__(self)
         self.tags = tags
         self.operator = operator
         self.mode = mode
+        self.include_similar_tags = include_similar_tags
 
     def inputs(self):
         return []
@@ -78,7 +79,7 @@ class LBRadioTagRecordingElement(troi.Element):
         msgs = [ ]
         start, stop = self.local_storage["modes"]["easy"]
 
-        msgs = [f"tag: using seed tag(s): {self.tags} only"]
+        msgs = [f"""tag: using seed tags: '{ "', '".join(self.tags)}' only"""]
         return tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT), msgs
 
     def select_recordings_on_medium(self, tag_data):
@@ -87,7 +88,7 @@ class LBRadioTagRecordingElement(troi.Element):
         start, stop = self.local_storage["modes"]["medium"]
         result = tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT)
 
-        if len(self.tags) == 1:
+        if len(self.tags) == 1 and self.include_similar_tags:
             similar_tags = self.fetch_similar_tags(self.tags[0])
             similar_tag = similar_tags.random_item(0, 50, 1)["similar_tag"]
             msgs = [f"tag: using seed tag '{self.tags[0]}' and similar tag '{similar_tag}'."]
@@ -97,7 +98,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
             return interleave((result, sim_tag_data)), msgs
 
-        msgs = ("tag: using seed tags: {self.tags} only")
+        msgs = [f"""tag: using seed tags: '{ "', '".join(self.tags)}' only"""]
         return result, msgs
 
     def select_recordings_on_hard(self, tag_data):
@@ -106,7 +107,7 @@ class LBRadioTagRecordingElement(troi.Element):
         start, stop = self.local_storage["modes"]["hard"]
         result = tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT)
 
-        if len(self.tags) == 1:
+        if len(self.tags) == 1 and self.include_similar_tags:
             similar_tags = self.fetch_similar_tags(self.tags[0])
             similar_tags = similar_tags.random_item(25, 75, 2)
             similar_tags = [ tag["similar_tag"] for tag in similar_tags ]
@@ -117,7 +118,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
             return interleave((result, sim_tag_data)), msgs
 
-        msgs = ("tag: using seed tags: {self.tags} only")
+        msgs = [f"""tag: using seed tags: '{ "', '".join(self.tags)}' only"""]
         return result, msgs
 
     def read(self, entities):

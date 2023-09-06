@@ -145,7 +145,8 @@ class LBRadioPatch(troi.patch.Patch):
                 source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and")
+                include_sim = False if "nosim" in element["opts"] else True
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", include_similar_tags=include_sim)
 
             if element["entity"] == "tag-or":
                 source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or")
