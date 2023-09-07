@@ -93,7 +93,7 @@ class LBRadioTagRecordingElement(troi.Element):
             similar_tag = similar_tags.random_item(0, 25, 1)["similar_tag"]
             msgs = [f"tag: using seed tag '{self.tags[0]}' and similar tag '{similar_tag}'."]
 
-            sim_tag_data = self.fetch_tag_data([similar_tag], "OR", 1)
+            sim_tag_data = self.fetch_tag_data([self.tags[0], similar_tag], "AND", 1)
             sim_tag_data = self.flatten_tag_data(sim_tag_data)
 
             return interleave((result, sim_tag_data)), msgs
