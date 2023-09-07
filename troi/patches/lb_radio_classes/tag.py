@@ -90,7 +90,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         if len(self.tags) == 1 and self.include_similar_tags:
             similar_tags = self.fetch_similar_tags(self.tags[0])
-            similar_tag = similar_tags.random_item(0, 50, 1)["similar_tag"]
+            similar_tag = similar_tags.random_item(0, 25, 1)["similar_tag"]
             msgs = [f"tag: using seed tag '{self.tags[0]}' and similar tag '{similar_tag}'."]
 
             sim_tag_data = self.fetch_tag_data([similar_tag], "OR", 1)
@@ -109,7 +109,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         if len(self.tags) == 1 and self.include_similar_tags:
             similar_tags = self.fetch_similar_tags(self.tags[0])
-            similar_tags = similar_tags.random_item(25, 75, 2)
+            similar_tags = similar_tags.random_item(0, 50, 2)
             similar_tags = [ tag["similar_tag"] for tag in similar_tags ]
             msgs = [f"""tag: using seed tag '{self.tags[0]}' and similar tags '{"', '".join(similar_tags)}'."""]
 
