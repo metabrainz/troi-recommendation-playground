@@ -177,6 +177,9 @@ class plist(list):
     """
 
     def _get_index(self, percent):
+        if len(self) == 0:
+            return None
+
         if percent is not None:
             if isinstance(percent, int):
                 if percent < 0 or percent > 100:
