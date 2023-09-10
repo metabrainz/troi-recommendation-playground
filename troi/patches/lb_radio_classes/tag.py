@@ -107,9 +107,21 @@ class LBRadioTagRecordingElement(troi.Element):
         start, stop = self.local_storage["modes"]["hard"]
         result = tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT)
 
+        start, stop = 10, 50 
         if len(self.tags) == 1 and self.include_similar_tags:
             similar_tags = self.fetch_similar_tags(self.tags[0])
-            similar_tags = similar_tags.random_item(10, 50, 2)
+            if len(similar_tags[start:stop]) > 2:
+                while True:
+                    selected_tags = similar_tags.random_item(10, 50, 2)
+                    if selected_tags[0] == selected_tags[1]:
+                        print("same tag selected!")
+                        continue
+
+                    break
+                similar_tags = selected_tags
+            else:
+                similar_tags = similar_tags[start:stop]
+
             similar_tags = [ tag["similar_tag"] for tag in similar_tags ]
 
             if len(similar_tags) > 0:
