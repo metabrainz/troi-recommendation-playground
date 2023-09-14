@@ -39,7 +39,7 @@ below.
 virtualenv -p python3 .ve
 source .ve/bin/activate
 pip3 install -r requirements.txt -r requirements_test.txt
-python3 -m troi.cli --help
+python3 troi.py --help
 ```
 
 **Windows**
@@ -48,22 +48,22 @@ python3 -m troi.cli --help
 virtualenv -p python .ve
 .ve\Scripts\activate.bat
 pip install -r requirements.txt -r requirements_test.txt
-python -m troi.cli --help
+python troi.py --help
 ```
 
 ## Basic commands
 
 List available patches:
 
-    python -m troi.cli list
+    python troi.py list
 
 Generate a playlist using a patch:
 
-    python -m troi.cli playlist --print [patch-name]
+    python troi.py playlist --print [patch-name]
 
 If the patch requires arguments, running it with no arguments will print a usage statement, e.g.
 
-    $ python -m troi.cli playlist --print area-random-recordings
+    $ python troi.py playlist --print area-random-recordings
     Usage: area-random-recordings [OPTIONS] AREA START_YEAR END_YEAR
    
       Generate a list of random recordings from a given area.
@@ -78,9 +78,9 @@ If the patch requires arguments, running it with no arguments will print a usage
 ## Running tests
 
 ```
-python3 -m troi.cli test
-python3 -m troi.cli test -v
-python3 -m troi.cli test -v <file to test>
+python3 troi.py test
+python3 troi.py test -v
+python3 troi.py test -v <file to test>
 ```
 
 ## Building Documentation
