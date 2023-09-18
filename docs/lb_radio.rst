@@ -39,14 +39,15 @@ All terms have the following options:
 #. **medium**: Use medium mode for this term.
 #. **hard**: Use hard mode for this term.
 
-For artist terms, the following option applies:
+For artist and tag terms, the following option applies:
 
-#. **nosim**: Do not add similar artists, only output recordings from the given artist.
+#. **nosim**: Do not add similar artists/tags, only output recordings from the given artist/tag.
 
 For tag queries, the following options exist:
 
 #. **and**: For a tag query, if "and" is specified (the default) recordings will be chosen if all the given tags are applied to that recording.
 #. **or**: For a tag query, if "or" is specified, then recordings will be chosen if any of the tags are applied to the recording.
+#. **nosim**: Tag queries on medium and hard mode may include similar tags. Specifying nosim for a tag query ensures that no similar tags are used.
 
 For the stats term, the following options apply:
 

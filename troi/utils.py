@@ -73,3 +73,23 @@ def recursively_update_dict(source, overrides):
             source[key] = overrides[key]
     return source
 
+
+def interleave(lists):
+    """ Return a list with all items from the given lists."""
+
+    result = []
+
+    while True:
+        added = False
+        for l in lists:
+            try:
+                result.append(l.pop(0))
+                added = True
+            except IndexError:
+                pass
+
+        if not added:
+            break
+
+    return result
+

@@ -19,6 +19,7 @@ from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio_classes.stats import LBRadioStatsRecordingElement
 from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS, Playlist
+from troi.utils import interleave
 
 
 class LBRadioPatch(troi.patch.Patch):
@@ -130,12 +131,22 @@ class LBRadioPatch(troi.patch.Patch):
             if "hard" in element["opts"]:
                 mode = "hard"
 
+            # Determine percent ranges based on mode -- this will likely need further tweaking
+            if mode == "easy":
+                start, stop = 0, 33
+            elif self.mode == "medium":
+                start, stop = 33, 66
+            else:
+                start, stop = 66, 100
+            self.local_storage["modes"] = {"easy": (0, 33), "medium": (33, 66), "hard": (66, 100)}
+
             if element["entity"] == "artist":
                 include_sim = False if "nosim" in element["opts"] else True
                 source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and")
+                include_sim = False if "nosim" in element["opts"] else True
+                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", include_similar_tags=include_sim)
 
             if element["entity"] == "tag-or":
                 source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or")

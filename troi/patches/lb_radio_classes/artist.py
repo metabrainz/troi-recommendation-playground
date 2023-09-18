@@ -4,6 +4,7 @@ import troi
 from troi import Recording, Artist
 from troi.splitter import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
+from troi.utils import interleave
 
 OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
@@ -16,11 +17,8 @@ OVERHYPED_SIMILAR_ARTISTS = [
     "5b11f4ce-a62d-471e-81fc-a69a8278c7da",  # Nirvana
     "f59c5520-5f46-4d2c-b2c4-822eabf53419",  # Linkin Park
     "cc0b7089-c08d-4c10-b6b0-873582c17fd6",  # System of a Down
+    "ebfc1398-8d96-47e3-82c3-f782abcdb13d",  # Beach boys
 ]
-
-
-def interleave(lists):
-    return [val for tup in zip(*lists) for val in tup]
 
 
 class LBRadioArtistRecordingElement(troi.Element):
@@ -109,6 +107,9 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def read(self, entities):
 
+        # Fetch our mode ranges
+        start, stop = self.local_storage["modes"][self.mode]
+
         self.data_cache = self.local_storage["data_cache"]
         artists = [{"mbid": self.artist_mbid}]
 
@@ -116,15 +117,16 @@ class LBRadioArtistRecordingElement(troi.Element):
         if self.include_similar_artists:
             # Fetch similar artists for original artist
             similar_artists = self.get_similar_artists(self.artist_mbid)
-            if len(similar_artists) == 0:
-                raise RuntimeError("Not enough similar artist data available for artist %s. Please choose a different artist." %
-                                   self.artist_name)
+            #            if len(similar_artists) == 0:
+            #                raise RuntimeError(f"Not enough similar artist data available for artist {self.artist_name}. Please choose a different artist.")
 
-            # Verify and lookup artist mbids
-            for artist in similar_artists[:self.MAX_NUM_SIMILAR_ARTISTS]:
+            # select artists
+            for artist in similar_artists[start:stop]:
                 artists.append({"mbid": artist["artist_mbid"]})
+                if len(artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
+                    break
 
-        # For all fetched artists, fetcht their names
+        # For all fetched artists, fetch their names
         artist_names = self.fetch_artist_names([i["mbid"] for i in artists])
         for artist in artists:
             if artist["mbid"] not in artist_names:
@@ -136,22 +138,22 @@ class LBRadioArtistRecordingElement(troi.Element):
             self.data_cache[artist["mbid"]] = artist["name"]
 
         # start crafting user feedback messages
-        msg = "artist: using seed artist %s" % artists[0]["name"]
-        if self.include_similar_artists:
-            msg += " and similar artists: " + ", ".join([a["name"] for a in artists[1:]])
+        msgs = []
+        if self.include_similar_artists and len(artists) == 1:
+            msgs.append(f"Seed artist {artist_names[self.artist_mbid]} no similar artists.")
         else:
-            msg += " only"
+            if self.include_similar_artists and len(artists) < 4:
+                msgs.append(f"Seed artist {artist_names[self.artist_mbid]} few similar artists.")
+            msg = "artist: using seed artist %s" % artists[0]["name"]
+            if self.include_similar_artists:
+                msg += " and similar artists: " + ", ".join([a["name"] for a in artists[1:]])
+            else:
+                msg += " only"
+            msgs.append(msg)
 
-        self.local_storage["user_feedback"].append(msg)
+        for msg in msgs:
+            self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
-
-        # Determine percent ranges based on mode -- this will likely need further tweaking
-        if self.mode == "easy":
-            start, stop = 0, 50
-        elif self.mode == "medium":
-            start, stop = 25, 75
-        else:
-            start, stop = 50, 100
 
         # Now collect recordings from the artist and similar artists and return an interleaved
         # strem of recordings.
@@ -161,6 +163,10 @@ class LBRadioArtistRecordingElement(troi.Element):
                 continue
 
             recs_plist = plist(self.fetch_top_recordings(artist["mbid"]))
+            if len(recs_plist) < 20:
+                self.local_storage["user_feedback"].append(
+                    f"Artist {artist['name']} only has {'no' if len(recs_plist) == 0 else 'few'} top recordings.")
+
             recordings = []
             for recording in recs_plist.random_item(start, stop, self.max_top_recordings_per_artist):
                 recordings.append(recording)
