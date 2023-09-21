@@ -60,7 +60,7 @@ class LBRadioTagRecordingElement(troi.Element):
             Fetch similar tags from LB
         """
 
-        r = requests.post("https://datasets.listenbrainz.org/tag-similarity/json", json=[{"tag": tag}])
+        r = requests.post("https://labs.api.listenbrainz.org/tag-similarity/json", json=[{"tag": tag}])
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch similar tags. {r.text}")
 
