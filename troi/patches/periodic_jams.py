@@ -8,8 +8,10 @@ import troi.musicbrainz.recording_lookup
 from troi import Playlist
 from troi.playlist import PlaylistMakerElement
 
-DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist
-DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
+# Exclude tracks listened in last X days from the daily jams playlist
+DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60
+# the minimum number of recordings we aspire to have in a daily jam, this is not a hard limit
+DAILY_JAMS_MIN_RECORDINGS = 25
 BATCH_SIZE_RECS = 100  # the number of recommendations fetched in 1 go
 MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
@@ -59,6 +61,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
         TYPE Must be one of "daily-jams", "weekly-jams" or "weekly-exploration".
         JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
         can be on different dates). Required formatting for the date is 'YYYY-MM-DD'.
+        DAYS_TO_EXCLUDE exclude tracks listened in last X days from the daily jams playlist. if 0, no tracks are exclude.
         """
         return [{
             "type": "argument",
@@ -75,6 +78,11 @@ class PeriodicJamsPatch(troi.patch.Patch):
             "kwargs": {
                 "required": False
             }
+        }, {
+            "type": "argument",
+            "args": ["days_to_exclude"],
+            "kwargs": {"required": False},
+
         }]
 
     @staticmethod
@@ -100,7 +108,8 @@ class PeriodicJamsPatch(troi.patch.Patch):
         else:
             jam_types = jam_type.lower()
             if jam_type not in self.JAM_TYPES:
-                raise RuntimeError("Jam type must be one of %s" % ", ".join(jam_types))
+                raise RuntimeError("Jam type must be one of %s" %
+                                   ", ".join(jam_types))
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name,
                                                                           "raw",
@@ -123,17 +132,27 @@ class PeriodicJamsPatch(troi.patch.Patch):
                 jam_date = "week of " + jam_date
         elif jam_type == "weekly-exploration":
             # Remove tracks that have been listened to before.
-            never_listened = troi.filters.NeverListenedFilterElement(remove_unlistened=False)
+            never_listened = troi.filters.NeverListenedFilterElement(
+                remove_unlistened=False)
             never_listened.set_sources(recent_listens_lookup)
             jam_name = "Weekly Exploration"
             jam_date = "week of " + jam_date
         else:
             raise RuntimeError("someone goofed up!")
 
-        latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
+        if "days_to_exclude" in inputs:
+            latest_filter = troi.filters.LatestListenedAtFilterElement(
+                inputs["days_to_exclude"]
+            )
+        else:
+            latest_filter = troi.filters.LatestListenedAtFilterElement(
+                DAYS_OF_RECENT_LISTENS_TO_EXCLUDE
+            )
+
         latest_filter.set_sources(never_listened)
 
-        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name, auth_token=inputs.get("token"))
+        feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(
+            user_name, auth_token=inputs.get("token"))
         feedback_lookup.set_sources(latest_filter)
 
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
