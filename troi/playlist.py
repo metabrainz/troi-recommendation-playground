@@ -69,10 +69,13 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
             }
 
         if e.release is not None:
-            if e.release.name != "":
+            print(e.release)
+            print(e.release.name)
+            print(e.release.mbid)
+            if e.release.name is not None and e.release.name != "":
                 track["album"] = e.release.name
 
-            if e.release.mbid != "":
+            if e.release.mbid is not None and e.release.mbid != "":
                 track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["release_identifier"] = \
                       PLAYLIST_RELEASE_URI_PREFIX + e.release.mbid
 
