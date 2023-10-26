@@ -73,7 +73,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
                 track["album"] = e.release.name
 
             if e.release.mbid != "":
-                track["extension"]["album"][PLAYLIST_TRACK_EXTENSION_URI]["release_identifier"] = \
+                track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["release_identifier"] = \
                       PLAYLIST_RELEASE_URI_PREFIX + e.release.mbid
 
         tracks.append(track)
