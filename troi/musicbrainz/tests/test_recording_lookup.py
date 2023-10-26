@@ -21,6 +21,8 @@ return_json = [
         "length": 253000,
         "recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
         "recording_name": "Sour Times",
+        "release_name": "Dummy",
+        "release_mbid": "cf2a6e34-b4b7-4164-a464-dbb3dbf09c28",
         "original_recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
         "canonical_recording_mbid": "a96bf3b6-651d-49f4-9a89-eee27cecc18e",
     },
@@ -34,6 +36,8 @@ return_json = [
         "length": 275333,
         "recording_mbid": "cfa47c9b-f12f-4f9c-a6da-22a9355d6125",
         "recording_name": "Blue Angel",
+        "release_name": "Hot",
+        "release_mbid": "70fc4df9-1a86-4357-aac7-0694d4248aed",
         "original_recording_mbid": "ec5b8aa9-7483-4791-a185-1f599a0cdc35",
         "canonical_recording_mbid": "cfa47c9b-f12f-4f9c-a6da-22a9355d6125",
     }
@@ -62,9 +66,13 @@ class TestRecordingLookup(unittest.TestCase):
         assert entities[0].artist.name == "Portishead"
         assert entities[0].artist.artist_credit_id == 65
         assert entities[0].mbid == "a96bf3b6-651d-49f4-9a89-eee27cecc18e"
+        assert entities[0].release.mbid == "cf2a6e34-b4b7-4164-a464-dbb3dbf09c28"
+        assert entities[0].release.name == "Dummy"
 
         assert entities[1].name == "Blue Angel"
         assert entities[1].length == 275333
         assert entities[1].artist.name == "Squirrel Nut Zippers"
         assert entities[1].artist.artist_credit_id == 11
         assert entities[1].mbid == "cfa47c9b-f12f-4f9c-a6da-22a9355d6125"
+        assert entities[1].release.mbid == "70fc4df9-1a86-4357-aac7-0694d4248aed"
+        assert entities[1].release.name == "Hot"
