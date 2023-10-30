@@ -3,7 +3,7 @@ from time import sleep
 import requests
 import ujson
 
-from troi import Element, Artist, PipelineError, Recording, Playlist
+from troi import Element, Artist, PipelineError, Recording, Playlist, Release
 
 
 class RecordingLookupElement(Element):
@@ -81,15 +81,22 @@ class RecordingLookupElement(Element):
                     output.append(r)
                 continue
 
-            if not r.artist:
+            if r.artist:
+                r.artist.name = row['artist_credit_name']
+                r.artist.mbids = row.get('[artist_credit_mbids]', [])
+                r.artist.artist_credit_id = row['artist_credit_id']
+            else:
                 a = Artist(name=row['artist_credit_name'],
                            mbids=row.get('[artist_credit_mbids]', []),
                            artist_credit_id=row['artist_credit_id'])
                 r.artist = a
+
+            if r.release:
+                r.release.name = row["release_name"]
+                r.release.mbid = row["release_mbid"]
             else:
-                r.artist.name = row['artist_credit_name']
-                r.artist.mbids = row.get('[artist_credit_mbids]', [])
-                r.artist.artist_credit_id = row['artist_credit_id']
+                r.release = Release(name=row["release_name"],
+                                    mbid=row["release_mbid"])
 
             r.name = row['recording_name']
             r.length = row['length']
