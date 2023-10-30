@@ -69,9 +69,6 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
             }
 
         if e.release is not None:
-            print(e.release)
-            print(e.release.name)
-            print(e.release.mbid)
             if e.release.name is not None and e.release.name != "":
                 track["album"] = e.release.name
 
