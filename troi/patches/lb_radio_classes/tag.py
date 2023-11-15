@@ -1,5 +1,6 @@
 import troi
-from random import randint
+from collections import defaultdict
+from random import randint, shuffle
 
 import requests
 
@@ -121,6 +122,67 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return highest_tag_count // 2
 
+
+    def fetch_similar_recordings(self, recording_mbids):
+
+        SIMILARITY_ALGORITHM = "session_based_days_9000_session_300_contribution_5_threshold_15_limit_50_skip_30"
+        
+        mbids = [ { "recording_mbid": rec, "algorithm": SIMILARITY_ALGORITHM } for rec in recording_mbids ]
+        r = requests.post("https://labs.api.listenbrainz.org/similar-recordings/json", json=mbids)
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch similar recordings: {r.status_code} ({r.text})")
+
+        try:
+            recordings = r.json()[3]["data"]
+        except IndexError:
+            return []
+
+        index = defaultdict(plist)
+        for rec in recordings:
+            index[rec["reference_mbid"]].append(rec["recording_mbid"])
+
+        # How random the similar tracks are, happens in this loop. Tune this first.
+        result = []
+        for k in index:
+            result.append({ rec["reference_mbid"]: index[k].random_item(0, 100) })
+
+        print(f"in {len(recording_mbids)} out: {len(result)}")
+
+        return result
+
+
+    def fuzz_up_boring_tag_data(self, tag_data):
+
+        # Combine all the tag data into one array
+        tag_recording_mbids = plist(tag_data["recording"])
+        tag_recording_mbids.extend(tag_data["release-group"])
+        tag_recording_mbids.extend(tag_data["artist"])
+        tag_recording_mbids = plist([ t["recording_mbid"] for t in tag_recording_mbids ])
+    
+        if self.mode == "medium":
+            start, stop = 33, 66
+            max_num_similar_tracks = TARGET_NUMBER_OF_RECORDINGS
+        else:
+            start, stop = 66, 100
+            max_num_similar_tracks = TARGET_NUMBER_OF_RECORDINGS * 2
+
+        # Now randomly select our minimum of tracks
+        recordings = plist()
+        for recording in tag_recording_mbids.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT):
+            recordings.append(recording)
+
+        similar_recordings_index = self.fetch_similar_recordings(recordings)
+        similar_recordings = []
+        for recording in recordings:
+            if recording in similar_recordings_index:
+                similar_recordings.append(similar_recordings_index[recording])
+                del tag_recording_mbids[recording]
+
+        similar_recordings.extend(recordings.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT - len(similar_recordings))) 
+        shuffle(similar_recordings) 
+
+        return similar_recordings
+
     def read(self, entities):
 
         # TODO: Should this be set lower for harder modes and loads of tags? We need to wait for more user feedback on this.
@@ -130,64 +192,10 @@ class LBRadioTagRecordingElement(troi.Element):
             f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
 
         tag_data = self.fetch_tag_data(self.tags, self.operator, threshold)
-
-        # Now that we've fetched the tag data, depending on mode, start collecting recordings from it. The idea
-        # is to start on recordings for easy mode, release-group for medium and artist for hard mode. If not enough
-        # recordings are collected, descend one level and attempt to collect more.
-        recordings = plist()
-        if self.mode == "easy":
-            recordings = self.collect_recordings(recordings, tag_data, "recording", min_tag_count=None)
-            if len(recordings) < self.MIN_RECORDINGS_EASY:
-                try:
-                    highest_tag_count = tag_data["recording"][0]["tag_count"]
-                except IndexError:
-                    highest_tag_count = 0
-                lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
-                for tag_count in range(highest_tag_count, lowest_tag_count, -1):
-                    recordings = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=tag_count)
-                    if len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT:
-                        break
-
-                if len(recordings) < self.MIN_RECORDINGS_EASY:
-                    self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for easy mode." %
-                                                               ", ".join(self.tags))
-                    if len(recordings) >= self.MIN_RECORDINGS_MEDIUM:
-                        self.local_storage["user_feedback"].append("There are enough tags for medium mode, try it!")
-                    recordings = []
-
-        elif self.mode == "medium":
-            recordings = self.collect_recordings(recordings, tag_data, "release-group", min_tag_count=None)
-            if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
-                try:
-                    highest_tag_count = tag_data["release-group"][0]["tag_count"]
-                except IndexError:
-                    highest_tag_count = 0
-                lowest_tag_count = self.get_lowest_tag_count(highest_tag_count)
-                for tag_count in range(highest_tag_count, lowest_tag_count, -1):
-                    recordings = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=tag_count)
-                    if len(recordings) >= self.NUM_RECORDINGS_TO_COLLECT:
-                        break
-
-                if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
-                    # Check to see if there are tagged recordings we can use
-                    recording_count = len(recordings)
-                    recordings = self.collect_recordings(recordings, tag_data, "recording", min_tag_count=None)
-                    if len(recordings) > recording_count:
-                        self.local_storage["user_feedback"].append("Stole some tagged recordings, since they were going to waste.")
-                    if len(recordings) < self.MIN_RECORDINGS_MEDIUM:
-                        self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for medium mode." %
-                                                                   ", ".join(self.tags))
-                        recordings = []
-        else:
-            recordings = self.collect_recordings(recordings, tag_data, "artist", min_tag_count=None)
-            if len(recordings) < self.MIN_RECORDINGS_HARD:
-                self.local_storage["user_feedback"].append("tag '%s' generated too few recordings for hard mode." %
-                                                           ", ".join(self.tags))
-                recordings = []
-
+        recordings = self.fuzz_up_boring_tag_data(tag_data)
         # Convert results into recordings
         results = []
         for rec in recordings:
-            results.append(Recording(mbid=rec["recording_mbid"]))
+            results.append(Recording(mbid=rec))
 
         return results
