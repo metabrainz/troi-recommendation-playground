@@ -33,6 +33,14 @@ class LBRadioTagRecordingElement(troi.Element):
     def outputs(self):
         return [Recording]
 
+    def flatten_tag_data(self, tag_data):
+
+        flat_data = list(tag_data["recording"])
+        flat_data.extend(list(tag_data["release-group"]))
+        flat_data.extend(list(tag_data["artist"]))
+
+        return plist(sorted(flat_data, key=lambda f: f["percent"], reverse=True))
+
     def fetch_tag_data(self, tags, operator, min_tag_count):
         """
             Fetch the tag data from the LB API and return it as a dict.
@@ -53,7 +61,7 @@ class LBRadioTagRecordingElement(troi.Element):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
-        return dict(r.json())
+        return self.flatten_tag_data(dict(r.json()))
 
     def fetch_similar_tags(self, tag):
         """
@@ -65,14 +73,6 @@ class LBRadioTagRecordingElement(troi.Element):
             raise RuntimeError(f"Cannot fetch similar tags. {r.text}")
 
         return plist(r.json())
-
-    def flatten_tag_data(self, tag_data):
-
-        flat_data = list(tag_data["recording"])
-        flat_data.extend(list(tag_data["release-group"]))
-        flat_data.extend(list(tag_data["artist"]))
-
-        return plist(sorted(flat_data, key=lambda f: f["percent"], reverse=True))
 
     def select_recordings_on_easy(self, tag_data):
 
@@ -96,7 +96,6 @@ class LBRadioTagRecordingElement(troi.Element):
                 msgs = [f"tag: using seed tag '{self.tags[0]}' and similar tag '{similar_tag}'."]
 
                 sim_tag_data = self.fetch_tag_data([similar_tag], "OR", 1)
-                sim_tag_data = self.flatten_tag_data(sim_tag_data)
 
                 return interleave((result, sim_tag_data)), msgs
 
@@ -128,11 +127,9 @@ class LBRadioTagRecordingElement(troi.Element):
 
             if len(similar_tags) > 0:
                 sim_tag_data = self.fetch_tag_data((self.tags[0], similar_tags[0]), "AND", 1)
-                sim_tag_data = self.flatten_tag_data(sim_tag_data)
             
                 if len(similar_tags) > 1:
                     sim_tag_data_2 = self.fetch_tag_data((self.tags[0], similar_tags[1]), "AND", 1)
-                    sim_tag_data_2 = self.flatten_tag_data(sim_tag_data_2)
                     msgs = [f"""tag: using seed tag '{self.tags[0]}' and similar tags '{"', '".join(similar_tags)}'."""]
                 else:
                     msgs = [f"""tag: using seed tag '{self.tags[0]}' and similar tag '{similar_tags[0]}'."""]
@@ -152,7 +149,6 @@ class LBRadioTagRecordingElement(troi.Element):
             f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
 
         tag_data = self.fetch_tag_data(self.tags, self.operator, min_tag_count)
-        tag_data = self.flatten_tag_data(tag_data)
 
         recordings = plist()
         if self.mode == "easy":

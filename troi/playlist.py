@@ -76,6 +76,11 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
                 track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["release_identifier"] = \
                       PLAYLIST_RELEASE_URI_PREFIX + e.release.mbid
 
+        # Output subsonic_ids to the playlist
+        if "subsonic_id" in e.musicbrainz and e.musicbrainz["subsonic_id"] != "":
+            track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["subsonic_id"] = \
+                  PLAYLIST_RELEASE_URI_PREFIX + e.musicbrainz["subsonic_id"]
+
         tracks.append(track)
 
     data['track'] = tracks
