@@ -4,7 +4,7 @@ import sys
 import click
 
 from troi.utils import discover_patches
-from troi.core import generate_playlist, list_patches, patch_info, convert_patch_to_command
+from troi.core import list_patches, patch_info, convert_patch_to_command
 
 
 @click.group()
@@ -57,15 +57,6 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
               file=sys.stderr)
         return None
 
-    patch = patches[patchname](debug)
-
-    if args is None:
-        args = []
-
-    cmd = convert_patch_to_command(patch)
-    context = cmd.make_context(patchname, list(args))
-    pipelineargs = context.forward(cmd)
-
     patch_args = {
         "echo": echo,
         "save": save,
@@ -84,8 +75,17 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
             "is_collaborative": False,
             "existing_urls": spotify_url
         }
-    patch_args.update(pipelineargs)
-    ret = generate_playlist(patch, patch_args)
+
+    if args is None:
+        args = []
+
+    cmd = convert_patch_to_command(patches[patchname])
+    context = cmd.make_context(patchname, list(args))
+    patch_args.update(context.forward(cmd))
+
+    # Create the actual patch, finally
+    patch = patches[patchname](patch_args, debug)
+    ret = patch.generate_playlist()
 
     user_feedback = patch.user_feedback()
     if len(user_feedback) > 0:
