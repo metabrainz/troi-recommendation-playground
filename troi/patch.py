@@ -217,14 +217,14 @@ class Patch(ABC):
 
     def _exchange_class(self, element, class_name, new_class, prev_item=None):
 
-        if element.__name__ == class_name:
+        if element.__class__.__name__ == class_name:
             new_class.patch = element.patch
-            new_class.sources = pipeline.sources
+            new_class.sources = element.sources
 
             if prev_item is not None:
                 for i, source in enumerate(prev_item.sources):
                     if source == element:
-                        prev_items.sources[i] = new_class
+                        prev_item.sources[i] = new_class
 
-        for source in pipeline.sources:
-            exchange_class(source, class_name, new_class, element)
+        for source in element.sources:
+            self._exchange_class(source, class_name, new_class, element)
