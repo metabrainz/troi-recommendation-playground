@@ -8,3 +8,4 @@ python-dateutil>=2.8.2
 spotipy>=2.22.1
 more_itertools
 pyparsing
+troi@git+https://github.com/metabrainz/troi-recommendation-playground.git@lb-local

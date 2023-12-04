@@ -206,18 +206,21 @@ class Patch(ABC):
         for src in element.sources:
             self._set_element_patch(src)
 
-    def exchange_class(self, class_name, new_class):
+    def exchange_element(self, class_name, new_class):
         """
             Step through the given pipeline and replace classes named class_name 
             and replace them with new_class. This allows monkey-patching
             patches after troi has stitched them together, to for instance 
             replace a global feature with a local feature.
         """
-        self._exchange_class(self.pipeline, class_name, new_class, None)
+        return self._exchange_element(self.pipeline, class_name, new_class, None)
 
-    def _exchange_class(self, element, class_name, new_class, prev_item=None):
+    def _exchange_element(self, element, class_name, new_class, prev_item=None):
+
+        # This feels pretty dodgy, really. I think I need to come up with something better.
 
         if element.__class__.__name__ == class_name:
+            old_element = element
             new_class.patch = element.patch
             new_class.sources = element.sources
 
@@ -225,6 +228,9 @@ class Patch(ABC):
                 for i, source in enumerate(prev_item.sources):
                     if source == element:
                         prev_item.sources[i] = new_class
+                        return element
 
         for source in element.sources:
-            self._exchange_class(source, class_name, new_class, element)
+            self._exchange_element(source, class_name, new_class, element)
+
+        return None
