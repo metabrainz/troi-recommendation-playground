@@ -164,6 +164,9 @@ class LBRadioTagRecordingElement(troi.Element):
         # Convert results into recordings
         results = []
         for rec in recordings:
-            results.append(Recording(mbid=rec["recording_mbid"]))
+            if "subsonic_id" in rec:
+                results.append(Recording(mbid=rec["recording_mbid"], musicbrainz={ "subsonic_id": rec["subsonic_id"] }))
+            else:
+                results.append(Recording(mbid=rec["recording_mbid"]))
 
         return results

@@ -21,6 +21,7 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
+SUBSONIC_URI_PREFIX = "https://subsonic.org/entity/song/"
 
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None):
@@ -79,8 +80,8 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
 
         # Output subsonic_ids to the playlist
         if "subsonic_id" in e.musicbrainz and e.musicbrainz["subsonic_id"] != "":
-            track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["subsonic_id"] = \
-                  PLAYLIST_RELEASE_URI_PREFIX + e.musicbrainz["subsonic_id"]
+            track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["subsonic_identifier"] = \
+                  SUBSONIC_URI_PREFIX + e.musicbrainz["subsonic_id"]
 
         tracks.append(track)
 
