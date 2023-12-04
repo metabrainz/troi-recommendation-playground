@@ -213,14 +213,18 @@ class Patch(ABC):
             patches after troi has stitched them together, to for instance 
             replace a global feature with a local feature.
         """
-        return self._exchange_element(self.pipeline, class_name, new_class, None)
 
-    def _exchange_element(self, element, class_name, new_class, prev_item=None):
+        exchanged_elements = []
+        self._exchange_element(self.pipeline, class_name, new_class, exchanged_elements, None)
+        return exchanged_elements
+
+    def _exchange_element(self, element, class_name, new_class, exchanged_elements, prev_item=None):
 
         # This feels pretty dodgy, really. I think I need to come up with something better.
 
+        old_element = None
         if element.__class__.__name__ == class_name:
-            old_element = element
+            exchanged_elements.append(element) 
             new_class.patch = element.patch
             new_class.sources = element.sources
 
@@ -228,9 +232,6 @@ class Patch(ABC):
                 for i, source in enumerate(prev_item.sources):
                     if source == element:
                         prev_item.sources[i] = new_class
-                        return element
 
         for source in element.sources:
-            self._exchange_element(source, class_name, new_class, element)
-
-        return None
+            self._exchange_element(source, class_name, new_class, exchanged_elements, element)
