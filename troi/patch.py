@@ -2,6 +2,8 @@ import logging
 import troi
 from abc import ABC, abstractmethod
 
+from troi.recording_search_service import RecordingSearchByTagService
+
 default_patch_args = dict(debug=False,
                           echo=True,
                           save=False,
@@ -13,6 +15,7 @@ default_patch_args = dict(debug=False,
                           desc=None,
                           min_recordings=10,
                           spotify=None)
+
 
 class Patch(ABC):
 
@@ -31,6 +34,10 @@ class Patch(ABC):
         self.patch_args = {**default_patch_args, **args}
         self.pipeline = self.create(self.patch_args)
         self._set_element_patch(self.pipeline)
+
+        # Setup extensible services
+        self.services = {}
+        self.register_service(RecordingSearchByTagService)
 
     def log(self, msg):
         '''
@@ -95,6 +102,23 @@ class Patch(ABC):
                input_args: the arguments passed to the patch.
         """
         return None
+
+    def register_service(self, service):
+        """
+            Register a new service that can provide services to troi patches.
+
+            Only one service can be registered for any given service slug at a time. The most
+            recently registered service will be use for the next playlist generation.
+        """
+        self.services[service().slug] = service
+
+    def get_service(self, slug):
+        """
+           Given a service slug, return the class registered for this service. 
+
+           Raises IndexError if no such service is registered.
+        """
+        return self.services[slug]
 
     def post_process(self):
         """
@@ -205,33 +229,3 @@ class Patch(ABC):
         element.set_patch_object(self)
         for src in element.sources:
             self._set_element_patch(src)
-
-    def exchange_element(self, class_name, new_class):
-        """
-            Step through the given pipeline and replace classes named class_name 
-            and replace them with new_class. This allows monkey-patching
-            patches after troi has stitched them together, to for instance 
-            replace a global feature with a local feature.
-        """
-
-        exchanged_elements = []
-        self._exchange_element(self.pipeline, class_name, new_class, exchanged_elements, None)
-        return exchanged_elements
-
-    def _exchange_element(self, element, class_name, new_class, exchanged_elements, prev_item=None):
-
-        # This feels pretty dodgy, really. I think I need to come up with something better.
-
-        old_element = None
-        if element.__class__.__name__ == class_name:
-            exchanged_elements.append(element) 
-            new_class.patch = element.patch
-            new_class.sources = element.sources
-
-            if prev_item is not None:
-                for i, source in enumerate(prev_item.sources):
-                    if source == element:
-                        prev_item.sources[i] = new_class
-
-        for source in element.sources:
-            self._exchange_element(source, class_name, new_class, exchanged_elements, element)
