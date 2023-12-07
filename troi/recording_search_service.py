@@ -12,7 +12,7 @@ class RecordingSearchByTagService(Service):
     TARGET_NUMBER_OF_RECORDINGS = 100 
 
     def __init__(self):
-        self._slug = self.SLUG
+        super().__init__(self.SLUG)
 
     @abstractmethod
     def search(self, tags, operator, begin_percent, end_percent):

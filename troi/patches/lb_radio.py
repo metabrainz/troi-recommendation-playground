@@ -31,9 +31,11 @@ class LBRadioPatch(troi.patch.Patch):
     DEFAULT_TIME_RANGE = "month"
 
     def __init__(self, args, debug=False):
-        super().__init__(args, debug)
         self.artist_mbids = []
         self.mode = None
+
+        # Remember, the create function for this class will be called in the super() init.
+        super().__init__(args, debug)
 
     @staticmethod
     def inputs():
