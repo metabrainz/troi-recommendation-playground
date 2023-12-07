@@ -3,12 +3,13 @@ from abc import abstractmethod
 import requests
 
 from troi.service import Service
+from troi.splitter import plist
 
 
 class RecordingSearchByTagService(Service):
 
     SLUG = "recording-search-by-tag"
-    TARGET_NUMBER_OF_RECORDINGS = 50
+    TARGET_NUMBER_OF_RECORDINGS = 100 
 
     def __init__(self):
         self._slug = self.SLUG
