@@ -37,7 +37,7 @@ class Patch(ABC):
 
         # Setup extensible services
         self.services = {}
-        self.register_service(RecordingSearchByTagService)
+        self.register_service(RecordingSearchByTagService())
 
     def log(self, msg):
         '''
@@ -110,7 +110,7 @@ class Patch(ABC):
             Only one service can be registered for any given service slug at a time. The most
             recently registered service will be use for the next playlist generation.
         """
-        self.services[service().slug] = service
+        self.services[service.slug] = service
 
     def get_service(self, slug):
         """
