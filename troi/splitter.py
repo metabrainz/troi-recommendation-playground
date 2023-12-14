@@ -235,3 +235,25 @@ class plist(list):
             return items
 
         return items[0] if len(items) > 0 else []
+
+    def select_items(self, count, start_percent=0, stop_percent=99):
+        """
+            Return a list of count items from the specified percent slice.
+
+            If there are not enough tracks to stay within the percent
+            boundary, the closest tracks will be chosen in an effort to
+            get to count tracks.
+        """
+
+        if len(self) == 0:
+            return []
+
+        start_index = self._get_index(start_percent)
+        stop_index = self._get_index(stop_percent)
+
+        data = super().__getitem__(slice(start_index, stop_index))
+        items = [data[randint(0, len(data) - 1)] for i in range(min(count, len(data)))]
+        if count > 1:
+            return items
+
+        return items[0] if len(items) > 0 else []

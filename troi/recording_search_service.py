@@ -9,20 +9,18 @@ from troi.splitter import plist
 class RecordingSearchByTagService(Service):
 
     SLUG = "recording-search-by-tag"
-    TARGET_NUMBER_OF_RECORDINGS = 100 
 
     def __init__(self):
         super().__init__(self.SLUG)
 
-    @abstractmethod
-    def search(self, tags, operator, begin_percent, end_percent):
+    def search(self, tags, operator, begin_percent, end_percent, num_recordings):
         """
             Fetch the tag data from the LB API and return it as a dict.
         """
 
         data = {
             "condition": operator,
-            "count": self.TARGET_NUMBER_OF_RECORDINGS,
+            "count": num_recordings,
             "begin_percent": begin_percent,
             "end_percent": end_percent,
             "tag": tags,
