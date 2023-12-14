@@ -58,6 +58,8 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def select_recordings_on_easy(self):
 
+        print("tag operator: %s" % self.operator)
+
         msgs = []
         start, stop = self.invert_for_tag_search(
             self.local_storage["modes"]["easy"])
