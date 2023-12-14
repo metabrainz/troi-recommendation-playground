@@ -48,7 +48,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         msgs = [ ]
         start, stop = self.local_storage["modes"]["easy"]
-        tag_data = self.recording_search_by_tag.search(self.tags, self.operator, start, stop)
+        tag_data = self.recording_search_by_tag.search(self.tags, self.operator, 100 - stop, 100 - start)
 
         msgs = [f"""tag: using seed tags: '{ "', '".join(self.tags)}' only"""]
         return tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT), msgs
@@ -57,7 +57,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         msgs = [ ]
         start, stop = self.local_storage["modes"]["medium"]
-        tag_data = self.recording_search_by_tag.search(self.tags, self.operator, start, stop)
+        tag_data = self.recording_search_by_tag.search(self.tags, self.operator, 100 - stop, 100 - start)
         result = tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT)
 
         if len(self.tags) == 1 and self.include_similar_tags:
@@ -67,7 +67,7 @@ class LBRadioTagRecordingElement(troi.Element):
                 similar_tag = similar_tag["similar_tag"]
                 msgs = [f"tag: using seed tag '{self.tags[0]}' and similar tag '{similar_tag}'."]
 
-                sim_tag_data = self.recording_search_by_tag.search([similar_tag], "OR", start, stop)
+                sim_tag_data = self.recording_search_by_tag.search([similar_tag], "OR", 100 - stop, 100 - start)
 
                 return interleave((result, sim_tag_data)), msgs
 
@@ -78,7 +78,7 @@ class LBRadioTagRecordingElement(troi.Element):
 
         msgs = [ ]
         start, stop = self.local_storage["modes"]["hard"]
-        tag_data = self.recording_search_by_tag.search(self.tags, self.operator, start, stop)
+        tag_data = self.recording_search_by_tag.search(self.tags, self.operator, 100 - stop, 100 - start)
         result = tag_data.random_item(start, stop, self.NUM_RECORDINGS_TO_COLLECT)
 
         sim_start, sim_stop = 10, 50 
