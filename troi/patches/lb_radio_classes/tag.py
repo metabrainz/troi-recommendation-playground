@@ -87,7 +87,7 @@ class LBRadioTagRecordingElement(troi.Element):
                 ]
 
                 sim_tag_data = self.recording_search_by_tag.search(
-                    [similar_tag], "OR", 100 - stop, 100 - start)
+                    [similar_tag], "OR", start, stop)
 
                 return interleave((result, sim_tag_data)), msgs
 
