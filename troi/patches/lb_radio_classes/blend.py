@@ -46,7 +46,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
     """
 
     def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS,
-                 max_artist_occurrence=3):
+                 max_artist_occurrence=2):
         troi.Element.__init__(self)
         self.weights = weights
         self.max_num_recordings = max_num_recordings
@@ -78,7 +78,6 @@ class WeighAndBlendRecordingsElement(troi.Element):
             except IndexError:
                 pass
 
-        # TODO: Limit the total number of tracks by any one given artist!
         # This still allows sequential tracks to be from the same artists. I'll wait for feedback to see if this
         # is a problem.
         artist_counts = defaultdict(int)
