@@ -1,3 +1,4 @@
+from collections import defaultdict
 import troi
 from random import randint
 from troi import Recording
@@ -44,10 +45,12 @@ class WeighAndBlendRecordingsElement(troi.Element):
         A source that has a weight of 2 will be chosen 2 times more often than a source with weight 1.
     """
 
-    def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS):
+    def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS,
+                 max_artist_occurrence=2):
         troi.Element.__init__(self)
         self.weights = weights
         self.max_num_recordings = max_num_recordings
+        self.max_artist_occurrence = max_artist_occurrence
 
     def inputs(self):
         return [Recording]
@@ -77,6 +80,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
         # This still allows sequential tracks to be from the same artists. I'll wait for feedback to see if this
         # is a problem.
+        artist_counts = defaultdict(int)
         dedup_set = set()
         while True:
             r = randint(0, total)
@@ -89,8 +93,13 @@ class WeighAndBlendRecordingsElement(troi.Element):
                                 total_available -= 1
                                 continue
 
+                            if artist_counts[",".join(rec.artist.mbids)] == self.max_artist_occurrence:
+                                total_available -= 1
+                                continue
+
                             recordings.append(rec)
                             dedup_set.add(rec.mbid)
+                            artist_counts[",".join(rec.artist.mbids)] += 1
                         break
 
             if len(recordings) >= self.max_num_recordings or len(recordings) == total_available:
