@@ -157,12 +157,13 @@ class LBRadioArtistRecordingElement(troi.Element):
                 self.local_storage["user_feedback"].append(
                     f"Artist {artist['name']} only has {'no' if len(recs_plist) == 0 else 'few'} top recordings.")
 
-            recordings = []
-            for recording in recs_plist.random_item(start, stop, self.max_top_recordings_per_artist):
-                recordings.append(recording)
+            recordings = recs_plist.random_item(start, stop, self.max_top_recordings_per_artist)
 
             # Now tuck away the data for caching and interleaving
-            self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
+            #self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
             artist["recordings"] = recordings
+
+        from icecream import ic
+        ic(artists)
 
         return interleave([a["recordings"] for a in artists])
