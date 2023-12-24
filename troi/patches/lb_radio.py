@@ -4,6 +4,7 @@ from uuid import UUID
 import requests
 from urllib.parse import quote
 
+import troi.patch
 import troi.filters
 import troi.listenbrainz.feedback
 import troi.listenbrainz.listens
