@@ -163,7 +163,4 @@ class LBRadioArtistRecordingElement(troi.Element):
             #self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
             artist["recordings"] = recordings
 
-        from icecream import ic
-        ic(artists)
-
         return interleave([a["recordings"] for a in artists])
