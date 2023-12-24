@@ -2,7 +2,7 @@ import logging
 import troi
 from abc import ABC, abstractmethod
 
-from troi.recording_search_service import RecordingSearchByTagService
+from troi.recording_search_service import RecordingSearchByTagService, RecordingSearchByArtistService
 
 default_patch_args = dict(debug=False,
                           echo=True,
@@ -38,6 +38,7 @@ class Patch(ABC):
         # Setup extensible services
         self.services = {}
         self.register_service(RecordingSearchByTagService())
+        self.register_service(RecordingSearchByArtistService())
 
     def log(self, msg):
         '''

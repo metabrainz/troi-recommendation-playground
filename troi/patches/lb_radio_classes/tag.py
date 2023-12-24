@@ -58,8 +58,6 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def select_recordings_on_easy(self):
 
-        print("tag operator: %s" % self.operator)
-
         msgs = []
         start, stop = self.invert_for_tag_search(
             self.local_storage["modes"]["easy"])
@@ -114,6 +112,8 @@ class LBRadioTagRecordingElement(troi.Element):
         msgs = []
         start, stop = self.invert_for_tag_search(
             self.local_storage["modes"]["hard"])
+
+        # TODO: Make this funtion return Recordings, so that troi can be non MB ID agnostic
         tag_data = self.recording_search_by_tag.search(
             self.tags, self.operator, start, stop,
             self.NUM_RECORDINGS_TO_COLLECT)

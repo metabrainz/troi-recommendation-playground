@@ -45,8 +45,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
         A source that has a weight of 2 will be chosen 2 times more often than a source with weight 1.
     """
 
-    def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS,
-                 max_artist_occurrence=2):
+    def __init__(self, weights, max_num_recordings=TARGET_NUMBER_OF_RECORDINGS, max_artist_occurrence=None):
         troi.Element.__init__(self)
         self.weights = weights
         self.max_num_recordings = max_num_recordings
@@ -93,7 +92,8 @@ class WeighAndBlendRecordingsElement(troi.Element):
                                 total_available -= 1
                                 continue
 
-                            if artist_counts[",".join(rec.artist.mbids)] == self.max_artist_occurrence:
+                            if self.max_artist_occurrence is not None and artist_counts[",".join(
+                                    rec.artist.mbids)] == self.max_artist_occurrence:
                                 total_available -= 1
                                 continue
 
