@@ -8,6 +8,8 @@ from troi.splitter import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
 
+# TODO: Review ranges, start/stop and why tag needs inverting.
+
 
 class LBRadioTagRecordingElement(troi.Element):
 
@@ -189,14 +191,4 @@ class LBRadioTagRecordingElement(troi.Element):
         for msg in feedback:
             self.local_storage["user_feedback"].append(msg)
 
-        # Convert results into recordings
-        results = []
-        for rec in recordings:
-            if "subsonic_id" in rec:
-                results.append(
-                    Recording(mbid=rec["recording_mbid"],
-                              musicbrainz={"subsonic_id": rec["subsonic_id"]}))
-            else:
-                results.append(Recording(mbid=rec["recording_mbid"]))
-
-        return results
+        return recordings

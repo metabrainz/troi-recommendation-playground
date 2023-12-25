@@ -38,7 +38,11 @@ class RecordingSearchByTagService(Service):
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
-        return self.flatten_tag_data(dict(r.json()))
+        recordings = []
+        for rec in self.flatten_tag_data(dict(r.json())):
+            recordings.append(Recording(mbid=rec["recording_mbid"]))
+
+        return plist(recordings)
 
     def flatten_tag_data(self, tag_data):
 
@@ -46,7 +50,7 @@ class RecordingSearchByTagService(Service):
         flat_data.extend(list(tag_data["release-group"]))
         flat_data.extend(list(tag_data["artist"]))
 
-        return plist(sorted(flat_data, key=lambda f: f["percent"], reverse=True))
+        return sorted(flat_data, key=lambda f: f["percent"], reverse=True)
 
 
 class RecordingSearchByArtistService(Service):
