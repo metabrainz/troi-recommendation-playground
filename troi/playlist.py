@@ -64,7 +64,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
         track["title"] = e.name
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
 
-        if "duration" in e and e["duration"] is not None:
+        if e.duration is not None:
             track["duration"] = e["duration"]
 
         if artist_mbids:
