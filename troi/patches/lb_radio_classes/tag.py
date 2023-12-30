@@ -115,7 +115,6 @@ class LBRadioTagRecordingElement(troi.Element):
         start, stop = self.invert_for_tag_search(
             self.local_storage["modes"]["hard"])
 
-        # TODO: Make this funtion return Recordings, so that troi can be non MB ID agnostic
         tag_data = self.recording_search_by_tag.search(
             self.tags, self.operator, start, stop,
             self.NUM_RECORDINGS_TO_COLLECT)

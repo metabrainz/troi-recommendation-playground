@@ -263,10 +263,10 @@ class Recording(Entity):
     """
         The class that represents a recording.
     """
-    def __init__(self, name=None, mbid=None, msid=None, length=None, artist=None, release=None,
+    def __init__(self, name=None, mbid=None, msid=None, duration=None, artist=None, release=None,
                  ranking=None, year=None, spotify_id=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
-        self.length = length # track length in ms
+        self.duration = duration # track duration in ms
         self.artist = artist
         self.release = release
         self.name = name
