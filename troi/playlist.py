@@ -64,7 +64,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
         track["title"] = e.name
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
 
-        loc = e.musicbrainz.get("location", None)
+        loc = e.musicbrainz.get("filename", None)
         if loc is not None:
             track["location"] = loc
 
