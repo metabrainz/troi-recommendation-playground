@@ -80,7 +80,7 @@ class RecordingSearchByArtistService(Service):
                 recordings.append(
                     Recording(mbid=recording["recording_mbid"],
                               name=recording["recording_name"],
-                              length=recording["length"],
+                              duration=recording["length"],
                               artist=artist))
 
             artists_recordings[artist_mbid] = recordings.random_item(begin_percent, end_percent, num_recordings)
