@@ -1,0 +1,12 @@
+{
+    "name": "Scotland",
+    "flag": "",
+    "geoJSON": {},
+    "ISO": {
+        "alpha2": "",
+        "alpha3": ""
+    },
+    "provinces": ["Aberdeen City", "Aberdeenshire", "Angus", "Argyll and Bute", "City of Edinburgh", "Clackmannanshire", "Dumfries and Galloway", "Dundee City", "East Ayrshire", "East Dunbartonshire", "East Lothian", "East Renfrewshire", "Eilean Siar (Western Isles)", "Falkirk", "Fife", "Glasgow City", "Highland", "Inverclyde", "Midlothian", "Moray", "North Ayrshire", "North Lanarkshire", "Orkney Islands", "Perth and Kinross", "Renfrewshire", "Shetland Islands", "South Ayrshire", "South Lanarkshire", "Stirling", "The Scottish Borders", "West Dunbartonshire", "West Lothian"],
+    "tld": [],
+    "wiki": "http://en.wikipedia.org/wiki/scotland"
+}

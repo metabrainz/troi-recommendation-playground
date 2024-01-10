@@ -38,7 +38,7 @@ below.
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
-pip3 install -r requirements.txt -r requirements_test.txt
+pip3 install .[tests]
 python3 troi.py --help
 ```
 
@@ -47,7 +47,7 @@ python3 troi.py --help
 ```
 virtualenv -p python .ve
 .ve\Scripts\activate.bat
-pip install -r requirements.txt -r requirements_test.txt
+pip install .[tests]
 python troi.py --help
 ```
 
