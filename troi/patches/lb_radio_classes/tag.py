@@ -8,8 +8,7 @@ from troi.splitter import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
 
-# TODO: Review ranges, start/stop and why tag needs inverting.
-
+# TODO (not right now): Review ranges, start/stop and why tag needs inverting.
 
 class LBRadioTagRecordingElement(troi.Element):
 
