@@ -179,7 +179,6 @@ class LBRadioTagRecordingElement(troi.Element):
         self.local_storage["data_cache"]["element-descriptions"].append(
             f'tag{"" if len(self.tags) == 1 else "s"} {", ".join(self.tags)}')
 
-        recordings = plist()
         if self.mode == "easy":
             recordings, feedback = self.select_recordings_on_easy()
         elif self.mode == "medium":
