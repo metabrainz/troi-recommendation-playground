@@ -87,8 +87,8 @@ python3 troi.py test -v <file to test>
 
 To build the documentation locally:
 
+    pip install .[docs]
     cd docs
-    pip install -r requirements.txt
     make clean html
 
 ## References for the future path of Troi
