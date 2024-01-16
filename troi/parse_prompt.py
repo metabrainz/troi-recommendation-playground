@@ -52,20 +52,12 @@ def build_parser():
                  + pp.Suppress(pp.Literal(':')) \
                  + pp.Group(uuid, aslist=True) \
                  + optional
-    element_text = artist_element  \
-                 + pp.Suppress(pp.Literal(':')) \
-                 + pp.Group(text, aslist=True) \
-                 + optional
     element_paren_text = artist_element \
                        + pp.Suppress(pp.Literal(':')) \
                        + pp.Group(paren_text, aslist=True) \
                        + optional
 
     # Define tag element
-    element_tag = tag_element \
-                + pp.Suppress(pp.Literal(':')) \
-                + pp.Group(tag, aslist=True) \
-                + optional
     element_paren_tag = tag_element \
                       + pp.Suppress(pp.Literal(':')) \
                       + pp.Group(paren_text, aslist=True) \
@@ -105,8 +97,8 @@ def build_parser():
 
     # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
     # complex
-    elements = element_tag | element_tag_shortcut | element_uuid | element_paren_recs | element_collection | element_playlist | \
-               element_text | element_paren_stats | element_paren_recs | element_recs | element_stats | \
+    elements = element_tag_shortcut | element_uuid | element_paren_recs | element_collection | element_playlist | \
+               element_paren_stats | element_paren_recs | element_recs | element_stats | \
                element_paren_text | element_paren_tag | element_tag_paren_shortcut
 
     # All of the above was to parse one single term, now allow the stats to define more than one if they want

@@ -13,7 +13,6 @@ class TestPatches(unittest.TestCase):
         assert "area-random-recordings" in patches
         assert "weekly-flashback-jams" in patches
         assert "playlist-from-mbids" in patches
-        assert "world-trip" in patches
         assert "recs-to-playlist" in patches
         assert "transfer-playlist" in patches
 

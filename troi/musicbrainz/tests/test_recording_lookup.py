@@ -62,7 +62,7 @@ class TestRecordingLookup(unittest.TestCase):
 
         assert len(entities) == 2
         assert entities[0].name == "Sour Times"
-        assert entities[0].length == 253000
+        assert entities[0].duration == 253000
         assert entities[0].artist.name == "Portishead"
         assert entities[0].artist.artist_credit_id == 65
         assert entities[0].mbid == "a96bf3b6-651d-49f4-9a89-eee27cecc18e"
@@ -70,7 +70,7 @@ class TestRecordingLookup(unittest.TestCase):
         assert entities[0].release.name == "Dummy"
 
         assert entities[1].name == "Blue Angel"
-        assert entities[1].length == 275333
+        assert entities[1].duration == 275333
         assert entities[1].artist.name == "Squirrel Nut Zippers"
         assert entities[1].artist.artist_credit_id == 11
         assert entities[1].mbid == "cfa47c9b-f12f-4f9c-a6da-22a9355d6125"
