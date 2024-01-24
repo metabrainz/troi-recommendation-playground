@@ -46,6 +46,9 @@ docs = [
 
 [project.urls]
 Homepage = "https://github.com/metabrainz/troi-recommendation-playground"
+Documentation = "https://troi.readthedocs.io/en/latest/"
+Releases = "https://github.com/metabrainz/troi-recommendation-playground/releases"
+Issues = "https://tickets.metabrainz.org/secure/RapidBoard.jspa?rapidView=14&projectKey=LB#"
 
 [build-system]
 requires = ["setuptools>=64.0", "setuptools_scm>=8"]
