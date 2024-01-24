@@ -8,7 +8,8 @@ from troi.splitter import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
 
-# TODO:
+# TODO improvements for post troi/liblistenbrainz/content-resolve packaging work, but before the next
+#      release of LB Radio for lb-server:
 # - Review use of ranges.
 # - Review having to invert the tag ranges
 # - Fix artist search to not just pick the bottom of the top, but really fetch the bottom
