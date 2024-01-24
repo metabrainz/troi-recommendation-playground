@@ -32,7 +32,7 @@ troi = 'troi.cli:cli'
 tests = [
   'pytest == 7.1.2',
   'pytest-cov == 4.1.0',
-  'requests-mock'
+  'requests-mock == 1.11.0'
 ]
 build = [
   'build'
