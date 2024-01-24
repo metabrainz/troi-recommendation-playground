@@ -1,0 +1,61 @@
+[project]
+name = "troi"
+authors = [
+  { name = "MetaBrainz Foundation", email="support@metabrainz.org"}
+]
+description="An empathetic music recommendation system pipeline"
+readme = "README.md"
+requires-python=">=3.8"
+classifiers=[
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent",
+]
+dynamic = ["version"]
+dependencies = [
+  'click>=8.0',
+  'ujson>=5.4.0',
+  'requests',
+  'psycopg2-binary>=2.9.3',
+  'countryinfo>=0.1.2',
+  'liblistenbrainz>=v0.5.5',
+  'python-dateutil>=2.8.2',
+  'spotipy>=2.22.1',
+  'more_itertools',
+  'pyparsing'
+]
+
+[project.scripts]
+troi = 'troi.cli:cli'
+
+[project.optional-dependencies]
+tests = [
+  'pytest == 7.1.2',
+  'pytest-cov == 4.1.0',
+  'requests-mock == 1.11.0'
+]
+build = [
+  'build'
+]
+docs = [
+  'Sphinx == 5.0.2',
+  'sphinxcontrib-httpdomain == 1.8.0',
+  'sphinx_rtd_theme == 0.5.1',
+  'docutils == 0.17.1',
+  'sphinx-click == 4.3.0'
+]
+
+[project.urls]
+Homepage = "https://github.com/metabrainz/troi-recommendation-playground"
+Documentation = "https://troi.readthedocs.io/en/latest/"
+Releases = "https://github.com/metabrainz/troi-recommendation-playground/releases"
+Issues = "https://tickets.metabrainz.org/secure/RapidBoard.jspa?rapidView=14&projectKey=LB#"
+
+[build-system]
+requires = ["setuptools>=64.0", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["troi"]
+
+[tool.setuptools_scm]

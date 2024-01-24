@@ -1,8 +1,8 @@
 import json
 import requests
 from troi import Element, Recording, PipelineError
-import pylistenbrainz
-import pylistenbrainz.errors
+import liblistenbrainz
+import liblistenbrainz.errors
 import dateutil.parser
 
 MAX_NUM_RECORDINGS_PER_REQUEST = 100
@@ -21,7 +21,9 @@ class UserRecordingRecommendationsElement(Element):
 
     def __init__(self, user_name, artist_type, count=25, offset=0):
         super().__init__()
-        self.client = pylistenbrainz.ListenBrainz()
+        self.client = liblistenbrainz.ListenBrainz()
+        if auth_token:
+            self.client.set_auth_token(auth_token)
         self.user_name = user_name
         self.count = count
         self.offset = offset
@@ -46,7 +48,7 @@ class UserRecordingRecommendationsElement(Element):
                                                                             count=min(MAX_NUM_RECORDINGS_PER_REQUEST, remaining),
                                                                             offset=self.offset+len(recording_list))
             except (requests.exceptions.HTTPError,
-                    pylistenbrainz.errors.ListenBrainzAPIException,
+                    liblistenbrainz.errors.ListenBrainzAPIException,
                     requests.exceptions.ConnectionError) as err:
                 if not str(err):
                     err = "Does the user '%s' exist?" % self.user_name

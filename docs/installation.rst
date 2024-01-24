@@ -21,7 +21,7 @@ Use these command line arguments to install Troi on Linux and Mac:
 
     virtualenv -p python3 .ve
     source .ve/bin/activate
-    pip3 install -r requirements.txt -r requirements_test.txt
+    pip3 install .[tests]
     python3 -m troi.cli --help
 
 Windows
@@ -33,6 +33,6 @@ Use these commands to install on Windows:
 
     virtualenv -p python .ve
     .ve\Scripts\activate.bat
-    pip install -r requirements.txt -r requirements_test.txt
+    pip install .[tests]
     python -m troi.cli --help
 

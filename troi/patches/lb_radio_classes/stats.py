@@ -3,8 +3,8 @@ from random import randint, shuffle
 from uuid import UUID
 
 import troi
-import pylistenbrainz
-import pylistenbrainz.errors
+import liblistenbrainz
+import liblistenbrainz.errors
 from troi import Artist, Recording
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.parse_prompt import TIME_RANGES
@@ -22,7 +22,7 @@ class LBRadioStatsRecordingElement(troi.Element):
         self.user_name = user_name
         self.time_range = time_range
         self.mode = mode
-        self.client = pylistenbrainz.ListenBrainz()
+        self.client = liblistenbrainz.ListenBrainz()
 
         if time_range not in TIME_RANGES:
             raise RuntimeError("entity stats must specify one of the following time range options: " + ", ".join(TIME_RANGES))
@@ -45,7 +45,7 @@ class LBRadioStatsRecordingElement(troi.Element):
         # Fetch the user stats
         try:
             result = self.client.get_user_recordings(self.user_name, 100, offset, self.time_range)
-        except pylistenbrainz.errors.ListenBrainzAPIException as err:
+        except liblistenbrainz.errors.ListenBrainzAPIException as err:
             raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
         if result is None or "recordings" not in result["payload"]:

@@ -3,8 +3,8 @@ from random import randint, shuffle
 from uuid import UUID
 
 import troi
-import pylistenbrainz
-import pylistenbrainz.errors
+import liblistenbrainz
+import liblistenbrainz.errors
 from troi import Artist, Recording
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.parse_prompt import TIME_RANGES
@@ -23,7 +23,7 @@ class LBRadioRecommendationRecordingElement(troi.Element):
         self.user_name = user_name
         self.listened = listened
         self.mode = mode
-        self.client = pylistenbrainz.ListenBrainz()
+        self.client = liblistenbrainz.ListenBrainz()
 
     def inputs(self):
         return []
@@ -49,7 +49,7 @@ class LBRadioRecommendationRecordingElement(troi.Element):
             try:
                 result = self.client.get_user_recommendation_recordings(self.user_name, "raw",
                                                                         min(self.MAX_RECORDINGS_TO_FETCH_PER_CALL, count), offset)
-            except pylistenbrainz.errors.ListenBrainzAPIException as err:
+            except liblistenbrainz.errors.ListenBrainzAPIException as err:
                 raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
             if result is None or len(result['payload']['mbids']) == 0:
