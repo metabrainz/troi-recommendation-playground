@@ -4,7 +4,6 @@ import os
 import traceback
 import sys
 
-import troi.patch
 
 
 def discover_patches():
@@ -27,6 +26,8 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
         If add_dot = True, add . to the sys.path and then remove it before this function exists.
     """
 
+    # This is here to avoid a circular import
+    import troi.patch
     if add_dot:
         sys.path.append(".")
 

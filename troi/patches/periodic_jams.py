@@ -46,8 +46,8 @@ class PeriodicJamsPatch(troi.patch.Patch):
 
     JAM_TYPES = ("daily-jams", "weekly-jams", "weekly-exploration")
 
-    def __init__(self, debug=False):
-        super().__init__(debug)
+    def __init__(self, args, debug=False):
+        super().__init__(args, debug)
 
     @staticmethod
     def inputs():
