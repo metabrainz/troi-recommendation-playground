@@ -31,6 +31,7 @@ troi = 'troi.cli:cli'
 [project.optional-dependencies]
 tests = [
   'pytest == 7.1.2',
+  'pytest-cov == 4.1.0',
   'requests-mock'
 ]
 build = [
