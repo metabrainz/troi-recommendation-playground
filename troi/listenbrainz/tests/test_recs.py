@@ -32,7 +32,7 @@ recording_ret = {
 
 class TestRecs(unittest.TestCase):
 
-    @patch('pylistenbrainz.ListenBrainz.get_user_recommendation_recordings')
+    @patch('liblistenbrainz.ListenBrainz.get_user_recommendation_recordings')
     def test_get_user_recommendation_recordings(self, recs_mock):
 
         recs_mock.return_value = recording_ret

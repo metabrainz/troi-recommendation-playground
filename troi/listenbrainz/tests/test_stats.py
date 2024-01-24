@@ -58,7 +58,7 @@ recording_ret = {
 
 class TestStats(unittest.TestCase):
 
-    @patch('pylistenbrainz.ListenBrainz.get_user_artists')
+    @patch('liblistenbrainz.ListenBrainz.get_user_artists')
     def test_user_artist_stats(self, stats_mock):
 
         stats_mock.return_value = artist_ret
@@ -70,7 +70,7 @@ class TestStats(unittest.TestCase):
         assert entities[0].mbids is None
         assert entities[0].name == 'Pretty Lights'
 
-    @patch('pylistenbrainz.ListenBrainz.get_user_releases')
+    @patch('liblistenbrainz.ListenBrainz.get_user_releases')
     def test_user_release_stats(self, stats_mock):
 
         stats_mock.return_value = release_ret
@@ -82,7 +82,7 @@ class TestStats(unittest.TestCase):
         assert entities[0].artist.name == 'Saltillo'
         assert entities[0].name == 'Ganglion'
 
-    @patch('pylistenbrainz.ListenBrainz.get_user_recordings')
+    @patch('liblistenbrainz.ListenBrainz.get_user_recordings')
     def test_user_recording_stats(self, stats_mock):
 
         stats_mock.return_value = recording_ret
