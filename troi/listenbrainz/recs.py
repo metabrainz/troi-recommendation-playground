@@ -22,8 +22,6 @@ class UserRecordingRecommendationsElement(Element):
     def __init__(self, user_name, artist_type, count=25, offset=0):
         super().__init__()
         self.client = liblistenbrainz.ListenBrainz()
-        if auth_token:
-            self.client.set_auth_token(auth_token)
         self.user_name = user_name
         self.count = count
         self.offset = offset
