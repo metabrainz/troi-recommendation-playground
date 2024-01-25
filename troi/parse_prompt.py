@@ -1,196 +1,146 @@
-import sys
 from uuid import UUID
-
-import pyparsing as pp
-import pyparsing.exceptions
+import re
 
 TIME_RANGES = ["week", "month", "quarter", "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"]
-
 OPTIONS = ["easy", "hard", "medium", "and", "or", "nosim", "listened", "unlistened"] + TIME_RANGES
+ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs"]
 
 
 class ParseError(Exception):
     pass
 
+#TODO: Implement UUID parsing
 
-def build_parser():
-    """ Build a parser using pyparsing, which is bloody brilliant! """
+class PromptParser:
 
-    # Define the entities and their keywords
-    artist_element = pp.MatchFirst((pp.Keyword("artist"), pp.Keyword("a")))
-    tag_element = pp.MatchFirst((pp.Keyword("tag"), pp.Keyword("t")))
-    collection_element = pp.MatchFirst((pp.Keyword("collection")))
-    playlist_element = pp.MatchFirst((pp.Keyword("playlist"), pp.Keyword("p")))
-    stats_element = pp.MatchFirst((pp.Keyword("stats"), pp.Keyword("s")))
-    recs_element = pp.MatchFirst((pp.Keyword("recs"), pp.Keyword("r")))
+    def __init__(self):
+        self.clean_spaces = re.compile(r"\s+")
+        self.element_check = re.compile(r"([a-zA-Z]+):")
 
-    # Define the various text fragments/identifiers that we plan to use
-    text = pp.Word(pp.identbodychars + " ")
-    uuid = pp.pyparsing_common.uuid()
-    paren_text = pp.QuotedString("(", end_quote_char=")")
-    tag_chars = pp.identbodychars + "&!-@$%^*=+;'"
-    ws_tag = pp.OneOrMore(pp.Word(tag_chars + " "))
-    tag = pp.Word(tag_chars)
+    def identify_block(self, block):
 
-    # Define supporting fragments that will be used multiple times
-    paren_tag = pp.Suppress(pp.Literal("(")) \
-              + pp.delimitedList(pp.Group(ws_tag, aslist=True), delim=",") \
-              + pp.Suppress(pp.Literal(")"))
-    weight = pp.Suppress(pp.Literal(':')) \
-           + pp.Opt(pp.pyparsing_common.integer(), 1)
-    opt_keywords = pp.MatchFirst([pp.Keyword(k) for k in OPTIONS])
-    options = pp.Suppress(pp.Literal(':')) \
-            + opt_keywords
-    paren_options = pp.Suppress(pp.Literal(':')) \
-                  + pp.Suppress(pp.Literal("(")) \
-                  + pp.delimitedList(pp.Group(opt_keywords, aslist=True), delim=",") \
-                  + pp.Suppress(pp.Literal(")"))
-    optional = pp.Opt(weight + pp.Opt(pp.Group(options | paren_options), ""), 1)
+        for element in ELEMENTS:
+            if block.startswith(element + ":"):
+                return element
 
-    # Define artist element
-    element_uuid = artist_element \
-                 + pp.Suppress(pp.Literal(':')) \
-                 + pp.Group(uuid, aslist=True) \
-                 + optional
-    element_text = artist_element  \
-                 + pp.Suppress(pp.Literal(':')) \
-                 + pp.Group(text, aslist=True) \
-                 + optional
-    element_paren_text = artist_element \
-                       + pp.Suppress(pp.Literal(':')) \
-                       + pp.Group(paren_text, aslist=True) \
-                       + optional
+        if block.startswith("#"):
+            return "hashtag"
 
-    # Define tag element
-    element_tag = tag_element \
-                + pp.Suppress(pp.Literal(':')) \
-                + pp.Group(tag, aslist=True) \
-                + optional
-    element_paren_tag = tag_element \
-                      + pp.Suppress(pp.Literal(':')) \
-                      + pp.Group(paren_text, aslist=True) \
-                      + optional
-    element_tag_shortcut = pp.Literal('#') \
-                         + pp.Group(tag, aslist=True) \
-                         + optional
-    element_tag_paren_shortcut = pp.Literal('#') \
-                               + pp.Group(paren_tag, aslist=True) \
-                               + optional
+        # check for malformed element names
+        m = self.element_check.match(block)
+        if m is not None:
+            raise ParseError("Unrecognized element name '%s'. Must be one of: %s" % (m.group(0), ",".join(ELEMENTS)))
 
-    # Collection, playlist and stats, rec elements
-    element_collection = collection_element \
-                       + pp.Suppress(pp.Literal(':')) \
-                       + pp.Group(uuid, aslist=True) \
-                       + optional
-    element_playlist = playlist_element \
-                     + pp.Suppress(pp.Literal(':')) \
-                     + pp.Group(uuid, aslist=True) \
-                     + optional
-    element_stats = stats_element \
-                 + pp.Suppress(pp.Literal(':')) \
-                 + pp.Opt(pp.Group(text, aslist=True), "") \
-                 + optional
-    element_paren_stats = stats_element \
-                       + pp.Suppress(pp.Literal(':')) \
-                       + pp.Group(paren_text, aslist=True) \
-                       + optional
-    element_recs = recs_element \
-                 + pp.Suppress(pp.Literal(':')) \
-                 + pp.Opt(pp.Group(text, aslist=True), "") \
-                 + optional
-    element_paren_recs = recs_element \
-                       + pp.Suppress(pp.Literal(':')) \
-                       + pp.Group(paren_text, aslist=True) \
-                       + optional
+        return "artistname"
 
-    # Finally combine all elements into one, starting with the shortest/simplest elements and getting more
-    # complex
-    elements = element_tag | element_tag_shortcut | element_uuid | element_paren_recs | element_collection | element_playlist | \
-               element_text | element_paren_stats | element_paren_recs | element_recs | element_stats | \
-               element_paren_text | element_paren_tag | element_tag_paren_shortcut
+    def parse_special_cases(self, prompt):
 
-    # All of the above was to parse one single term, now allow the stats to define more than one if they want
-    return pp.OneOrMore(pp.Group(elements, aslist=True))
+        block_type = self.identify_block(prompt)
+        if block_type == "hashtag":
+            return "tag:(%s)" % prompt[1:]
+        if block_type == "artistname":
+            return "artist:(%s)" % prompt
 
+        return prompt
 
-def common_error_check(prompt: str):
-    """ Pyparsing is amazing, but the error messages leave a lot to be desired. This function attempts
-    to scan for common problems and give better error messages."""
+    def set_block_values(self, name, values, weight, opts, text, block):
 
-    parts = prompt.split(":")
-    try:
-        if parts[2] in OPTIONS:
-            sugg = f"{parts[0]}:{parts[1]}::{parts[2]}"
-            raise ParseError("Syntax error: options specified in the weight field, since a : is missing. Did you mean '%s'?" % sugg)
-    except IndexError:
-        pass
-
-
-def parse(prompt: str):
-    """ Parse the given prompt. Return an array of dicts that contain the following keys:
-          entity: str  e.g. "artist"
-          value: list e.g. "57baa3c6-ee43-4db3-9e6a-50bbc9792ee4"
-          weight: int  e.g. 1 (positive integer)
-          options: list e.g ["and", "easy"]
-
-        raises ParseError if, well, a parse error is encountered. 
-    """
-
-    common_error_check(prompt)
-
-    parser = build_parser()
-    try:
-        elements = parser.parseString(prompt.lower(), parseAll=True)
-    except pp.exceptions.ParseException as err:
-        raise ParseError(err)
-
-    results = []
-    for element in elements:
-        if element[0] == "a":
-            entity = "artist"
-        elif element[0] == "s":
-            entity = "stats"
-        elif element[0] == "r":
-            entity = "recs"
-        elif element[0] == "t":
-            entity = "tag"
-        elif element[0] == "p":
-            entity = "playlist"
-        elif element[0] == "#":
-            entity = "tag"
-        else:
-            entity = element[0]
-
-        try:
-            if entity == "tag" and element[1][0].find(",") > 0:
-                element[1] = [s.strip() for s in element[1][0].split(",")]
-        except IndexError:
-            pass
-
-        try:
-            values = [UUID(element[1][0])]
-        except (ValueError, AttributeError, IndexError):
-            values = []
-            for value in element[1]:
-                if isinstance(value, list):
-                    values.append(value[0])
+        if values is None:
+            try:
+                values = [UUID(text)]
+            except ValueError:
+                if name == "tag":
+                    values = text.split(",")
+                    values = [ v.strip() for v in values ]
                 else:
-                    values.append(value)
-        try:
-            weight = element[2]
-        except IndexError:
-            weight = 1
+                    values = [text]
+        elif weight is None:
+            if not text:
+                weight = 1
+            else:
+                try:
+                    weight = int(text)
+                except ValueError:
+                    raise ParseError("Weight must be a positive integer, not '%s'" % text)
+        elif not opts:
+            opts = text.split(",")
+            if opts and opts[-1] == "":
+                raise ParseError("Trailing comma in options.")
 
-        opts = []
-        try:
-            for opt in element[3]:
-                if isinstance(opt, list):
-                    opts.append(opt[0])
-                else:
-                    opts.append(opt)
-        except IndexError:
-            pass
+        return values, weight, opts
 
-        results.append({"entity": entity, "values": values, "weight": weight, "opts": opts})
+    def parse(self, prompt):
+        prompt = self.clean_spaces.sub(" ", prompt).strip()
+        block = self.parse_special_cases(prompt)
+        blocks = []
+        while True:
+            name = ""
+            for element in ELEMENTS:
+                if block.startswith(element + ":"):
+                    name = element
+                    break
+            if not name:
+                raise ParseError("Unknown element '%s'" % block)
 
-    return results
+            block = block[len(name):]
+            if block[0] == ':':
+                block = block[1:]
+
+            opts = []
+            weight = None
+            values = None
+            text = ""
+            parens = 0
+            escaped = False
+            for i in range(len(block)):
+                if not escaped and block[i] == '\\':
+                    escaped = True
+                    continue
+
+                if escaped:
+                    if block[i] in ('(', ')', '\\'):
+                        escaped = False
+                        text += block[i]
+                        continue
+                    escaped = False
+
+                if block[i] == '(':
+                    if i > 0:
+                        raise ParseError("() must start at the beginning of the value field.")
+                    parens += 1
+                    continue
+
+                if block[i] == ')':
+                    parens -= 1
+                    if parens < 0:
+                        raise ParseError("closing ) without matching opening ( near: '%s'." % block[i:])
+                    continue
+
+                if block[i] == ':' and parens == 0:
+                    values, weight, opts = self.set_block_values(name, values, weight, opts, text, block)
+                    text = ""
+                    continue
+
+                if block[i] == ' ' and parens == 0:
+                    break
+
+                text += block[i]
+
+            values, weight, opts = self.set_block_values(name, values, weight, opts, text, block)
+            try:
+                block = block[i + 1:]
+            except UnboundLocalError:
+                raise ParseError("incomplete prompt")
+
+            if parens > 0:
+                raise ParseError("Missing closing ).")
+
+            if parens < 0:
+                raise ParseError("Missing opening (.")
+
+            blocks.append({"entity": name, "values": values, "weight": weight or 1, "opts": opts})
+
+            if len(block) == 0:
+                break
+
+        return blocks
