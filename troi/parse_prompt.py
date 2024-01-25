@@ -9,7 +9,7 @@ ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs"]
 class ParseError(Exception):
     pass
 
-#TODO: Implement UUID parsing
+#TODO: implement opts checking wrt to the given element
 
 class PromptParser:
 
