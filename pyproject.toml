@@ -3,7 +3,7 @@ name = "troi"
 authors = [
   { name = "MetaBrainz Foundation", email="support@metabrainz.org"}
 ]
-description="An empathetic music recommendation system pipeline"
+description="ListenBrainz' empathic music recommendation/playlisting engine"
 readme = "README.md"
 requires-python=">=3.8"
 classifiers=[
