@@ -13,6 +13,7 @@ from troi.utils import interleave
 # - Review use of ranges.
 # - Review having to invert the tag ranges
 # - Fix artist search to not just pick the bottom of the top, but really fetch the bottom
+# - Review or remove artist caching from artist element
 
 class LBRadioTagRecordingElement(troi.Element):
 
