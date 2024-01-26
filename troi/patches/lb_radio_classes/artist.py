@@ -160,6 +160,8 @@ class LBRadioArtistRecordingElement(troi.Element):
             recordings = recs_plist.random_item(start, stop, self.max_top_recordings_per_artist)
 
             # Now tuck away the data for caching and interleaving
+            # The whole artist caching concept hasn't worked very well, and with future changes, it will likely go away.
+            # For now, ignore.
             #self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
             artist["recordings"] = recordings
 
