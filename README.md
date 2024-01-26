@@ -44,7 +44,7 @@ Full documentation for Troi is available at [troi.readthedocs.org](https://troi.
 
 ## Installation for end users
 
-Troi is available for download via [PyPa](https://pypi.org/project/troi/).
+Troi is available for download via [PyPi](https://pypi.org/project/troi/).
 
 ## Installation for Development
 
@@ -89,7 +89,7 @@ If the patch requires arguments, running it with no arguments will print a usage
         Options:
           --help  Show this message and exit.
 
-To generate an LB Radio playlist with an artist and a tag, use the following:
+To generate an LB Radio playlist on easy mode with an artist and a tag, use the following:
 
     troi playlist lb-radio easy "artist:(pretty lights) tag:(chillwave)"
 
