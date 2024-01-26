@@ -2,7 +2,6 @@ import unittest
 
 import requests_mock
 
-from troi.core import generate_playlist
 from troi.patch import Patch
 from troi import Recording, Element, Playlist
 from troi.tools.spotify_lookup import SPOTIFY_IDS_LOOKUP_URL
@@ -142,7 +141,7 @@ class TestSpotifySubmission(unittest.TestCase):
         )
         mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "bar"})
 
-        playlist = generate_playlist(DummyPatch(), {
+        patch = DummyPatch({
             "min_recordings": 1,
             "spotify": {
                 "token": "spotify-auth-token",
@@ -153,6 +152,7 @@ class TestSpotifySubmission(unittest.TestCase):
             "name": "Test Export Playlist",
             "upload": True
         })
+        playlist = patch.generate_playlist()
 
         history = mock_requests.request_history
 

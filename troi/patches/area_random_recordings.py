@@ -13,8 +13,8 @@ class AreaRandomRecordingsPatch(troi.patch.Patch):
 
     SERVER_URL = DEVELOPMENT_SERVER_URL + "/area-random-recordings/json"
 
-    def __init__(self, debug=False):
-        super().__init__(debug)
+    def __init__(self, args, debug=False):
+        super().__init__(args, debug)
 
     @staticmethod
     def inputs():

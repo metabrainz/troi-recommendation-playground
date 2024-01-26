@@ -9,6 +9,7 @@ from troi import Recording, Playlist, PipelineError, Element, Artist, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.spotify_lookup import submit_to_spotify
+from troi.playlist import PrintRecordingList
 
 LISTENBRAINZ_SERVER_URL = "https://listenbrainz.org"
 LISTENBRAINZ_API_URL = "https://api.listenbrainz.org"
@@ -20,6 +21,7 @@ PLAYLIST_RELEASE_URI_PREFIX = "https://musicbrainz.org/release/"
 PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
+SUBSONIC_URI_PREFIX = "https://subsonic.org/entity/song/"
 
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None):
@@ -61,6 +63,14 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
 
         track["title"] = e.name
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
+
+        loc = e.musicbrainz.get("filename", None)
+        if loc is not None:
+            track["location"] = loc
+
+        if e.duration is not None:
+            track["duration"] = e.duration
+
         if artist_mbids:
             track["extension"] = {
                 PLAYLIST_TRACK_EXTENSION_URI: {
@@ -75,6 +85,14 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
             if e.release.mbid is not None and e.release.mbid != "":
                 track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["release_identifier"] = \
                       PLAYLIST_RELEASE_URI_PREFIX + e.release.mbid
+
+        # Output subsonic_ids to the playlist
+        subsonic_id = e.musicbrainz.get("subsonic_id", None)
+        if subsonic_id is not None:
+            if "additional_metadata" not in track["extension"][PLAYLIST_TRACK_EXTENSION_URI]:
+                track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["additional_metadata"] = {}
+            track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["additional_metadata"]["subsonic_identifier"] = \
+                  SUBSONIC_URI_PREFIX + subsonic_id
 
         tracks.append(track)
 

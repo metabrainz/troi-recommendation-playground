@@ -86,14 +86,7 @@ Syntax Notes
 ------------
 
 The syntax attempts to be intuitive and simple, but it does have some limitations. The artist: entity has the most tricky restrictions
-because it should accept the full name of an artist. For latin character sets, the short form for an artist name can be used:
-
-::
-
-  artist:Blümchen
-  artist:The Knife
-
-But, if you need other unicode characters, the name must be enclosed by ():
+because it should accept the full name of an artist, so it must be wrapped in ():
 
 ::
 
@@ -101,22 +94,16 @@ But, if you need other unicode characters, the name must be enclosed by ():
 
 Furthermore, artist names must be spelled exactly as their appear in MusicBrainz.
 
-Tags have similar restrictions. If a tag you'd like to specify has no spaces or non-latin unicode characters you may use:
+Tags and comma seperated lists of tags have similar restrictions and must be enclosed by ():
 
 ::
 
-  tag:punk 
+  tag:(punk)
+
+A shorthand with #<tag> is allowed, as long as the tag does not contain spaces:
+::
+
   #punk
-
-But with spaces or non-latin unicode characters, wrap it in ():
-
-::
-
-  tag:(hip hop)
-
-::
-
-  tag:(あなたを決して裏切りません)
 
 
 Simple examples
@@ -124,14 +111,14 @@ Simple examples
 
 ::
 
-  artist:Rick Astley
+  artist:(Rick Astley)
 
 Create a single stream, from artist Rick Astley and similar artists. Artist names must be spelled here exactly as they are
 spelled in MusicBrainz. If for some reason the artist name is not recognized, specify an MBID instead. See below.
 
 ::
 
-  tag:rock:3 tag:pop:2
+  tag:(rock):3 tag:(pop):2
 
 Create two streams, one from tag "rock" contributing 3 parts of the recordings and one from tag "pop" contibuting 2 parts of the recordings.
 
@@ -205,13 +192,13 @@ More complex examples
 
 ::
 
-  artist:(pretty lights):3:easy tag:(trip hop):2 artist:morcheeba::nosim
+  artist:(pretty lights):3:easy tag:(trip hop):2 artist:(morcheeba)::nosim
 
 This prompt will play 3 parts from artist "Pretty Lights", 2 parts from the tag "trip hop" and 1 part from the artist "Morcheeba" with no
 tracks from similar artists.
 
 ::
 
-  tag:(deep house):2:medium tag:(metal):1:hard artist:blümchen:2:easy
+  tag:(deep house):2:medium tag:(metal):1:hard artist:(blümchen):2:easy
 
 This will play 2 parts from tag "deep house" on medium mode, 1 part from tag "metal" on hard mode and 2 parts from artists "Blümchen" on easy mode.

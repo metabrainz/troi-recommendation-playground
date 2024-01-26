@@ -25,8 +25,8 @@ class TopDiscoveries(troi.patch.Patch):
               </p>
            """
 
-    def __init__(self, debug=False):
-        troi.patch.Patch.__init__(self, debug)
+    def __init__(self, args, debug=False):
+        troi.patch.Patch.__init__(self, args, debug)
 
     @staticmethod
     def inputs():
