@@ -16,6 +16,8 @@ The troi engine features the following concepts:
 artists, tags, user statistics, user recommendations, LB playlists and MB collections.
 5. Generated playlists are output in the JSPF format, the JSON version of XPSF playlists.
 
+Troi is being used to generate weekly recommendations on ListenBrainz (weekly jams, weekly exploration)
+as well as [LB Radio](https://listenbrainz.org/explore/lb-radio/).
 
 ## Data-sets
 
@@ -25,8 +27,7 @@ that can be accessed as a part of this project. For instance, the more stable AP
 
 ListenBrainz offers a number of data sets:
 
-1. Collaborative filtered recordings that suggest what recordings a user should listen to based on
-their previous listening habits.
+1. Collaborative filtered recordings that suggest what recordings a user should listen to based on their previous listening habits.
 2. User statistics that were derived from users recent listening habits.
 3. Listening stats that can be used as a measure of popularity.
 4. Similarity data for artists and recordings
@@ -37,14 +38,13 @@ that we ensure are up to date on online at all times.
 
 The project is named after [Deanna Troi](https://en.wikipedia.org/wiki/Deanna_Troi).
 
-## DocumentationV
+## Documentation
 
 Full documentation for Troi is available at [troi.readthedocs.org](https://troi.readthedocs.org).
 
 ## Installation for end users
 
-So far we've not uploaded Troi bundles to PyPi -- please use the installation instructions for developers
-below.
+Troi is available for download via [PyPa](https://pypi.org/project/troi/).
 
 ## Installation for Development
 
@@ -78,17 +78,22 @@ Generate a playlist using a patch:
 
 If the patch requires arguments, running it with no arguments will print a usage statement, e.g.
 
-    $ troi playlist --print area-random-recordings
-    Usage: area-random-recordings [OPTIONS] AREA START_YEAR END_YEAR
-   
-      Generate a list of random recordings from a given area.
-   
-      AREA is a MusicBrainz area from which to choose tracks.
-      START_YEAR is the start year.
-      END_YEAR is the end year.
-   
-    Options:
-      --help  Show this message and exit.
+    $ troi playlist lb-radio
+        Usage: lb-radio [OPTIONS] MODE PROMPT
+
+          Generate a playlist from one or more Artist MBIDs
+
+          MODE which mode to generate playlists in. must be one of easy, mediumedium, hard
+          PROMPT is the LB radio prompt. See troi/parse_prompt.py for details.
+
+        Options:
+          --help  Show this message and exit.
+
+To generate an LB Radio playlist with an artist and a tag, use the following:
+
+    troi playlist lb-radio easy "artist:(pretty lights) tag:(chillwave)"
+
+The use the --upload and --token options to upload the playlist to ListenBrainz.
 
 ## Running tests
 
