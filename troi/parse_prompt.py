@@ -25,12 +25,16 @@ class ParseError(Exception):
 
 
 class PromptParser:
+    """
+    Parse the LB radio prompt and return a list of elements and all of their data/options
+    """
 
     def __init__(self):
         self.clean_spaces = re.compile(r"\s+")
         self.element_check = re.compile(r"([a-zA-Z]+):")
 
     def identify_block(self, block):
+        """Given a prompt string, identify the block that is at the beginning of the string"""
 
         for element in ELEMENTS:
             if block.startswith(element + ":"):
@@ -47,6 +51,7 @@ class PromptParser:
         return "artistname"
 
     def parse_special_cases(self, prompt):
+        """Detect the artist and tag special cases and re-write the query in long hand form."""
 
         block_type = self.identify_block(prompt)
         if block_type == "hashtag":
@@ -57,6 +62,7 @@ class PromptParser:
         return prompt
 
     def set_block_values(self, name, values, weight, opts, text, block):
+        """Parse, process and sanity check data for an element"""
 
         if values is None:
             try:
@@ -83,6 +89,8 @@ class PromptParser:
         return values, weight, opts
 
     def parse(self, prompt):
+        """Parse an actual LB-radio prompt and return a list of [name, [values], weight, [opts]]"""
+
         prompt = self.clean_spaces.sub(" ", prompt).strip()
         block = self.parse_special_cases(prompt)
         blocks = []
