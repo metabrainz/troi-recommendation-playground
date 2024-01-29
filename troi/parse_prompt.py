@@ -139,6 +139,7 @@ class PromptParser:
 
                 text += block[i]
 
+            # Now that we've parsed a block, do some sanity checking
             values, weight, opts = self.set_block_values(name, values, weight, opts, text, block)
             try:
                 block = block[i + 1:]
@@ -152,7 +153,6 @@ class PromptParser:
                 raise ParseError("Missing opening (.")
 
             for opt in opts:
-                print(opts)
                 if opt not in ELEMENT_OPTIONS[name]:
                     raise ParseError("Option '%s' is not allowed for element %s" % (opt, name))
 

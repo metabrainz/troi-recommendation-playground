@@ -124,36 +124,18 @@ Simple examples
 
 ::
 
-  artist:(Rick Astley)
+  Rick Astley
 
 Create a single stream, from artist Rick Astley and similar artists. Artist names must be spelled here exactly as they are
 spelled in MusicBrainz. If for some reason the artist name is not recognized, specify an MBID instead. See below.
 
-::
-
-  tag:(rock):3 tag:(pop):2
-
-Create two streams, one from tag "rock" contributing 3 parts of the recordings and one from tag "pop" contibuting 2 parts of the recordings.
 
 ::
 
-  artist:8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11
+  #punk
 
-
-Specify an exact artist, using an artist MBID.
-
-::
-
-  #rock #pop
-
-
-The # shorthand notation allows user to quickly specify a tag radio, but it onlt works for one tag and the tag cannot contain spaces:
-
-::
-
-  #rock
-
-This prompt generates a playlist with recordings that have been tagged with both the "rock" AND "pop" tags.
+The # shorthand notation allows user to quickly specify a tag radio, but it only works for one tag and the tag cannot contain spaces. For
+more advanced prompts, use the full notation described above.
 
 ::
 
@@ -164,9 +146,27 @@ be assumed to be 1.
 
 ::
 
+  tag:(rock) tag:(pop)
+
+Create two streams, one from tag "rock" contributing 3 parts of the recordings and one from tag "pop" contibuting 2 parts of the recordings.
+
+::
+
   tag:(trip hop)
 
 Tags that have a space in them must be enclosed in (). Specifying multiple tags requires the tags to be enclosed in () as well as comma separated.
+
+::
+
+  tag:(trip hop, downtempo)
+
+If LB-radio does not find your artist, you can specify an artist using an Artist MBID:
+
+::
+
+  artist:8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11
+
+LB-radio also supports MusicBrainz collections as sources:
 
 ::
 
