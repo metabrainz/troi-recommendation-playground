@@ -99,7 +99,7 @@ class RecordingLookupElement(Element):
                                     mbid=row["release_mbid"])
 
             r.name = row['recording_name']
-            r.length = row['length']
+            r.duration = row['length']
             r.mbid = row['recording_mbid']
 
             r.listenbrainz["canonical_recording_mbid"] = row["canonical_recording_mbid"]

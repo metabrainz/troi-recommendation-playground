@@ -4,6 +4,7 @@ from uuid import UUID
 import requests
 from urllib.parse import quote
 
+import troi.patch
 import troi.filters
 import troi.listenbrainz.feedback
 import troi.listenbrainz.listens
@@ -30,10 +31,12 @@ class LBRadioPatch(troi.patch.Patch):
     # If the user specifies no time_range, default to this one
     DEFAULT_TIME_RANGE = "month"
 
-    def __init__(self, debug=False):
-        super().__init__(debug)
+    def __init__(self, args, debug=False):
         self.artist_mbids = []
         self.mode = None
+
+        # Remember, the create function for this class will be called in the super() init.
+        super().__init__(args, debug)
 
     @staticmethod
     def inputs():
@@ -77,12 +80,16 @@ class LBRadioPatch(troi.patch.Patch):
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
 
-        r = requests.get(f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
+        r = requests.get(
+            f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json"
+        )
         if r.status_code == 404:
             raise RuntimeError(err_msg)
 
         if r.status_code != 200:
-            raise RuntimeError(f"Could not resolve artist name {artist_name}. Error {r.status_code}")
+            raise RuntimeError(
+                f"Could not resolve artist name {artist_name}. Error {r.status_code}"
+            )
 
         data = r.json()
         try:
@@ -108,15 +115,21 @@ class LBRadioPatch(troi.patch.Patch):
             raise RuntimeError(f"cannot parse prompt: '{err}'")
 
         if self.mode not in ("easy", "medium", "hard"):
-            raise RuntimeError("Argument mode must be one one easy, medium or hard.")
+            raise RuntimeError(
+                "Argument mode must be one one easy, medium or hard.")
 
         # Lookup artist names embedded in the prompt
         for element in prompt_elements:
-            if element["entity"] == "artist" and isinstance(element["values"][0], str):
-                element["values"][0] = UUID(self.lookup_artist_name(element["values"][0]))
+            if element["entity"] == "artist" and isinstance(
+                    element["values"][0], str):
+                element["values"][0] = UUID(
+                    self.lookup_artist_name(element["values"][0]))
 
         # Save descriptions to local storage
-        self.local_storage["data_cache"] = {"element-descriptions": [], "prompt": self.prompt}
+        self.local_storage["data_cache"] = {
+            "element-descriptions": [],
+            "prompt": self.prompt
+        }
         self.local_storage["user_feedback"] = []
 
         weights = [e["weight"] for e in prompt_elements]
@@ -139,44 +152,66 @@ class LBRadioPatch(troi.patch.Patch):
                 start, stop = 33, 66
             else:
                 start, stop = 66, 100
-            self.local_storage["modes"] = {"easy": (0, 33), "medium": (33, 66), "hard": (66, 100)}
+            self.local_storage["modes"] = {
+                "easy": (0, 33),
+                "medium": (33, 66),
+                "hard": (66, 100)
+            }
 
             if element["entity"] == "artist":
                 include_sim = False if "nosim" in element["opts"] else True
-                source = LBRadioArtistRecordingElement(element["values"][0], mode=mode, include_similar_artists=include_sim)
+                source = LBRadioArtistRecordingElement(
+                    element["values"][0],
+                    mode=mode,
+                    include_similar_artists=include_sim)
 
             if element["entity"] == "tag":
                 include_sim = False if "nosim" in element["opts"] else True
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="and", include_similar_tags=include_sim)
-
-            if element["entity"] == "tag-or":
-                source = LBRadioTagRecordingElement(element["values"], mode=mode, operator="or")
+                operator = "or" if "or" in element["opts"] else "and"
+                source = LBRadioTagRecordingElement(
+                    element["values"],
+                    mode=mode,
+                    operator=operator,
+                    include_similar_tags=include_sim)
 
             if element["entity"] == "collection":
-                source = LBRadioCollectionRecordingElement(element["values"][0], mode=mode)
+                source = LBRadioCollectionRecordingElement(
+                    element["values"][0], mode=mode)
 
             if element["entity"] == "playlist":
-                source = LBRadioPlaylistRecordingElement(element["values"][0], mode=mode)
+                source = LBRadioPlaylistRecordingElement(element["values"][0],
+                                                         mode=mode)
 
             if element["entity"] == "stats":
                 if len(element["opts"]) == 0:
                     element["opts"].append(self.DEFAULT_TIME_RANGE)
                 if len(element["values"]) == 0:
-                    raise RuntimeError("user name cannot be blank for user entity. (at least not yet -- soon it will be)")
+                    raise RuntimeError(
+                        "user name cannot be blank for user entity. (at least not yet -- soon it will be)"
+                    )
                 if len(element["opts"]) != 1:
-                    raise RuntimeError("The user entity needs to define one time range option.")
-                source = LBRadioStatsRecordingElement(element["values"][0], mode=mode, time_range=element["opts"][0])
+                    raise RuntimeError(
+                        "The user entity needs to define one time range option."
+                    )
+                source = LBRadioStatsRecordingElement(
+                    element["values"][0],
+                    mode=mode,
+                    time_range=element["opts"][0])
 
             if element["entity"] == "recs":
                 if len(element["values"]) == 0:
-                    raise RuntimeError("user name cannot be blank for user entity. (at least not yet -- soon it will be)")
+                    raise RuntimeError(
+                        "user name cannot be blank for user entity. (at least not yet -- soon it will be)"
+                    )
                 if len(element["opts"]) == 0:
                     listened = "all"
                 else:
                     listened = element["opts"][0]
-                source = LBRadioRecommendationRecordingElement(element["values"][0], mode=mode, listened=listened)
+                source = LBRadioRecommendationRecordingElement(
+                    element["values"][0], mode=mode, listened=listened)
 
-            recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+            recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(
+            )
             recs_lookup.set_sources(source)
 
             hate_filter = troi.filters.HatedRecordingsFilterElement()
@@ -188,7 +223,9 @@ class LBRadioPatch(troi.patch.Patch):
         blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
         blend.set_sources(elements)
 
-        pl_maker = PlaylistMakerElement(patch_slug=self.slug(), max_num_recordings=TARGET_NUMBER_OF_RECORDINGS)
+        pl_maker = PlaylistMakerElement(
+            patch_slug=self.slug(),
+            max_num_recordings=TARGET_NUMBER_OF_RECORDINGS)
         pl_maker.set_sources(blend)
 
         return pl_maker
@@ -199,8 +236,10 @@ class LBRadioPatch(troi.patch.Patch):
         """
 
         prompt = self.local_storage["data_cache"]["prompt"]
-        names = ", ".join(self.local_storage["data_cache"]["element-descriptions"])
+        names = ", ".join(
+            self.local_storage["data_cache"]["element-descriptions"])
         name = f"LB Radio for {names} on {self.mode} mode"
-        desc = "Experimental ListenBrainz radio using %s mode, which was generated from this prompt: '%s'" % (self.mode, prompt)
+        desc = "Experimental ListenBrainz radio using %s mode, which was generated from this prompt: '%s'" % (
+            self.mode, prompt)
         self.local_storage["_playlist_name"] = name
         self.local_storage["_playlist_desc"] = desc

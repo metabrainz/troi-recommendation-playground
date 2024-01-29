@@ -7,6 +7,7 @@ on:
     branches: [ '*' ]
 
 permissions:
+  checks: write
   pull-requests: write
 
 jobs:

@@ -5,6 +5,7 @@ from troi import Recording, Artist
 from troi.splitter import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
+from troi.recording_search_service import RecordingSearchByArtistService
 
 OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
@@ -73,26 +74,6 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
 
-    def fetch_top_recordings(self, artist_mbid):
-        """
-            Given and artist_mbid, fetch top recordings for this artist and retun them in a plist.
-        """
-
-        r = requests.get("https://api.listenbrainz.org/1/popularity/top-recordings-for-artist", params={"artist_mbid": artist_mbid})
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch top artist recordings: {r.status_code} ({r.text})")
-
-        recordings = plist()
-        for recording in r.json():
-            artist = Artist(mbids=recording["artist_mbids"], name=recording["artist_name"])
-            recordings.append(
-                Recording(mbid=recording["recording_mbid"],
-                          name=recording["recording_name"],
-                          length=recording["length"],
-                          artist=artist))
-
-        return recordings
-
     def fetch_artist_names(self, artist_mbids):
         """
             Fetch artists names for a given list of artist_mbids 
@@ -112,6 +93,9 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         self.data_cache = self.local_storage["data_cache"]
         artists = [{"mbid": self.artist_mbid}]
+
+        self.recording_search_by_artist = self.patch.get_service(
+            "recording-search-by-artist")
 
         # First, fetch similar artists if the user didn't override that.
         if self.include_similar_artists:
@@ -155,24 +139,30 @@ class LBRadioArtistRecordingElement(troi.Element):
             self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
 
-        # Now collect recordings from the artist and similar artists and return an interleaved
-        # strem of recordings.
-        for i, artist in enumerate(artists):
-            if artist["mbid"] + "_top_recordings" in self.data_cache:
-                artist["recordings"] = self.data_cache[artist["mbid"] + "_top_recordings"]
-                continue
+        artist_mbids = [ artist["mbid"] for artist in artists ]
+        artist_mbids = list(set(artist_mbids))
+        artist_recordings = self.recording_search_by_artist.search(artist_mbids, start, stop, self.max_top_recordings_per_artist)
 
-            recs_plist = plist(self.fetch_top_recordings(artist["mbid"]))
+        # Now collect recordings from the artist and similar artists and return an interleaved
+        # stream of recordings.
+        for i, artist in enumerate(artists):
+
+            # TODO: This disables top recordings caching, which needs to be re-thought given the new approach
+            #if artist["mbid"] + "_top_recordings" in self.data_cache:
+            #    artist["recordings"] = self.data_cache[artist["mbid"] + "_top_recordings"]
+            #    continue
+
+            recs_plist = plist(artist_recordings[artist["mbid"]])
             if len(recs_plist) < 20:
                 self.local_storage["user_feedback"].append(
                     f"Artist {artist['name']} only has {'no' if len(recs_plist) == 0 else 'few'} top recordings.")
 
-            recordings = []
-            for recording in recs_plist.random_item(start, stop, self.max_top_recordings_per_artist):
-                recordings.append(recording)
+            recordings = recs_plist.random_item(start, stop, self.max_top_recordings_per_artist)
 
             # Now tuck away the data for caching and interleaving
-            self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
+            # The whole artist caching concept hasn't worked very well, and with future changes, it will likely go away.
+            # For now, ignore.
+            #self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
             artist["recordings"] = recordings
 
         return interleave([a["recordings"] for a in artists])

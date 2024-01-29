@@ -80,8 +80,8 @@ class TopMissedTracksPatch(troi.patch.Patch):
               </p>
            """
 
-    def __init__(self, debug=False, max_num_recordings=50):
-        troi.patch.Patch.__init__(self, debug)
+    def __init__(self, args, debug=False, max_num_recordings=50):
+        troi.patch.Patch.__init__(self, args, debug)
         self.max_num_recordings = max_num_recordings
 
     @staticmethod
