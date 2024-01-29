@@ -2,14 +2,27 @@ from uuid import UUID
 import re
 
 TIME_RANGES = ["week", "month", "quarter", "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"]
-OPTIONS = ["easy", "hard", "medium", "and", "or", "nosim", "listened", "unlistened"] + TIME_RANGES
 ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs"]
+
+ELEMENT_OPTIONS = {
+    "artist": ["nosim", "easy", "medium", "hard"],
+    "tag": ["nosim", "and", "or", "easy", "medium", "hard"],
+    "collection": ["easy", "medium", "hard"],
+    "playlist": ["easy", "medium", "hard"],
+    "stats": TIME_RANGES,
+    "recs": ["easy", "medium", "hard", "listened", "unlistened"]
+}
+
+OPTIONS = set()
+for eo in ELEMENT_OPTIONS:
+    OPTIONS.update(ELEMENT_OPTIONS[eo])
+
+OPTIONS = list(OPTIONS)
 
 
 class ParseError(Exception):
     pass
 
-#TODO: implement opts checking wrt to the given element
 
 class PromptParser:
 
@@ -51,7 +64,7 @@ class PromptParser:
             except ValueError:
                 if name == "tag":
                     values = text.split(",")
-                    values = [ v.strip() for v in values ]
+                    values = [v.strip() for v in values]
                 else:
                     values = [text]
         elif weight is None:
@@ -137,6 +150,11 @@ class PromptParser:
 
             if parens < 0:
                 raise ParseError("Missing opening (.")
+
+            for opt in opts:
+                print(opts)
+                if opt not in ELEMENT_OPTIONS[name]:
+                    raise ParseError("Option '%s' is not allowed for element %s" % (opt, name))
 
             blocks.append({"entity": name, "values": values, "weight": weight or 1, "opts": opts})
 
