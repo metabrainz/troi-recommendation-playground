@@ -119,7 +119,7 @@ def info(patch):
 def test(args):
     """Run unit tests"""
     import pytest
-    pytest.main(list(args))
+    raise SystemExit(pytest.main())
 
 
 if __name__ == "__main__":
