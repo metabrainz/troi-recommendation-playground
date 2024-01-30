@@ -85,21 +85,16 @@ is likely going to create a playlist with familiar music, and a hard playlist ma
 Syntax Notes
 ------------
 
-The syntax attempts to be intuitive and simple, but it does have some limitations. The artist: entity has the most tricky restrictions
-because it should accept the full name of an artist. For latin character sets, the short form for an artist name can be used:
+Artist and tag names are the tricky bits to specify in a prompt, so they must be enclosed with ():
 
 ::
 
   artist:(Blümchen)
-  artist:(The Knife)
-
-But, if you need other unicode characters, the name must be enclosed by ():
-
-::
-
+  tag:(deep house)
   artist:(Мумий Тролль)
 
-Furthermore, artist names must be spelled exactly as their appear in MusicBrainz.
+Furthermore, artist names must be spelled exactly as their appear in MusicBrainz. If you have difficulty specifying the
+correct artist, you can use an artist MBID to be very precise.
 
 Tags have similar restrictions. If a tag you'd like to specify has no spaces or non-latin unicode characters you may use:
 
