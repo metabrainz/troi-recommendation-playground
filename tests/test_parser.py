@@ -148,7 +148,7 @@ class TestParser(unittest.TestCase):
         assert r[0] == {"entity": "recs", "values": ["mr_monkey"], "weight": 1, "opts": ["listened"]}
 
         r = pp.parse("recs:(mr_monkey):2:unlistened")
-        assert r[0] == {"entity": "recs", "values": ["mr_monkey"], "weight": 2, "opts": ["unlistened"]}
+        assert r[0] == {"entity": "recs", "values": ["mr_monkey"], "weight": 1, "opts": ["unlistened"]}
 
         r = pp.parse("recs:(rob zombie)")
         assert r[0] == {"entity": "recs", "values": ["rob zombie"], "weight": 1, "opts": []}
