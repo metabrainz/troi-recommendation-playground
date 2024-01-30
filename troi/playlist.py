@@ -119,6 +119,19 @@ def _deserialize_from_jspf(data) -> Playlist:
         if track.get("album"):
             recording.release = Release(name=track["album"])
 
+        musicbrainz = {}
+        if track.get("location"):
+            musicbrainz["filename"] = track.get("location")
+
+        try:
+            musicbrainz["subsonic_id"] = track["extension"][PLAYLIST_TRACK_EXTENSION_URI] \
+                                              ["additional_metadata"]["subsonic_identifier"]
+            musicbrainz["subsonic_id"] = musicbrainz["subsonic_id"][len(SUBSONIC_URI_PREFIX):]
+        except KeyError:
+            pass
+
+        recording.musicbrainz = musicbrainz
+
         recordings.append(recording)
 
     try:
