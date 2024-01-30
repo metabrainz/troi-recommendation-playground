@@ -95,8 +95,8 @@ class TestParser(unittest.TestCase):
         r = pp.parse("stats:(mr_monkey)::month")
         print(r[0])
         assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 1, "opts": ["month"]}
-        r = pp.parse("stats:(mr_monkey)::month,easy")
-        assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 1, "opts": ["month", "easy"]}
+        r = pp.parse("artist:(monkey)::nosim,easy")
+        assert r[0] == {"entity": "artist", "values": ["monkey"], "weight": 1, "opts": ["nosim", "easy"]}
 
         self.assertRaises(ParseError, pp.parse, 'artist:(meh)::nosim,')
 
@@ -125,8 +125,8 @@ class TestParser(unittest.TestCase):
         r = pp.parse("stats:rob:1:week")
         assert r[0] == {"entity": "stats", "values": ["rob"], "weight": 1, "opts": ["week"]}
 
-        r = pp.parse("stats:(mr_monkey)::month,nosim")
-        assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 1, "opts": ["month", "nosim"]}
+        r = pp.parse("stats:(mr_monkey)::month")
+        assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 1, "opts": ["month"]}
 
         r = pp.parse("stats:(mr_monkey):2:month")
         assert r[0] == {"entity": "stats", "values": ["mr_monkey"], "weight": 2, "opts": ["month"]}
