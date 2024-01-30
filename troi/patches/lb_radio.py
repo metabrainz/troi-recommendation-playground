@@ -11,7 +11,7 @@ import troi.listenbrainz.listens
 import troi.listenbrainz.recs
 import troi.musicbrainz.recording_lookup
 from troi.playlist import PlaylistMakerElement
-from troi.parse_prompt import parse, ParseError, TIME_RANGES
+from troi.parse_prompt import PromptParser, ParseError, TIME_RANGES
 from troi.patches.lb_radio_classes.artist import LBRadioArtistRecordingElement
 from troi.patches.lb_radio_classes.blend import InterleaveRecordingsElement, WeighAndBlendRecordingsElement
 from troi.patches.lb_radio_classes.collection import LBRadioCollectionRecordingElement
@@ -108,8 +108,9 @@ class LBRadioPatch(troi.patch.Patch):
         self.mode = inputs["mode"]
 
         # First parse the prompt
+        pp = PromptParser()
         try:
-            prompt_elements = parse(self.prompt)
+            prompt_elements = pp.parse(self.prompt)
         except ParseError as err:
             raise RuntimeError(f"cannot parse prompt: '{err}'")
 
