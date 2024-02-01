@@ -1,4 +1,4 @@
-from lb_content_resolver.formats.tag_utils import extract_track_number
+from troi.content_resolver.formats.tag_utils import extract_track_number
 
 
 class TestTagUtils:
