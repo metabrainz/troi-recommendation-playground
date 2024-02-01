@@ -5,7 +5,7 @@ import troi.musicbrainz.recording_lookup
 from troi import Playlist
 from troi.playlist import PlaylistMakerElement
 
-from troi.content_resolver.troi.recording_resolver import RecordingResolverElement
+from troi.recording_resolver import RecordingResolverElement
 from troi.content_resolver.model.database import db
 
 DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist
@@ -14,7 +14,7 @@ BATCH_SIZE_RECS = 1000  # the number of recommendations fetched in 1 go
 MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
 
-class LocalPeriodicJamsPatch(troi.patch.Patch):
+class PeriodicJamsLocalPatch(troi.patch.Patch):
     """
     """
 

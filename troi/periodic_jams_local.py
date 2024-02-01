@@ -1,8 +1,8 @@
 from troi.content_resolver.lb_radio import ListenBrainzRadioLocal
-from troi.content_resolver.troi.patches.periodic_jams import LocalPeriodicJamsPatch
+from troi.patches.periodic_jams_local import PeriodicJamsLocalPatch
 
 
-class LocalPeriodicJams(ListenBrainzRadioLocal):
+class PeriodicJamsLocal(ListenBrainzRadioLocal):
     '''
        Generate local playlists against a music collection available via subsonic.
     '''
@@ -17,7 +17,7 @@ class LocalPeriodicJams(ListenBrainzRadioLocal):
            Generate a periodic jams playlist
         """
 
-        patch = LocalPeriodicJamsPatch({
+        patch = PeriodicJamsLocalPatch({
             "user_name": self.user_name,
             "echo": True,
             "debug": True,

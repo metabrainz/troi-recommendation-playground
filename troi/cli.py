@@ -9,7 +9,7 @@ from troi.content_resolver.cli import cli as resolver_cli, db_file_check, output
 from troi.content_resolver.subsonic import SubsonicDatabase
 from troi.content_resolver.lb_radio import ListenBrainzRadioLocal
 from troi.content_resolver.playlist import read_jspf_playlist
-from troi.content_resolver.troi.periodic_jams import LocalPeriodicJams
+from troi.periodic_jams_local import PeriodicJamsLocal
 
 try:
     sys.path.insert(1, ".")
@@ -186,7 +186,7 @@ def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_j
     db = SubsonicDatabase(db_file, config)
     db.open()
 
-    pj = LocalPeriodicJams(user_name, threshold)
+    pj = PeriodicJamsLocal(user_name, threshold)
     playlist = pj.generate()
     try:
         _ = playlist.playlists[0].recordings[0]
