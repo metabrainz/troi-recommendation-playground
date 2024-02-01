@@ -21,8 +21,9 @@ from troi.content_resolver.playlist import read_jspf_playlist, write_m3u_playlis
 from troi.content_resolver.unresolved_recording import UnresolvedRecordingTracker
 from troi.playlist import PLAYLIST_TRACK_EXTENSION_URI
 
+# TODO: Soon we will need a better configuration file, so we can get rid of this hack
 try:
-    sys.path.insert(1, "../..")
+    sys.path.insert(1, ".")
     import config
 except ImportError as err:
     print(err)

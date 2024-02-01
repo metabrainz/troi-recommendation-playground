@@ -53,7 +53,7 @@ Troi is available for download via [PyPi](https://pypi.org/project/troi/).
 ```
 virtualenv -p python3 .ve
 source .ve/bin/activate
-pip3 install .[tests]
+pip3 install -e .[tests]
 troi --help
 ```
 
@@ -62,7 +62,7 @@ troi --help
 ```
 virtualenv -p python .ve
 .ve\Scripts\activate.bat
-pip install .[tests]
+pip install -e .[tests]
 troi --help
 ```
 
