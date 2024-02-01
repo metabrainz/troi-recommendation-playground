@@ -5,18 +5,31 @@ import click
 
 from troi.utils import discover_patches
 from troi.core import list_patches, patch_info, convert_patch_to_command
-from troi.content_resolver.cli import cli as resolver_cli
+from troi.content_resolver.cli import cli as resolver_cli, db_file_check, output_playlist
+from troi.content_resolver.subsonic import SubsonicDatabase
+from troi.content_resolver.lb_radio import ListenBrainzRadioLocal
+from troi.content_resolver.playlist import read_jspf_playlist
+from troi.content_resolver.troi.periodic_jams import LocalPeriodicJams
+
+try:
+    sys.path.insert(1, ".")
+    import config
+except ImportError as err:
+    print(err)
+    config = None
 
 
 @click.group()
 def cli():
     pass
 
+
 # Add the "db" submenu
 resolver_cli.short_help = "database commands sub menu"
 cli.add_command(resolver_cli, name="db")
 
-@cli.command(context_settings=dict(ignore_unknown_options=True,))
+
+@cli.command(context_settings=dict(ignore_unknown_options=True, ))
 @click.argument('patch', type=str)
 @click.option('--debug/--no-debug')
 @click.option('--print', '-p', 'echo', required=False, is_flag=True)
@@ -31,8 +44,8 @@ cli.add_command(resolver_cli, name="db")
 @click.option('--spotify-token', type=str, required=False)
 @click.option('--spotify-url', type=str, required=False, multiple=True)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings,
-             spotify_user_id, spotify_token, spotify_url):
+def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings, spotify_user_id, spotify_token,
+             spotify_url):
     """
     Generate a playlist using a patch
 
@@ -57,8 +70,7 @@ def playlist(patch, debug, echo, save, token, upload, args, created_for, name, d
     patchname = patch
     patches = discover_patches()
     if patchname not in patches:
-        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname,
-              file=sys.stderr)
+        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname, file=sys.stderr)
         return None
 
     patch_args = {
@@ -116,9 +128,76 @@ def info(patch):
     sys.exit(0 if ret else -1)
 
 
-@cli.command(context_settings=dict(
-    ignore_unknown_options=True,
-))
+@cli.command(name="resolve")
+@click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
+@click.option('-t', '--threshold', default=.80)
+@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
+@click.option('-m', '--save-to-m3u', required=False)
+@click.option('-j', '--save-to-jspf', required=False)
+@click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
+@click.argument('jspf_playlist')
+def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, jspf_playlist):
+    """ Resolve a JSPF file with MusicBrainz recording MBIDs to files in the local collection"""
+    db_file = db_file_check(db_file)
+    db = SubsonicDatabase(db_file, config)
+    db.open()
+    lbrl = ListenBrainzRadioLocal()
+    playlist = read_jspf_playlist(jspf_playlist)
+    lbrl.resolve_playlist(threshold, playlist)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
+
+
+@cli.command(name="lb-radio")
+@click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
+@click.option('-t', '--threshold', default=.80)
+@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
+@click.option('-m', '--save-to-m3u', required=False)
+@click.option('-j', '--save-to-jspf', required=False)
+@click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
+@click.argument('mode')
+@click.argument('prompt')
+def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, mode, prompt):
+    """Use the ListenBrainz Radio engine to create a playlist from a prompt, using a local music collection"""
+    db_file = db_file_check(db_file)
+    db = SubsonicDatabase(db_file, config)
+    db.open()
+    r = ListenBrainzRadioLocal()
+    playlist = r.generate(mode, prompt, threshold)
+    try:
+        _ = playlist.playlists[0].recordings[0]
+    except (KeyError, IndexError, AttributeError):
+        db.metadata_sanity_check(include_subsonic=upload_to_subsonic)
+        return
+
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
+
+
+@cli.command("weekly-jams")
+@click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
+@click.option('-t', '--threshold', default=.80)
+@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, default=False)
+@click.option('-m', '--save-to-m3u', required=False)
+@click.option('-j', '--save-to-jspf', required=False)
+@click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
+@click.argument('user_name')
+def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, user_name):
+    "Generate a periodic jams playlist"
+    db_file = db_file_check(db_file)
+    db = SubsonicDatabase(db_file, config)
+    db.open()
+
+    pj = LocalPeriodicJams(user_name, threshold)
+    playlist = pj.generate()
+    try:
+        _ = playlist.playlists[0].recordings[0]
+    except (KeyError, IndexError, AttributeError):
+        db.metadata_sanity_check(include_subsonic=upload_to_subsonic)
+        return
+
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
+
+
+@cli.command(context_settings=dict(ignore_unknown_options=True, ))
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def test(args):
     """Run unit tests"""
