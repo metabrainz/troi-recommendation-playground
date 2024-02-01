@@ -1,0 +1,4 @@
+TODOS
+ - Make troi silent by default, enable some msg from command line
+ - Update README
+ - Update docs to include docs from content resolver
