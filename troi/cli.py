@@ -5,12 +5,16 @@ import click
 
 from troi.utils import discover_patches
 from troi.core import list_patches, patch_info, convert_patch_to_command
+from troi.content_resolver.cli import cli as resolver_cli
 
 
 @click.group()
 def cli():
     pass
 
+# Add the "db" submenu
+resolver_cli.short_help = "database commands sub menu"
+cli.add_command(resolver_cli, name="db")
 
 @cli.command(context_settings=dict(ignore_unknown_options=True,))
 @click.argument('patch', type=str)
