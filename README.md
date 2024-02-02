@@ -165,13 +165,13 @@ You can also define a set of directories to be used by default for the scan comm
 You can list all available commands using:
 
 ```
-resolve --help
+troi db --help
 ```
 
 You can get help on a specific command using:
 
 ```
-resolve <command> --help
+troi db <command> --help
 ```
 
 ### Scanning your collection
@@ -184,8 +184,8 @@ scan (if you plan to use subsonic). For now, do the file system scan, then the s
 Then prepare the index and scan a music collection. mp3, m4a, wma, OggVorbis, OggOpus and flac files are supported.
 
 ```
-resolve create
-resolve scan <one or more paths to directories containing audio files>
+troi db create
+troi db scan <one or more paths to directories containing audio files>
 ```
 
 If you configured `MUSIC_DIRECTORIES` in config file, you can just call `resolve scan`.
@@ -194,18 +194,12 @@ It should be noted paths passed on command line take precedence over this config
 If you remove tracks from your collection, use `cleanup` to remove references to those tracks:
 
 ```
-resolve cleanup
+troi db cleanup
 ```
 
 #### Scan a Subsonic collection
 
-To enable support you need to create a `config.py` file:
-
-```
-cp config.py.sample config.py
-```
-
-Then edit the file and add your subsonic configuration.
+To scan a subsonic collection, you'll need to setup a config.py file. See above.
 
 ```
 resolve subsonic
@@ -230,7 +224,7 @@ curl "https://api.listenbrainz.org/1/playlist/<playlist MBID>" > test.jspf
 Finally, resolve the playlist to local files:
 
 ```
-resolve playlist input.jspf output.m3u
+troi resolve input.jspf output.m3u
 ```
 
 Then open the m3u playlist with a local tool.
@@ -289,7 +283,7 @@ isn't very suited for the prompt that was given.
 ##### Artist Element
 
 ```
-resolve lb-radio easy 'artist:(taylor swift, drake)'
+troi lb-radio easy 'artist:(taylor swift, drake)'
 ```
 
 Generates a playlist with music from Taylor Swift and artists similar
@@ -345,7 +339,7 @@ types of duplicates that this may find:
 If you specify `-e` or `--exclude-different-release`, then case #3 will not be shown.
 
 ```
-resolve duplicates
+troi db duplicates
 ```
 
 #### Top tags
@@ -355,8 +349,8 @@ have been used in your collection. This requires that the `metadata`
 command was run before.
 
 ```
-resolve metadata
-resolve top-tags
+troi db metadata
+troi db top-tags
 ```
 
 #### Unresolved Releases
@@ -365,6 +359,10 @@ Any tracks that fail to resolve to a local collection will have their
 recording_mbid saved in the database. This enables the unresolved releases
 report which specifies a list of releases that you might consider adding to your
 collection, because in the past they failed to resolve to your location collection.
+
+```
+troi db unresolved
+```
 
 ## Running tests
 
