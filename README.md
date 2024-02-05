@@ -121,8 +121,7 @@ troi --help
 
 ## User-guide
 
-Full documentation for using Troi is available at
-[https://troi.readthedocs.io/en/latest/user-guide.html](https://troi.readthedocs.io/en/latest/user-guide.html).
+For details on how to run Troi, please see [see our user guide](https://troi.readthedocs.io/en/latest/user-guide.html).
 
 ## Running tests
 
