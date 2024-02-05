@@ -48,14 +48,15 @@ Local playlists are playlists that have been resolved against a local collection
 and are playable to a local player. In order for this to work, you will need
 to index your local collection using the database tools first. 
 
-Index your music collection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**IMPORTANT**: This feature only works if you music collection is tagged with MusicBrainz tags. We recommend
+**IMPORTANT**: Local playlist generation only works if you music collection is tagged with MusicBrainz tags. We recommend
 `Picard <http://picard.musicbrainz.org>`_ for tagging your collection.
 
 If you're unwilling to properly tag your collection, then please do not contact us to request that we remove
 this requirement. We can't. We won't. Please close this tab and move on.
+
+
+Index your music collection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you have your collection hosted on an app like Funkwhale, Navidrome or Gonic, who have a Subsonic API, you can generate
 playlists directly the web application. Alternatively, if you music collection isn't available via a Subsonic API, you can
@@ -148,6 +149,10 @@ First, download tag and popularity data:
 
 ListenBrainz Radio Local
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+ListenBrainz's `LB Radio feature <https://listenbrainz.org/explore/lb-radio>`_
+generates global playlists that can be resolved to streaming services. Troi
+also supports a local version that resolved tracks against a local collection of music.
 
 Currently artist and tag elements are supported for LB Radio Local,
 which means that playlists from these two elements are made from the local 
