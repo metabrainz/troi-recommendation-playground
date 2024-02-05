@@ -86,22 +86,8 @@ You can also define a set of directories to be used by default for the scan comm
 Options for saving playlists
 """"""""""""""""""""""""""""
 
-The playlist generation functions below print the generated playlist and nothig else. To save the playlist you'll
-need to pass one of the following options::
-
-    -u / --upload-to-subsonic -- upload playlist using subsonic API
-    -m / --save-to-m3u        -- write the playlist to the specified m3u file name
-    -j / --save-to-jspf       -- write the playlist to the specified JSPF file name
-    -y / --dont-ask           -- write the playlist without user confirmation
-
-Finally there are two other options::
-
-    -d / --db_file            -- specified the index file to use. If provided it overrides
-                                 the specified value in config.py 
-    -t / --threshold          -- when playlists must be resolved via textual metadata match,
-                                 the match must be at least this good for a track to be
-                                 accepted. A percentage, expressed as value from 0 - 1.0.
-
+The playlist generation functions below print the generated playlist and nothig else. In order to save the 
+playlists or upload them, please refer to :ref:`troi-arguments`
 
 Scanning your local filesystem collection
 """""""""""""""""""""""""""""""""""""""""

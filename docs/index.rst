@@ -57,6 +57,7 @@ TV series Star Trek: The Next Generation.
 
    installation.rst
    user-guide.rst
+   troi-arguments.rst
    introduction.rst
    patches
    entities

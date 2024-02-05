@@ -135,7 +135,7 @@ def scan(db_file, music_dirs, chunksize=DEFAULT_CHUNKSIZE, force=False):
 
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-@click.option("-r", "--remove", required=False, is_flag=True, default=True)
+@click.option("-r", "--remove", help="Without this flag, no files are removed.", required=False, is_flag=True, default=True)
 def cleanup(db_file, remove):
     """Perform a database cleanup. Check that files exist and if they don't remove from the index"""
     db_file = db_file_check(db_file)
@@ -183,7 +183,8 @@ def top_tags(db_file, count):
 
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-@click.option('-e', '--exclude-different-release', required=False, default=False, is_flag=True)
+@click.option('-e', '--exclude-different-release', help="Exclude duplicates that appear on different releases",
+                    required=False, default=False, is_flag=True)
 @click.option('-v', '--verbose', help="Display extra info about found files", required=False, default=False, is_flag=True)
 def duplicates(db_file, exclude_different_release, verbose):
     "Print all the tracks in the DB that are duplicated as per recording_mbid"

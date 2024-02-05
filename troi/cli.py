@@ -30,41 +30,39 @@ cli.add_command(resolver_cli, name="db")
 
 @cli.command(context_settings=dict(ignore_unknown_options=True, ))
 @click.argument('patch', type=str)
-@click.option('--debug/--no-debug')
-@click.option('--print', '-p', 'echo', required=False, is_flag=True)
-@click.option('--save', '-s', required=False, is_flag=True)
-@click.option('--token', '-t', required=False, type=click.UUID)
-@click.option('--upload', '-u', required=False, is_flag=True)
-@click.option('--created-for', '-c', required=False)
-@click.option('--name', '-n', required=False)
-@click.option('--desc', '-d', required=False)
-@click.option('--min-recordings', '-m', type=int, required=False)
-@click.option('--spotify-user-id', type=str, required=False)
-@click.option('--spotify-token', type=str, required=False)
-@click.option('--spotify-url', type=str, required=False, multiple=True)
+@click.option('--debug/--no-debug', help="Turn on/off debug statements")
+@click.option('--print', '-p', 'echo', help="Show the generated playlist", required=False, is_flag=True)
+@click.option('--save', '-s', help="Save the generated playlist", required=False, is_flag=True)
+@click.option(
+    '--token',
+    '-t',
+    help="Specify the ListenBrainz user token to upload playlist. See https://listenbrainz.org/profile to get your user token.",
+    required=False,
+    type=click.UUID)
+@click.option('--upload',
+              '-u',
+              help="Upload the generated playlist to ListenBrainz. Also requires --token option",
+              required=False,
+              is_flag=True)
+@click.option('--created-for', '-c', help="The name of the LB user the playlist was created for. For LB use only.", required=False)
+@click.option('--name', '-n', help="Override the default name of the generated playlist", required=False)
+@click.option('--desc', '-d', help="Override the default description of the generated playlist", required=False)
+@click.option('--min-recordings', '-m', help="The minimum number of playlist required for the playlist", type=int, required=False)
+@click.option('--spotify-user-id', help="The spotify user name to upload the playlist to", type=str, required=False)
+@click.option('--spotify-token',
+              help="The spotify token with the correct permissions required to upload playlists",
+              type=str,
+              required=False)
+@click.option('--spotify-url',
+              help="instead of creating a new spotify playlist, update the existing playlist at this url",
+              type=str,
+              required=False,
+              multiple=True)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings, spotify_user_id, spotify_token,
              spotify_url):
     """
     Generate a global MBID based playlist using a patch
-
-    \b
-    PRINT: This option causes the generated playlist to be printed to stdout.
-    SAVE: The save option causes the generated playlist to be saved to disk.
-    TOKEN: Auth token to use when using the LB API. Required for submitting playlists to the server.
-           See https://listenbrainz.org/profile to get your user token.
-    UPLOAD: Whether or not to submit the finished playlist to the LB server. Token must be set for this to work.
-    CREATED-FOR: If this option is specified, it must give a valid user name and the
-                 TOKEN argument must specify a user who is whitelisted as a playlist bot at
-                 listenbrainz.org .
-    NAME: Override the algorithms that generate a playlist name and use this name instead.
-    DESC: Override the algorithms that generate a playlist description and use this description instead.
-    MIN-RECORDINGS: The minimum number of recordings that must be present in a playlist to consider it complete.
-                    If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it.
-                    Default: Off, a playlist with at least one track will be considered complete.
-    SPOTIFY-USER-ID: the spotify id of the user to create a playlist for
-    SPOTIFY-TOKEN: an auth token with appropriate permissions to create a playlist on behalf of the user
-    SPOTIFY-URL: instead of creating a new spotify playlist, update the existing playlist at this url
     """
     patchname = patch
     patches = discover_patches()
@@ -129,10 +127,10 @@ def info(patch):
 
 @cli.command(name="resolve", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-@click.option('-t', '--threshold', default=.80)
-@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
-@click.option('-m', '--save-to-m3u', required=False)
-@click.option('-j', '--save-to-jspf', required=False)
+@click.option('-t', '--threshold', default=.80, help="Minimum match percentage for metadata matches. Must be 0.0 - 1.0")
+@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, help="upload playlist via subsonic API")
+@click.option('-m', '--save-to-m3u', required=False, help="save to specified m3u playlist")
+@click.option('-j', '--save-to-jspf', required=False, help="save to specified JSPF playlist")
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.argument('jspf_playlist')
 def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, jspf_playlist):
@@ -148,10 +146,10 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
 
 @cli.command(name="lb-radio", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-@click.option('-t', '--threshold', default=.80)
-@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
-@click.option('-m', '--save-to-m3u', required=False)
-@click.option('-j', '--save-to-jspf', required=False)
+@click.option('-t', '--threshold', default=.80, help="Minimum match percentage for metadata matches. Must be 0.0 - 1.0")
+@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, help="upload playlist via subsonic API")
+@click.option('-m', '--save-to-m3u', required=False, help="save to specified m3u playlist")
+@click.option('-j', '--save-to-jspf', required=False, help="save to specified JSPF playlist")
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.argument('mode')
 @click.argument('prompt')
@@ -173,10 +171,10 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
 
 @cli.command("weekly-jams", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-@click.option('-t', '--threshold', default=.80)
-@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, default=False)
-@click.option('-m', '--save-to-m3u', required=False)
-@click.option('-j', '--save-to-jspf', required=False)
+@click.option('-t', '--threshold', default=.80, help="Minimum match percentage for metadata matches. Must be 0.0 - 1.0")
+@click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, help="upload playlist via subsonic API")
+@click.option('-m', '--save-to-m3u', required=False, help="save to specified m3u playlist")
+@click.option('-j', '--save-to-jspf', required=False, help="save to specified JSPF playlist")
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.argument('user_name')
 def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, user_name):
