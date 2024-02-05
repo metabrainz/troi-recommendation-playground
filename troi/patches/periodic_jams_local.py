@@ -5,7 +5,7 @@ import troi.musicbrainz.recording_lookup
 from troi import Playlist
 from troi.playlist import PlaylistMakerElement
 
-from troi.recording_resolver import RecordingResolverElement
+from troi.local.recording_resolver import RecordingResolverElement
 from troi.content_resolver.model.database import db
 
 DAYS_OF_RECENT_LISTENS_TO_EXCLUDE = 60  # Exclude tracks listened in last X days from the daily jams playlist

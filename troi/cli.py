@@ -9,7 +9,7 @@ from troi.content_resolver.cli import cli as resolver_cli, db_file_check, output
 from troi.content_resolver.subsonic import SubsonicDatabase
 from troi.content_resolver.lb_radio import ListenBrainzRadioLocal
 from troi.content_resolver.playlist import read_jspf_playlist
-from troi.periodic_jams_local import PeriodicJamsLocal
+from troi.local.periodic_jams_local import PeriodicJamsLocal
 
 try:
     sys.path.insert(1, ".")
