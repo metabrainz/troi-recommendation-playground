@@ -19,7 +19,7 @@ dependencies = [
   'liblistenbrainz>=v0.5.5',
   'more_itertools',
   'mutagen==1.46.0',
-  'nmslib==https://github.com/nmslib/nmslib.git@master',
+  'nmslib@git+https://github.com/nmslib/nmslib.git@master',
   'peewee==3.17.0',
   'psycopg2-binary>=2.9.3', 
   'py-sonic==1.0.0',
