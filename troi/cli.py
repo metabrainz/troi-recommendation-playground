@@ -15,7 +15,6 @@ try:
     sys.path.insert(1, ".")
     import config
 except ImportError as err:
-    print(err)
     config = None
 
 
@@ -25,7 +24,7 @@ def cli():
 
 
 # Add the "db" submenu
-resolver_cli.short_help = "database commands sub menu"
+resolver_cli.short_help = "database and content resolution commands sub menu"
 cli.add_command(resolver_cli, name="db")
 
 
@@ -47,7 +46,7 @@ cli.add_command(resolver_cli, name="db")
 def playlist(patch, debug, echo, save, token, upload, args, created_for, name, desc, min_recordings, spotify_user_id, spotify_token,
              spotify_url):
     """
-    Generate a playlist using a patch
+    Generate a global MBID based playlist using a patch
 
     \b
     PRINT: This option causes the generated playlist to be printed to stdout.
@@ -120,7 +119,7 @@ def list_patches_cli():
     sys.exit(0 if ret else -1)
 
 
-@cli.command()
+@cli.command(name="info")
 @click.argument("patch", nargs=1)
 def info(patch):
     """Get info for a given patch"""
@@ -128,7 +127,7 @@ def info(patch):
     sys.exit(0 if ret else -1)
 
 
-@cli.command(name="resolve")
+@cli.command(name="resolve", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-t', '--threshold', default=.80)
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
@@ -137,7 +136,7 @@ def info(patch):
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
 @click.argument('jspf_playlist')
 def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, jspf_playlist):
-    """ Resolve a JSPF file with MusicBrainz recording MBIDs to files in the local collection"""
+    """ Resolve a global JSPF playlist with MusicBrainz MBIDs to files in the local collection"""
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config)
     db.open()
@@ -147,7 +146,7 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
     output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
-@cli.command(name="lb-radio")
+@cli.command(name="lb-radio", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-t', '--threshold', default=.80)
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
@@ -157,7 +156,7 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
 @click.argument('mode')
 @click.argument('prompt')
 def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, mode, prompt):
-    """Use the ListenBrainz Radio engine to create a playlist from a prompt, using a local music collection"""
+    """Use LB Radio to create a playlist from a prompt, using a local music collection"""
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config)
     db.open()
@@ -172,7 +171,7 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
     output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
-@cli.command("weekly-jams")
+@cli.command("weekly-jams", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-t', '--threshold', default=.80)
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, default=False)
@@ -181,7 +180,7 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
 @click.argument('user_name')
 def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, user_name):
-    "Generate a periodic jams playlist"
+    "Generate a weekly jams playlist for your local collection"
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config)
     db.open()

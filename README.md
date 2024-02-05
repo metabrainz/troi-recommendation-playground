@@ -64,11 +64,11 @@ possible, a global playlist with MBIDS will be resolved to a local file collecti
 as best as possible.
 
 2. Periodic-jams: ListenBrainz periodic-jams, but fully resolved against your own
-local collection. This is optimized for local and gives better results than
+local collection. This is optimized for local collections and gives better results than
 the global troi patch by the same name.
 
 3. Resolve global playlists (usually JSPF files with MusicBrainz IDs) to a local collection
-of music.
+of music. Resolution happens via: MusicBrainz IDs, metadata matching or fuzzy metadata matching.
 
 4. Metadata fetching: Several of the features here require metadata to be downloaded
 from ListenBrainz in order to power the LB Radio Local.
@@ -92,6 +92,12 @@ Full documentation for Troi is available at [troi.readthedocs.org](https://troi.
 ### Installation for end users
 
 Troi is available for download via [PyPi](https://pypi.org/project/troi/).
+
+```
+virtualenv -p python3 .ve
+pip3 install troi
+troi --help
+```
 
 ### Installation for Development
 
@@ -146,7 +152,7 @@ artist and a tag use the following:
 The use the --upload and --token options to upload the playlist to ListenBrainz. If you'd like
 to generate a local playlist optimized for a local collection, see below.
 
-### Database Features
+### Database and Content Resolution Features
 
 #### Setting up config.py
 
@@ -181,8 +187,8 @@ troi db <command> --help
 
 ### Scanning your collection
 
-Note: Soon we will eliminate the requirement to do a filesystem scan before also doing a subsonic
-scan (if you plan to use subsonic). For now, do the file system scan, then the subsonic scan.
+Note: We recommend that you scan *either* a local filesystem collection or a subsonic API hosted collection. Doing both
+is going to result in erratic behaviour of the content resolver.
 
 #### Scan a collection on the local filesystem
 
@@ -210,29 +216,32 @@ To scan a subsonic collection, you'll need to setup a config.py file. See above.
 resolve subsonic
 ```
 
-This will match your collection to the remove subsonic API collection.
+This discovers the files present in the subsonic API hosted collection and adds a reference
+to the local DB.
+
 
 ### Resolve JSPF playlists to local collection
 
-Then make a JSPF playlist on LB:
+First, find a playlist on ListenBrainz that you'd like to resolve to a local collection:
 
 ```
 https://listenbrainz.org/user/{your username}/playlists/
 ```
 
-Then download the JSPF file (make sure the playlist is public):
+Then download the JSPF file:
 
 ```
-curl "https://api.listenbrainz.org/1/playlist/<playlist MBID>" > test.jspf
+curl "https://api.listenbrainz.org/1/playlist/<playlist MBID>" > playlist-test.jspf
 ```
 
 Finally, resolve the playlist to local files:
 
 ```
-troi resolve input.jspf output.m3u
+troi resolve playlist-test.jspf playlist-test.m3u
 ```
 
-Then open the m3u playlist with a local tool.
+Then open the m3u playlist with a local player.
+
 
 ### Create playlists with ListenBrainz Local Radio
 
@@ -262,7 +271,7 @@ First, download tag and popularity data:
 troi db metadata
 ```
 
-#### Playlist generation
+#### Local Playlist Generation
 
 Currently artist and tag elements are supported for LB Local Radio,
 which means that playlists from these two elements are made from the local 
@@ -318,7 +327,7 @@ You can include more than on tag query in a prompt:
 troi lb-radio medium 'tag:(downtempo, trip hop)::or tag:(punk, ska)'
 ```
 
-#### Stats, Collections, Playlists and Rec
+#### Stats, Collections, Playlists and Recommended recordings
 
 There are more elements, but these are "global" elements that will need to 
 have their results resolved to the local collection. The resolution process is

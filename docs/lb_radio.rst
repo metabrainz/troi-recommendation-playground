@@ -2,7 +2,11 @@ LB Radio Prompt Reference
 =========================
 
 ListenBrainz Radio is a powerful playlist/radio generation tool that gives users a lot of power to
-automatically make playlists.
+automatically make playlists. The troi toolkit offers two types of LB Radio playlists: Global and local. Global
+playlists generated with the lb-radio patch via the playlist command are made from all the available recorings
+available in MusicBrainz and contain only MusicBrainz MBIDs. Normal music players cannot play these playlists. LB Radio
+Local creates local playlists that are fully resolved against a local playlist and when converted to the m3u format
+are playable with a local playlist.
 
 To generate a playlist, the user will need to enter an "LB Radio prompt", which is a type of search query that specifies
 what music should be added to the playlist. A Radio prompt is composed of one or more terms, taking the form:

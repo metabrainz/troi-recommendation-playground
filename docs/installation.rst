@@ -6,8 +6,12 @@ Installation
 Installation for End Users
 --------------------------
 
-At this point in time we're not quite ready for end users to install Troi. However, for developers, follow the instructions
-below.
+Troi is available for download via [PyPi](https://pypi.org/project/troi/):
+
+.. code-block:: bash
+
+    pip3 install troi
+    troi --help
 
 Installation for Development
 ----------------------------
