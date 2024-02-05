@@ -6,7 +6,7 @@ Installation
 Installation for End Users
 --------------------------
 
-Troi is available for download via [PyPi](https://pypi.org/project/troi/):
+Troi is available for download via `PyPi <https://pypi.org/project/troi/>`_:
 
 .. code-block:: bash
 

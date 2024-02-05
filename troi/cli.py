@@ -133,7 +133,7 @@ def info(patch):
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
 @click.option('-m', '--save-to-m3u', required=False)
 @click.option('-j', '--save-to-jspf', required=False)
-@click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
+@click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.argument('jspf_playlist')
 def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, jspf_playlist):
     """ Resolve a global JSPF playlist with MusicBrainz MBIDs to files in the local collection"""
@@ -152,7 +152,7 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True)
 @click.option('-m', '--save-to-m3u', required=False)
 @click.option('-j', '--save-to-jspf', required=False)
-@click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
+@click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.argument('mode')
 @click.argument('prompt')
 def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, mode, prompt):
@@ -177,7 +177,7 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, default=False)
 @click.option('-m', '--save-to-m3u', required=False)
 @click.option('-j', '--save-to-jspf', required=False)
-@click.option('-y', '--dont-ask', required=False, is_flag=True, help="write playlist to m3u file")
+@click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.argument('user_name')
 def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, user_name):
     "Generate a weekly jams playlist for your local collection"

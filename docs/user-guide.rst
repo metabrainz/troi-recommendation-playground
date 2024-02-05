@@ -51,8 +51,8 @@ to index your local collection using the database tools first.
 Index your music collection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOTE: This feature only works if you music collection is tagged with MusicBrainz tags. We recommend Picard:
-http://picard.musicbrainz.org for tagging your collection.
+**IMPORTANT**: This feature only works if you music collection is tagged with MusicBrainz tags. We recommend
+`Picard <http://picard.musicbrainz.org>`_ for tagging your collection.
 
 If you're unwilling to properly tag your collection, then please do not contact us to request that we remove
 this requirement. We can't. We won't. Please close this tab and move on.
@@ -61,26 +61,46 @@ If you have your collection hosted on an app like Funkwhale, Navidrome or Gonic,
 playlists directly the web application. Alternatively, if you music collection isn't available via a Subsonic API, you can
 scan a local collection of files and make local m3u playlists.
 
-Note: We recommend that you scan *either* a local filesystem collection or a subsonic API hosted collection. Doing both
+*Note*: We recommend that you scan *either* a local filesystem collection or a subsonic API hosted collection. Doing both
 is going to result in erratic behaviour of the content resolver.
 
 Setting up config.py
 """"""""""""""""""""
 
-While it isn't strictly necessary to setup `config.py`, it makes using the troi content resolver easier:
+While it isn't strictly necessary to setup **config.py**, it makes using the troi content resolver easier:
 
 .. code-block:: bash
 
     cp config.py.sample config.py
 
-Then edit `config.py` and set the location of where you're going to store your resolver database file
-into `DATABASE_FILE`. If you plan to use a Subsonic API, then fill out the Subsonic section as well.
+Then edit **config.py** and set the location of where you're going to store your resolver database file
+into **DATABASE_FILE**. If you plan to use a Subsonic API, then fill out the Subsonic section as well.
 
-If you decide not to use the `config.py` file, make sure to pass the path to the DB file with `-d` to each
+If you decide not to use the **config.py** file, make sure to pass the path to the DB file with **-d** to each
 command. All further examples in this file assume you added the config file and will therefore omit  
-the `-d` option.
+the **-d** option.
 
-You can also define a set of directories to be used by default for the scan command in `MUSIC_DIRECTORIES`.
+You can also define a set of directories to be used by default for the scan command in **MUSIC_DIRECTORIES**.
+
+Options for saving playlists
+""""""""""""""""""""""""""""
+
+The playlist generation functions below print the generated playlist and nothig else. To save the playlist you'll
+need to pass one of the following options::
+
+    -u / --upload-to-subsonic -- upload playlist using subsonic API
+    -m / --save-to-m3u        -- write the playlist to the specified m3u file name
+    -j / --save-to-jspf       -- write the playlist to the specified JSPF file name
+    -y / --dont-ask           -- write the playlist without user confirmation
+
+Finally there are two other options::
+
+    -d / --db_file            -- specified the index file to use. If provided it overrides
+                                 the specified value in config.py 
+    -t / --threshold          -- when playlists must be resolved via textual metadata match,
+                                 the match must be at least this good for a track to be
+                                 accepted. A percentage, expressed as value from 0 - 1.0.
+
 
 Scanning your local filesystem collection
 """""""""""""""""""""""""""""""""""""""""
@@ -92,10 +112,10 @@ Then prepare the index and scan a music collection. mp3, m4a, wma, OggVorbis, Og
    troi db create
    troi db scan <one or more paths to directories containing audio files>
 
-If you configured `MUSIC_DIRECTORIES` in config file, you can just call `resolve scan`.
+If you configured **MUSIC_DIRECTORIES** in config file, you can just call **troi db scan**.
 It should be noted paths passed on command line take precedence over this configuration.
 
-If you remove tracks from your collection, use `cleanup` to remove references to those tracks:
+If you remove tracks from your collection, use **cleanup** to remove references to those tracks:
 
 .. code-block:: bash
 
@@ -136,8 +156,7 @@ may generate playlists with tracks that are not availalble in your
 collection. In this case, the fuzzy search will attempt to make the
 missing tracks to your collection.
 
-For a complete reference to LB Radio, see:
-[ListenBrainz Radio Docs](https://troi.readthedocs.io/en/latest/lb_radio.html)
+For a complete reference to LB Radio, see the :ref:`lb-radio`
 
 The playlist generator works with a given mode: "easy", "medium"
 and "hard". An easy playlist will generate data that more closely
@@ -194,8 +213,7 @@ always a bit tricky since its outcome heavily depends on the collection. The
 generator will do its best to generate a fitting playlist, but that doesn't
 always happen. 
 
-For the other elements, please refer to the 
-[ListenBrainz Radio Docs](https://troi.readthedocs.io/en/latest/lb_radio.html)
+For the other elements, please refer to the :ref:`lb-radio`
 
 Resolve JSPF playlists to local collection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

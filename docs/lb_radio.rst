@@ -1,3 +1,5 @@
+.. _lb-radio:
+
 LB Radio Prompt Reference
 =========================
 
