@@ -108,10 +108,11 @@ def cli():
 
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-def create(db_file):
+@click.option('--quiet', '-q', 'quiet', help="Do no print out anything", required=False, is_flag=True)
+def create(db_file, quiet):
     """Create a new database to track a music collection"""
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, quiet)
     db.create()
 
 
@@ -119,13 +120,14 @@ def create(db_file):
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-c', '--chunksize', default=DEFAULT_CHUNKSIZE, help="Number of files to add/update at once")
 @click.option("-f", "--force", required=False, is_flag=True, default=False, help="Force scanning, ignoring any cache")
+@click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 @click.argument('music_dirs', nargs=-1, type=click.Path())
-def scan(db_file, music_dirs, chunksize=DEFAULT_CHUNKSIZE, force=False):
+def scan(db_file, music_dirs, quiet, chunksize=DEFAULT_CHUNKSIZE, force=False):
     """Scan one or more directories and their subdirectories for music files to add to the collection.
        If no path is passed, check for MUSIC_DIRECTORIES in config instead.
     """
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, quiet)
     db.open()
     if not music_dirs:
         music_dirs = music_directories_from_config()
@@ -139,35 +141,39 @@ def scan(db_file, music_dirs, chunksize=DEFAULT_CHUNKSIZE, force=False):
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option("-r", "--remove", help="Without this flag, no files are removed.", required=False, is_flag=True, default=True)
-def cleanup(db_file, remove):
+@click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
+def cleanup(db_file, remove, quiet):
     """Perform a database cleanup. Check that files exist and if they don't remove from the index"""
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, quiet)
     db.open()
     db.database_cleanup(remove)
 
 
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-def metadata(db_file):
+@click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
+def metadata(db_file, quiet):
     """Lookup metadata (popularity and tags) for recordings"""
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, quiet)
     db.open()
-    lookup = MetadataLookup()
+    lookup = MetadataLookup(quiet)
     lookup.lookup()
 
-    print("\nThese top tags describe your collection:")
-    tt = TopTags()
-    tt.print_top_tags_tightly(100)
+    if not quiet:
+        print("\nThese top tags describe your collection:")
+        tt = TopTags()
+        tt.print_top_tags_tightly(100)
 
 
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-def subsonic(db_file):
+@click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
+def subsonic(db_file, quiet):
     """Scan a remote subsonic music collection"""
     db_file = db_file_check(db_file)
-    db = SubsonicDatabase(db_file, config)
+    db = SubsonicDatabase(db_file, config, quiet)
     db.open()
     db.sync()
 
@@ -178,7 +184,7 @@ def subsonic(db_file):
 def top_tags(db_file, count):
     "Display the top most used tags in the music collection. Useful for writing LB Radio tag prompts"
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, False)
     db.open()
     tt = TopTags()
     tt.print_top_tags_tightly(count)
@@ -192,7 +198,7 @@ def top_tags(db_file, count):
 def duplicates(db_file, exclude_different_release, verbose):
     "Print all the tracks in the DB that are duplicated as per recording_mbid"
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, False)
     db.open()
     fd = FindDuplicates(db)
     fd.print_duplicate_recordings(exclude_different_release, verbose)
@@ -204,7 +210,7 @@ def duplicates(db_file, exclude_different_release, verbose):
 def unresolved(db_file):
     "Show the top unresolved releases"
     db_file = db_file_check(db_file)
-    db = Database(db_file)
+    db = Database(db_file, False)
     db.open()
     urt = UnresolvedRecordingTracker()
     releases = urt.get_releases()

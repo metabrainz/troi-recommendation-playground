@@ -69,7 +69,7 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(feedback_lookup)
 
-        resolve = RecordingResolverElement(.8)
+        resolve = RecordingResolverElement(.8, self.quiet)
         resolve.set_sources(recs_lookup)
 
         pl_maker = PlaylistMakerElement(name="Weekly Jams for %s" % (user_name),

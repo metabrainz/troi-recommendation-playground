@@ -136,9 +136,9 @@ def info(patch):
 def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, jspf_playlist):
     """ Resolve a global JSPF playlist with MusicBrainz MBIDs to files in the local collection"""
     db_file = db_file_check(db_file)
-    db = SubsonicDatabase(db_file, config)
+    db = SubsonicDatabase(db_file, config, quiet)
     db.open()
-    lbrl = ListenBrainzRadioLocal()
+    lbrl = ListenBrainzRadioLocal(quiet)
     playlist = read_jspf_playlist(jspf_playlist)
     lbrl.resolve_playlist(threshold, playlist)
     output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet)
@@ -157,7 +157,7 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
 def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, mode, prompt):
     """Use LB Radio to create a playlist from a prompt, using a local music collection"""
     db_file = db_file_check(db_file)
-    db = SubsonicDatabase(db_file, config)
+    db = SubsonicDatabase(db_file, config, quiet)
     db.open()
     r = ListenBrainzRadioLocal()
     playlist = r.generate(mode, prompt, threshold, quiet)
@@ -182,7 +182,7 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
 def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, user_name):
     "Generate a weekly jams playlist for your local collection"
     db_file = db_file_check(db_file)
-    db = SubsonicDatabase(db_file, config)
+    db = SubsonicDatabase(db_file, config, quiet)
     db.open()
 
     pj = PeriodicJamsLocal(user_name, threshold, quiet)

@@ -21,8 +21,9 @@ class ContentResolver:
     Scan a given path and enter/update the metadata in the search index
     '''
 
-    def __init__(self):
+    def __init__(self, quiet):
         self.fuzzy_index = None
+        self.quiet = quiet
 
     def get_artist_recording_metadata(self):
         """
@@ -183,15 +184,17 @@ class ContentResolver:
         # Build index based on recording.id
         rec_index = {r["id"]: r for r in local_recordings}
 
-        print("       %-40s %-40s %-40s" % ("RECORDING", "RELEASE", "ARTIST"))
+        if not self.quiet:
+            print("       %-40s %-40s %-40s" % ("RECORDING", "RELEASE", "ARTIST"))
         unresolved_recordings = []
         target_recordings = playlist.playlists[0].recordings
         resolved = 0
         failed = 0
         for i, artist_recording in enumerate(artist_recording_data):
             if i not in hit_index:
-                print(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
-                                                                                       artist_recording["artist_name"][:39]))
+                if not self.quiet:
+                    print(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
+                                                                                           artist_recording["artist_name"][:39]))
                 unresolved_recordings.append(artist_recording["recording_mbid"])
                 failed += 1
                 continue
@@ -207,17 +210,21 @@ class ContentResolver:
             if local_recording["duration"] is not None:
                 target.duration = local_recording["duration"]
 
-            print(bcolors.OKGREEN + ("%-5s" % hit["method"]) + bcolors.ENDC +
-                  "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
-                                           artist_recording["artist_name"][:39]))
-            print("       %-40s %-40s %-40s" % (local_recording["recording_name"][:39],
-                                                local_recording["release_name"][:39],
-                                                local_recording["artist_name"][:39]))
+            if not self.quiet:
+                print(bcolors.OKGREEN + ("%-5s" % hit["method"]) + bcolors.ENDC +
+                      "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
+                                               artist_recording["artist_name"][:39]))
+                print("       %-40s %-40s %-40s" % (local_recording["recording_name"][:39],
+                                                    local_recording["release_name"][:39],
+                                                    local_recording["artist_name"][:39]))
             resolved += 1
 
         if resolved == 0:
-            print("Sorry, but no tracks could be resolved, no playlist generated.")
+            if not self.quiet:
+                print("Sorry, but no tracks could be resolved, no playlist generated.")
             return []
 
-        print(f'\n{resolved} recordings resolved, {failed} not resolved.')
+        if not self.quiet:
+            print(f'\n{resolved} recordings resolved, {failed} not resolved.')
+
         return playlist

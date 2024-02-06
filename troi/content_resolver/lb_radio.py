@@ -19,7 +19,7 @@ class ListenBrainzRadioLocal:
        Generate local playlists against a music collection available via subsonic.
     '''
 
-    def __init__(self, quiet=False):
+    def __init__(self, quiet):
         self.quiet = quiet
 
     def generate(self, mode, prompt, match_threshold):
@@ -65,7 +65,7 @@ class ListenBrainzRadioLocal:
             return
 
         # Use the content resolver to resolve the recordings in situ
-        cr = ContentResolver()
+        cr = ContentResolver(self.quiet)
         pe = PlaylistElement()
         pe.playlists = [ Playlist(recordings=recordings) ]
         cr.resolve_playlist(match_threshold, pe)

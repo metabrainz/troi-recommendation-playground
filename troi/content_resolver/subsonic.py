@@ -21,9 +21,10 @@ class SubsonicDatabase(Database):
     # Determined by the number of albums we can fetch in one go
     BATCH_SIZE = 500
 
-    def __init__(self, index_dir, config):
+    def __init__(self, index_dir, config, quiet):
         self.config = config
         Database.__init__(self, index_dir)
+        self.quiet = quiet
 
     def sync(self):
         """
@@ -36,17 +37,19 @@ class SubsonicDatabase(Database):
         self.error = 0
 
         self.run_sync()
-
-        print("Checked %s albums:" % self.total)
-        print("  %5d albums matched" % self.matched)
-        print("  %5d recordings with errors" % self.error)
+        
+        if not self.quiet:
+            print("Checked %s albums:" % self.total)
+            print("  %5d albums matched" % self.matched)
+            print("  %5d recordings with errors" % self.error)
 
     def connect(self):
         if not self.config:
             print("Missing credentials to connect to subsonic")
             return None
 
-        print("[ connect to subsonic ]")
+        if not self.quiet:
+            print("[ connect to subsonic ]")
 
         return FixedConnection(
             self.config.SUBSONIC_HOST,
@@ -66,7 +69,8 @@ class SubsonicDatabase(Database):
 
         cursor = db.connection().cursor()
 
-        print("[ load albums ]")
+        if not self.quiet:
+            print("[ load albums ]")
         album_ids = set()
         albums = []
         offset = 0
@@ -80,9 +84,11 @@ class SubsonicDatabase(Database):
             if album_count < self.BATCH_SIZE:
                 break
 
-        print("[ loaded %d albums ]" % len(album_ids))
+        if not self.quiet:
+            print("[ loaded %d albums ]" % len(album_ids))
 
-        pbar = tqdm(total=len(album_ids))
+        if not self.quiet:
+            pbar = tqdm(total=len(album_ids))
         recordings = []
 
         # cross reference subsonic artist id to artitst_mbid
@@ -98,8 +104,9 @@ class SubsonicDatabase(Database):
                 try:
                     album_mbid = album_info2["albumInfo"]["musicBrainzId"]
                 except KeyError:
-                    pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + "subsonic album '%s' by '%s' has no MBID" %
-                               (album["name"], album["artist"]))
+                    if not self.quiet:
+                        pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + "subsonic album '%s' by '%s' has no MBID" %
+                                   (album["name"], album["artist"]))
                     self.error += 1
                     continue
 
@@ -118,15 +125,12 @@ class SubsonicDatabase(Database):
                     try:
                         artist_id_index[artist_id] = artist["artistInfo2"]["musicBrainzId"]
                     except KeyError:
-                        pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + "recording '%s' by '%s' has no artist MBID" %
-                                (album["name"], album["artist"]))
-                        pbar.write("Consider retagging this file with Picard! ( https://picard.musicbrainz.org )")
+                        if not self.quiet:
+                            pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + "recording '%s' by '%s' has no artist MBID" %
+                                    (album["name"], album["artist"]))
+                            pbar.write("Consider retagging this file with Picard! ( https://picard.musicbrainz.org )")
                         self.error += 1
                         continue
-
-#                if "musicBrainzId" not in song:
-#                    song_details = conn.getSong(song["id"])
-#                    ic(song_details)
 
                 self.add_subsonic({
                     "artist_name": song["artist"],
@@ -142,11 +146,13 @@ class SubsonicDatabase(Database):
                     "mtime": datetime.datetime.now()
                     })
 
-            pbar.write(bcolors.OKGREEN + "OK   " + bcolors.ENDC + "album %-50s %-50s" %
-                       (album["name"][:49], album["artist"][:49]))
+            if not self.quiet:
+                pbar.write(bcolors.OKGREEN + "OK   " + bcolors.ENDC + "album %-50s %-50s" %
+                           (album["name"][:49], album["artist"][:49]))
             self.matched += 1
             self.total += 1
-            pbar.update(1)
+            if not self.quiet:
+                pbar.update(1)
 
         if len(recordings) >= self.BATCH_SIZE:
             self.update_recordings(recordings)

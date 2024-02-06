@@ -22,6 +22,9 @@ class MetadataLookup:
 
     BATCH_SIZE = 1000
 
+    def __init__(self, quiet):
+        self.quiet = quiet
+
     def lookup(self):
         """
         Iterate over all recordings in the database and call lookup_chunk for chunks of recordings.
@@ -38,10 +41,17 @@ class MetadataLookup:
             for row in cursor.fetchall()
         )
 
-        print("[ %d recordings to lookup ]" % len(recordings))
+        if not self.quiet:
+            print("[ %d recordings to lookup ]" % len(recordings))
 
         offset = 0
-        with tqdm(total=len(recordings)) as self.pbar:
+
+        if not self.quiet:
+            with tqdm(total=len(recordings)) as self.pbar:
+                while offset <= len(recordings):
+                    self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
+                    offset += self.BATCH_SIZE
+        else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                 offset += self.BATCH_SIZE
@@ -72,7 +82,8 @@ class MetadataLookup:
             recording_tags[mbid][row["source"]].append(row["tag"])
             tags.add(row["tag"])
 
-        self.pbar.update(len(recordings))
+        if not self.quiet:
+            self.pbar.update(len(recordings))
 
         with db.atomic():
 

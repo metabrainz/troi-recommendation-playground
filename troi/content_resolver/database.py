@@ -97,10 +97,11 @@ class Database:
     Keep a database with metadata for a collection of local music files.
     '''
 
-    def __init__(self, db_file):
+    def __init__(self, db_file, quiet):
         self.db_file = db_file
         self.fuzzy_index = None
         self.forced_scan = False
+        self.quiet = quiet
 
     def create(self):
         """
@@ -159,17 +160,23 @@ class Database:
         self.counters = ScanCounters()
         self.skip_dirs = set()
 
-        print("Check collection size...")
-        print("Counting candidates in %s ..." % ", ".join(self.music_dirs))
+        if not self.quiet:
+            print("Check collection size...")
+            print("Counting candidates in %s ..." % ", ".join(self.music_dirs))
         self.traverse(dry_run=True)
-        print(self.counters.dry_run_stats())
+        if not self.quiet:
+            print(self.counters.dry_run_stats())
 
-        with tqdm(total=self.counters.audio_files) as self.progress_bar:
-            print("Scanning ...")
+        if not self.quiet:
+            with tqdm(total=self.counters.audio_files) as self.progress_bar:
+                print("Scanning ...")
+                self.traverse()
+        else:
             self.traverse()
 
         self.close()
-        print(self.counters.stats())
+        if not self.quiet:
+            print(self.counters.stats())
 
     def traverse(self, dry_run=False):
         """
@@ -345,7 +352,8 @@ class Database:
             Update status counter and display matching progress
         """
         self.counters.status[statusdata.status] += 1
-        self.progress_bar.write(self.fmtdetails(statusdata))
+        if not self.quiet:
+            self.progress_bar.write(self.fmtdetails(statusdata))
 
     def add(self, file_path, audio_file_count):
         """
@@ -355,7 +363,8 @@ class Database:
         """
 
         # update the progress bar
-        self.progress_bar.update(1)
+        if not self.quiet:
+            self.progress_bar.update(1)
 
         self.counters.total += 1
 
