@@ -45,12 +45,6 @@ class Element(ABC):
         '''
         self.logger.info(msg)
 
-    def debug(self, msg):
-        '''
-            Log a message with debug log level. These messages will only be shown when debugging is enabled.
-        '''
-        self.logger.debug(msg)
-
     def set_sources(self, sources):
         """
            Set the source elements for this element.
@@ -90,7 +84,7 @@ class Element(ABC):
             source.check()
 
 
-    def generate(self):
+    def generate(self, quiet):
         """
             Generate output from the pipeline. This should be called on
             the last element in the pipeline and no where else. At the root
@@ -101,7 +95,7 @@ class Element(ABC):
         source_lists = []
         if self.sources:
             for source in self.sources:
-                result = source.generate()
+                result = source.generate(quiet)
                 if result is None:
                     return None
 
@@ -117,10 +111,11 @@ class Element(ABC):
         if items is None:
             return None
 
-        if len(items) > 0 and type(items[0]) == Playlist:
-            print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
-        else:
-            print("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
+        if not quiet:
+            if len(items) > 0 and type(items[0]) == Playlist:
+                print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
+            else:
+                print("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
         return items
 
@@ -160,8 +155,7 @@ class Element(ABC):
             read data from the pipeline, it calls read() on the last element in
             the pipeline and this casues the while pipeline to generate result.
             If the initializers of other objects in the pipeline are updated,
-            calling read() again will generate the set new. Passing True for
-            debug should print helpful debug statements about its progress.
+            calling read() again will generate the set new.
 
             Note: This function should not be called directly by the user.
         '''

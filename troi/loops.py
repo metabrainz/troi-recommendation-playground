@@ -57,7 +57,7 @@ class ForLoopElement(troi.Element):
                         print("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
                         continue
 
-                    if self.patch_args["echo"]:
+                    if not self.patch_args["quiet"]:
                         playlist.print()
                     playlist.add_metadata({"algorithm_metadata": {"source_patch": patch_slug}})
                     if self.patch_args["upload"]:

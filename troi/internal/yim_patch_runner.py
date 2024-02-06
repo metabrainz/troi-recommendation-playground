@@ -64,8 +64,8 @@ class YIMRunnerPatch(troi.patch.Patch):
     """
 
 
-    def __init__(self, debug=False):
-        troi.patch.Patch.__init__(self, debug)
+    def __init__(self):
+        troi.patch.Patch.__init__(self)
 
     @staticmethod
     @cli.command(no_args_is_help=True)

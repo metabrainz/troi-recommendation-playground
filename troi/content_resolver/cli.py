@@ -30,7 +30,7 @@ except ImportError as err:
 DEFAULT_CHUNKSIZE = 100
 
 
-def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask):
+def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet):
     try:
         recording = playlist.playlists[0].recordings[0]
     except (KeyError, IndexError):
@@ -46,7 +46,8 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
                 return
 
             if dont_ask or ask_yes_no_question("Upload via subsonic? (Y/n)"):
-                print("uploading playlist")
+                if not quiet:
+                    print("uploading playlist")
                 db.upload_playlist(playlist)
             return
 
@@ -59,7 +60,8 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
 
     if save_to_m3u:
         if dont_ask or ask_yes_no_question(f"Save to '{save_to_m3u}'? (Y/n)"):
-            print("saving playlist")
+            if not quiet:
+                print("saving playlist")
             write_m3u_playlist(save_to_m3u, playlist)
         return
 
@@ -69,7 +71,8 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
             write_jspf_playlist(save_to_jspf, playlist)
         return
 
-    print("Playlist displayed, but not saved. Use -j, -m or -u options to save/upload playlists.")
+    if not quiet:
+        print("Playlist displayed, but not saved. Use -j, -m or -u options to save/upload playlists.")
 
 
 def db_file_check(db_file):

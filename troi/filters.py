@@ -48,7 +48,6 @@ class ArtistCreditFilterElement(troi.Element):
         results = []
         for r in recordings:
             if not r.artist or not r.artist.artist_credit_id:
-                self.debug("recording %s has not artist credit id" % (r.mbid))
                 continue
 
             if self.include:
@@ -157,7 +156,7 @@ class DuplicateRecordingMBIDFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
         recordings = inputs[0]
         output = []
         seen = set()
@@ -183,12 +182,11 @@ class DuplicateRecordingArtistCreditFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
         recordings = inputs[0]
         index = {}
         for rec in recordings:
             if rec.name is None or rec.name == "" or rec.artist is None or rec.artist.name is None or rec.artist.name == "":
-                self.debug("Recording %s has insufficient metadata, removing" % rec.mbid)
                 continue
 
             k = rec.name + rec.artist.name
@@ -213,7 +211,7 @@ class ConsecutiveRecordingFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
         recordings = inputs[0]
         output = []
         last_mbid = None
@@ -238,14 +236,11 @@ class EmptyRecordingFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, input):
         recordings = inputs[0]
         output = []
         for rec in recordings:
-            if rec.name is None or (rec.artist and rec.artist.name is None) or rec.mbid is None:
-                if debug:
-                    print(f"recording {rec.mbid} has no metadata, filtering")
-            else:
+            if rec.name is not None and (rec.artist and rec.artist.name is not None) and rec.mbid is not None:
                 output.append(rec)
 
         return output
@@ -278,7 +273,7 @@ class YearRangeFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
 
@@ -322,7 +317,7 @@ class GenreFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
 
@@ -360,7 +355,7 @@ class LatestListenedAtFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
 
@@ -399,7 +394,7 @@ class NeverListenedFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
 
         recordings = inputs[0]
 
@@ -432,7 +427,7 @@ class HatedRecordingsFilterElement(troi.Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs, debug=False):
+    def read(self, inputs):
         results = []
         for r in inputs[0]:
             score = r.listenbrainz.get("score", 0)

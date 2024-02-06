@@ -1,12 +1,9 @@
-import logging
 import troi
 from abc import ABC, abstractmethod
 
 from troi.recording_search_service import RecordingSearchByTagService, RecordingSearchByArtistService
 
-default_patch_args = dict(debug=False,
-                          echo=True,
-                          save=False,
+default_patch_args = dict(save=False,
                           token=None,
                           upload=False,
                           args=None,
@@ -14,19 +11,15 @@ default_patch_args = dict(debug=False,
                           name=None,
                           desc=None,
                           min_recordings=10,
-                          spotify=None)
+                          spotify=None,
+                          quiet=False)
 
 
 class Patch(ABC):
 
-    def __init__(self, args, debug=False):
+    def __init__(self, args):
+        self.quiet = False
         self.args = args
-        if debug:
-            level = logging.DEBUG
-        else:
-            level = logging.INFO
-        logging.basicConfig(level=level)
-        self.logger = logging.getLogger(type(self).__name__)
 
         # Dict used for local storage
         self.local_storage = {}
@@ -47,12 +40,6 @@ class Patch(ABC):
             :param msg: The message to log.
         '''
         self.logger.info(msg)
-
-    def debug(self, msg):
-        '''
-            Log a message with debug log level. These messages will only be shown when debugging is enabled.
-        '''
-        self.logger.debug(msg)
 
     @staticmethod
     def inputs():
@@ -144,7 +131,7 @@ class Patch(ABC):
 
         The args parameter is a dict and may containt the following keys:
 
-        * debug: Print debug information or not
+        * quiet: Do not print out anything
         * print: This option causes the generated playlist to be printed to stdout.
         * save: The save option causes the generated playlist to be saved to disk.
         * token: Auth token to use when using the LB API. Required for submitting playlists to the server. See https://listenbrainz.org/profile to get your user token.
@@ -160,10 +147,12 @@ class Patch(ABC):
         """
 
         try:
+            self.quiet = self.patch_args.get("quiet", False)
             playlist = troi.playlist.PlaylistElement()
             playlist.set_sources(self.pipeline)
-            print("Troi playlist generation starting...")
-            result = playlist.generate()
+            if not self.quiet:
+                print("Troi playlist generation starting...")
+            result = playlist.generate(self.quiet)
 
             name = self.patch_args["name"]
             if name:
@@ -173,45 +162,51 @@ class Patch(ABC):
             if desc:
                 playlist.playlists[0].descripton = desc
 
-            print("done.")
+            if not self.quiet:
+                print("done.")
         except troi.PipelineError as err:
-            print("Failed to generate playlist: %s" % err, file=sys.stderr)
+            if not self.quiet:
+                print("Failed to generate playlist: %s" % err, file=sys.stderr)
             return None
 
         upload = self.patch_args["upload"]
         token = self.patch_args["token"]
         spotify = self.patch_args["spotify"]
         if upload and not token and not spotify:
-            print("In order to upload a playlist, you must provide an auth token. Use option --token.")
+            if not self.quiet:
+                print("In order to upload a playlist, you must provide an auth token. Use option --token.")
             return None
 
         min_recordings = self.patch_args["min_recordings"]
         if min_recordings is not None and \
                 (len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings):
-            print("Playlist does not have at least %d recordings, stopping." % min_recordings)
+            if not self.quiet:
+                print("Playlist does not have at least %d recordings, stopping." % min_recordings)
             return None
 
         save = self.patch_args["save"]
         if result is not None and spotify and upload:
             for url, _ in playlist.submit_to_spotify(spotify["user_id"], spotify["token"], spotify["is_public"],
                                                      spotify["is_collaborative"], spotify.get("existing_urls", [])):
-                print("Submitted playlist to spotify: %s" % url)
+                if not self.quiet:
+                    print("Submitted playlist to spotify: %s" % url)
 
         created_for = self.patch_args["created_for"]
         if result is not None and token and upload:
             for url, _ in playlist.submit(token, created_for):
-                print("Submitted playlist: %s" % url)
+                if not self.quiet:
+                    print("Submitted playlist: %s" % url)
 
         if result is not None and save:
             playlist.save()
-            print("playlist saved.")
+            if not self.quiet:
+                print("playlist saved.")
 
-        echo = self.patch_args["echo"]
-        if result is not None and (echo or not token):
+        if not self.quiet and result is not None:
             print()
             playlist.print()
 
-        if not echo and not save and not token:
+        if not self.quiet:
             if result is None:
                 print("Patch executed successfully.")
             elif len(playlist.playlists) == 0:

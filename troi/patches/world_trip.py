@@ -76,8 +76,6 @@ class WorldTripElement(Element):
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][1])
 
         for i, country in enumerate(continent):
-            self.debug("   %s" % country["name"])
-
             r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % country['name'])
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
@@ -122,8 +120,8 @@ class WorldTripPatch(troi.patch.Patch):
               </p>
            """
 
-    def __init__(self, debug=False):
-        troi.patch.Patch.__init__(self, debug)
+    def __init__(self):
+        troi.patch.Patch.__init__(self)
 
     @staticmethod
     def inputs():

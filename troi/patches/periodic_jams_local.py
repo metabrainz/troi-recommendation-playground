@@ -18,8 +18,8 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
     """
     """
 
-    def __init__(self, args,  debug=False):
-        super().__init__(args, debug)
+    def __init__(self, args):
+        super().__init__(args)
 
     @staticmethod
     def inputs():
@@ -72,7 +72,7 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
         resolve = RecordingResolverElement(.8)
         resolve.set_sources(recs_lookup)
 
-        pl_maker = PlaylistMakerElement(name="Local Periodic Jams for %s" % (user_name),
+        pl_maker = PlaylistMakerElement(name="Weekly Jams for %s" % (user_name),
                                         desc="test playlist!",
                                         patch_slug="periodic-jams",
                                         max_num_recordings=50,

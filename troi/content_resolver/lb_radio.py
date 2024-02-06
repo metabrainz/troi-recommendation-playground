@@ -19,6 +19,9 @@ class ListenBrainzRadioLocal:
        Generate local playlists against a music collection available via subsonic.
     '''
 
+    def __init__(self, quiet=False):
+        self.quiet = quiet
+
     def generate(self, mode, prompt, match_threshold):
         """
            Generate a playlist given the mode and prompt. Optional match_threshold, a value from
@@ -28,7 +31,7 @@ class ListenBrainzRadioLocal:
            Returns a troi playlist object.
         """
 
-        patch = LBRadioPatch({"mode": mode, "prompt": prompt, "echo": True, "debug": True, "min_recordings": 1})
+        patch = LBRadioPatch({"mode": mode, "prompt": prompt, "quiet": self.quiet, "min_recordings": 1})
         patch.register_service(LocalRecordingSearchByTagService())
         patch.register_service(LocalRecordingSearchByArtistService())
 
