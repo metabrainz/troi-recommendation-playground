@@ -19,7 +19,6 @@ dependencies = [
   'liblistenbrainz>=v0.5.5',
   'more_itertools',
   'mutagen==1.46.0',
-  'nmslib@git+https://github.com/nmslib/nmslib.git@master',
   'peewee>=3.17.0',
   'psycopg2-binary>=2.9.3', 
   'py-sonic>=1.0.0',
@@ -37,6 +36,9 @@ dependencies = [
 troi = 'troi.cli:cli'
 
 [project.optional-dependencies]
+nmslib = [
+  'nmslib>=2.1.1'
+]
 tests = [
   'pytest == 7.1.2',
   'pytest-cov == 4.1.0',

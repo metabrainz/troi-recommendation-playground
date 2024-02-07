@@ -6,8 +6,13 @@ import re
 import sys
 
 from sklearn.feature_extraction.text import TfidfVectorizer
-import nmslib
 from unidecode import unidecode
+
+try:
+    import nmslib
+    have_nmslib = True
+except ImportError:
+    have_nmslib = False
 
 
 def ngrams(string, n=3):
@@ -27,6 +32,9 @@ class FuzzyIndex:
     '''
 
     def __init__(self):
+        global have_nmslib
+
+        self.have_nmslib = have_nmslib
         self.vectorizer = None
         self.index = None
 
@@ -39,6 +47,10 @@ class FuzzyIndex:
         """
             Builds a new index and saves it to disk and keeps it in ram as well.
         """
+
+        if not self.have_nmslib:
+            return
+
         self.lookup_strings = []
         lookup_ids = []
         for artist_name, recording_name, lookup_id in artist_recording_data:
@@ -58,6 +70,8 @@ class FuzzyIndex:
         """
             Return IDs for the matches in a list. Returns a list of dicts with keys of lookup_string, confidence and recording_id.
         """
+        if not self.have_nmslib:
+            return []
 
         query_strings = []
         for data in query_data:
