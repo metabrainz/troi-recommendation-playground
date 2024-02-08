@@ -62,6 +62,7 @@ class FuzzyIndex:
         self.vectorizer = TfidfVectorizer(min_df=1, analyzer=ngrams)
         lookup_matrix = self.vectorizer.fit_transform(self.lookup_strings)
 
+        print("Create index with %d rows" % len(lookup_ids))
         self.index = nmslib.init(method='simple_invindx', space='negdotprod_sparse_fast', data_type=nmslib.DataType.SPARSE_VECTOR)
         self.index.addDataPointBatch(lookup_matrix, lookup_ids)
         self.index.createIndex()
@@ -82,6 +83,7 @@ class FuzzyIndex:
 
         query_matrix = self.vectorizer.transform(query_strings)
         results = self.index.knnQueryBatch(query_matrix, k=1, num_threads=1)
+        print("results %d rows" % len(results))
 
         output = []
         for i, result in enumerate(results):
