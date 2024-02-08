@@ -37,7 +37,7 @@ troi = 'troi.cli:cli'
 
 [project.optional-dependencies]
 nmslib = [
-  'nmslib>=2.1.1'
+  'nmslib-metabrainz>=2.1.1'
 ]
 tests = [
   'pytest == 7.1.2',
