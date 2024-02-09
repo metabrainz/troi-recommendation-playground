@@ -1,7 +1,7 @@
 .. _technical-introduction:
 
-Technical Introduction
-======================
+Playlist generation technical Introduction
+==========================================
 
 Patches
 -------

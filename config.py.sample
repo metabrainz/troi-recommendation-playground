@@ -1,0 +1,16 @@
+# Where to find the database file
+DATABASE_FILE = ""
+
+# To connect to a subsonic API
+SUBSONIC_HOST = ""  # include http:// or https://
+SUBSONIC_USER = ""
+SUBSONIC_PASSWORD = ""
+SUBSONIC_PORT = 4533
+
+# List of music directories to scan by default
+# If paths are passed to scan command, this list is ignored.
+# Invalid directories are skipped.
+MUSIC_DIRECTORIES = [
+    'My/Music/Directory 1',
+    'My/Music/Directory 2',
+]

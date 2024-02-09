@@ -1,18 +1,22 @@
-Troi Recommendation Toolkit
-===========================
+Troi Playlisting Engine
+=======================
 
-This project aims to create an open source music recommendation toolkit with an API-first
-philiosophy. API-first means that user do no need to download a lot of data before they
-can start working with Troi -- all the needed data should ideally live in online APIs, making
-it very easy for someone to get started hacking on music recommendations.
+The Troi Playlisting Engine combines all of ListenBrainz' playlist efforts:
 
-Troi implements a toolkit that allows developers to create data pipelines comprised of Elements
-that generate, filter or manipulate data in a data pipeline. Troi assumes that MusicBrainz IDs
-are available for all the data passing through the system. This allows us to create a powerful
-toolkit underpinned by rich datasets, but it does have the disadvantage that recommendations
-can only be created for music present in MusicBrainz.
+1. Playlist generation: Music recommendations and algorithmic playlist generation using a
+pipeline architecture that allows easy construction of custom pipelines that output playlists.
+You can see this part in action on ListenBrainz's Created for You pages, where we show of Weekly jams
+and Weekly Discovery playlists. The playlist generation tools use an API-first approach were users
+don't need to download massive amounts of data, but instead fetch the data via APIs as needed.
 
-For a much more detailed introduction to Troi, please see :ref:`technical-introduction`.
+2. Local content database: Using these tools a user can scan their music collection on disk or
+via a Subsonic API (e.g. Navidrome, Funkwhale, Gonic), download metadata for it and then resolve global
+playlists (playlist with only MBIDs) to files available in a local collection. We also have
+support for duplicate file detection, top tags in your collection and other insights.
+
+3. Playlist exchange: We're in the process of building this toolkit out to support saving/loading playlists
+in a number of format to hopefully break playlists free from the music silos (Spotify, Apple, etc)
+
 
 User Guide
 ----------
@@ -21,8 +25,8 @@ For end-user guide on how to run Troi and what the various command line argument
 see our :ref:`user-guide`.
 
 
-MetaBrainz APIs
----------------
+MetaBrainz APIs for playlisting and recommendation
+--------------------------------------------------
 
 To accomplish the goal of an API-first toolkit, we, have created and hosted a number of data-sets
 that can be accessed as a part of this project. From Troi you can call any API you'd like, including
@@ -53,6 +57,7 @@ TV series Star Trek: The Next Generation.
 
    installation.rst
    user-guide.rst
+   troi-arguments.rst
    introduction.rst
    patches
    entities

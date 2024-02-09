@@ -67,6 +67,10 @@ class TestParser(unittest.TestCase):
         r = pp.parse("u2")
         assert r[0] == {"entity": "artist", "values": ["u2"], "weight": 1, "opts": []}
 
+        pp = PromptParser()
+        r = pp.parse("amy winehouse")
+        assert r[0] == {"entity": "artist", "values": ["amy winehouse"], "weight": 1, "opts": []}
+
     def test_compound(self):
         pp = PromptParser()
         r = pp.parse('artist:05319f96-e409-4199-b94f-3cabe7cc188a:2 tag:(downtempo):1 tag:(trip hop, abstract):2')

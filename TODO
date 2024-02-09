@@ -1,0 +1,2 @@
+TODOS
+ - Make troi silent by default, enabled current level of messages only for CLI use. Coming in next PR.

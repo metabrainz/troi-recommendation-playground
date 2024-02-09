@@ -23,6 +23,10 @@ PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
 SUBSONIC_URI_PREFIX = "https://subsonic.org/entity/song/"
 
+# TODO: When resolving a playlist, insert "location" into existing playlist, don't create a new one
+#       And recording lookup needs to be replace with metadata lookup. retire the labs API endpoint!
+#       Artist.mbids is totatlly stupid (see ^^). We need [artists] with "join_phrase" in musicbrainz hash.
+#       All this for the next PR.
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None):
     """
