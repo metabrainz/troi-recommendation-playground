@@ -5,6 +5,7 @@ from typing import Dict
 import click
 
 import troi
+from troi.logging import info, error
 import troi.playlist
 import troi.utils
 from troi.patch import Patch
@@ -17,7 +18,7 @@ def list_patches():
     """
     patches = troi.utils.discover_patches()
 
-    print("Available patches:")
+    info("Available patches:")
     size = max([len(k) for k in patches])
     for slug in sorted(patches or []):
         patch = patches[slug]
@@ -33,7 +34,7 @@ def patch_info(patch):
 
     patches = troi.utils.discover_patches()
     if patch not in patches:
-        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch, file=sys.stderr)
+        error("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch, file=sys.stderr)
         sys.exit(1)
 
     apatch = patches[patch]

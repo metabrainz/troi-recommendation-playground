@@ -5,6 +5,7 @@ import json
 import requests
 import spotipy
 
+from troi.logging import info
 from troi import Recording, Playlist, PipelineError, Element, Artist, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
@@ -179,7 +180,7 @@ class PlaylistElement(Element):
 
         for input in inputs:
             if len(input) == 0:
-                print("No recordings or playlists generated to save.")
+                info("No recordings or playlists generated to save.")
                 continue
 
             if isinstance(input[0], Recording):
@@ -199,18 +200,18 @@ class PlaylistElement(Element):
         """Prints the resultant playlists, one after another."""
 
         if not self.playlists:
-            print("[no playlist(s) generated yet]")
+            error("[no playlist(s) generated yet]")
             return
 
         for i, playlist in enumerate(self.playlists):
             if playlist.name:
-                print("playlist: '%s'" % playlist.name)
+                info("playlist: '%s'" % playlist.name)
             else:
-                print("playlist: %d" % i)
+                info("playlist: %d" % i)
 
             for recording in playlist.recordings:
                 if not recording:
-                    print("[invalid Recording]")
+                    info("[invalid Recording]")
                     continue
                 self.print_recording.print(recording)
 
@@ -257,7 +258,7 @@ class PlaylistElement(Element):
             if len(playlist.recordings) == 0:
                 continue
 
-            print("submit %d tracks" % len(playlist.recordings))
+            info("submit %d tracks" % len(playlist.recordings))
             if playlist.patch_slug is not None:
                 playlist.add_metadata({"algorithm_metadata": {"source_patch": playlist.patch_slug}})
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,

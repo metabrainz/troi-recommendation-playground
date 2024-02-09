@@ -7,6 +7,7 @@ import peewee
 import requests
 from tqdm import tqdm
 
+from troi.logging import info
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.model.tag import RecordingTag
@@ -41,8 +42,7 @@ class MetadataLookup:
             for row in cursor.fetchall()
         )
 
-        if not self.quiet:
-            print("[ %d recordings to lookup ]" % len(recordings))
+        info("[ %d recordings to lookup ]" % len(recordings))
 
         offset = 0
 
@@ -70,7 +70,7 @@ class MetadataLookup:
 
         r = requests.post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
         if r.status_code != 200:
-            print("Fail: %d %s" % (r.status_code, r.text))
+            info("Fail: %d %s" % (r.status_code, r.text))
             return False
 
         recording_pop = {}

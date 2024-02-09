@@ -5,6 +5,7 @@ from uuid import UUID
 
 import peewee
 
+from troi.logging import info
 from troi.content_resolver.model.database import db, setup_db
 from troi.content_resolver.model.recording import Recording, FileIdType
 from troi.content_resolver.unresolved_recording import UnresolvedRecordingTracker
@@ -184,16 +185,14 @@ class ContentResolver:
         # Build index based on recording.id
         rec_index = {r["id"]: r for r in local_recordings}
 
-        if not self.quiet:
-            print("       %-40s %-40s %-40s" % ("RECORDING", "RELEASE", "ARTIST"))
+        info("       %-40s %-40s %-40s" % ("RECORDING", "RELEASE", "ARTIST"))
         unresolved_recordings = []
         target_recordings = playlist.playlists[0].recordings
         resolved = 0
         failed = 0
         for i, artist_recording in enumerate(artist_recording_data):
             if i not in hit_index:
-                if not self.quiet:
-                    print(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
+                info(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
                                                                                            artist_recording["artist_name"][:39]))
                 unresolved_recordings.append(artist_recording["recording_mbid"])
                 failed += 1
@@ -211,20 +210,19 @@ class ContentResolver:
                 target.duration = local_recording["duration"]
 
             if not self.quiet:
-                print(bcolors.OKGREEN + ("%-5s" % hit["method"]) + bcolors.ENDC +
+                info(bcolors.OKGREEN + ("%-5s" % hit["method"]) + bcolors.ENDC +
                       "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
                                                artist_recording["artist_name"][:39]))
-                print("       %-40s %-40s %-40s" % (local_recording["recording_name"][:39],
-                                                    local_recording["release_name"][:39],
-                                                    local_recording["artist_name"][:39]))
+                info("       %-40s %-40s %-40s" % (local_recording["recording_name"][:39],
+                                                   local_recording["release_name"][:39],
+                                                   local_recording["artist_name"][:39]))
             resolved += 1
 
         if resolved == 0:
-            if not self.quiet:
-                print("Sorry, but no tracks could be resolved, no playlist generated.")
+            info("Sorry, but no tracks could be resolved, no playlist generated.")
             return []
 
         if not self.quiet:
-            print(f'\n{resolved} recordings resolved, {failed} not resolved.')
+            info(f'\n{resolved} recordings resolved, {failed} not resolved.')
 
         return playlist

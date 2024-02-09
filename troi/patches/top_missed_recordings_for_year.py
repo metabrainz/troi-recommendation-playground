@@ -4,6 +4,7 @@ import psycopg2
 import psycopg2.extras
 
 import troi
+from troi.logging import info
 from troi import Recording, Element
 from troi.playlist import PlaylistMakerElement
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
@@ -132,7 +133,7 @@ class TopMissedTracksPatch(troi.patch.Patch):
                 mb_curs.execute("""SELECT id, musicbrainz_id FROM "user" WHERE id IN %s""", (tuple(similar_user_ids),))
                 your_peeps = ", ".join([ f'<a href="https://listenbrainz.org/user/{r["musicbrainz_id"]}/">{r["musicbrainz_id"]}</a>'
                                           for r in mb_curs.fetchall() ])
-                print(your_peeps)
+                info(your_peeps)
 
 
         missed = MissedRecordingsElement(user_id, similar_user_ids, lb_db_connect_str)

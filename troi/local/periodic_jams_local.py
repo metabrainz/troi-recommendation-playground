@@ -1,3 +1,4 @@
+from troi.logging import info
 from troi.content_resolver.lb_radio import ListenBrainzRadioLocal
 from troi.patches.periodic_jams_local import PeriodicJamsLocalPatch
 
@@ -29,11 +30,11 @@ class PeriodicJamsLocal(ListenBrainzRadioLocal):
         try:
             playlist = patch.generate_playlist()
         except RuntimeError as err:
-            print(f"LB Radio generation failed: {err}")
+            info(f"LB Radio generation failed: {err}")
             return None
 
         if playlist == None:
-            print("Your prompt generated an empty playlist.")
+            info("Your prompt generated an empty playlist.")
             return {"playlist": {"track": []}}
 
         # Resolve any tracks that have not been resolved to a subsonic_id or a local file

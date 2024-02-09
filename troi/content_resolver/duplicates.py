@@ -9,6 +9,7 @@ import sys
 import peewee
 import requests
 
+from troi.logging import info
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.recording_search_service import RecordingSearchByTagService
@@ -73,16 +74,16 @@ class FindDuplicates:
             return ' ' * (4 * n) + str(s)
 
         def print_error(e):
-            print(indent(2, "error: %s" % e))
+            info(indent(2, "error: %s" % e))
 
         def print_info(title, content):
-            print(indent(2, "%s: %s" % (title, content)))
+            info(indent(2, "%s: %s" % (title, content)))
 
         for dup in self.get_duplicate_recordings(include_different_releases):
             recordings_count += 1
-            print("%d duplicates of '%s' by '%s'" % (dup[5], dup[0], dup[2]))
+            info("%d duplicates of '%s' by '%s'" % (dup[5], dup[0], dup[2]))
             for file_id in dup[4]:
-                print(indent(1, file_id))
+                info(indent(1, file_id))
                 if verbose:
                     error = False
                     try:
@@ -107,8 +108,8 @@ class FindDuplicates:
                             print_error(e)
 
                 total += 1
-            print()
+            info()
 
-        print()
-        print("%d recordings had a total of %d duplicates." %
+        info()
+        info("%d recordings had a total of %d duplicates." %
               (recordings_count, total))

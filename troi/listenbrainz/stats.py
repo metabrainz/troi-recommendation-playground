@@ -1,3 +1,4 @@
+from troi.logging import info
 from troi import Element, Artist, Release, Recording
 import liblistenbrainz
 import liblistenbrainz.errors
@@ -96,7 +97,7 @@ class UserRecordingElement(Element):
         try:
             recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
         except liblistenbrainz.errors.ListenBrainzAPIException as err:
-            print("Cannot fetch recording stats for user %s" % self.user_name)
+            info("Cannot fetch recording stats for user %s" % self.user_name)
             return []
 
         if recordings is None or "recordings" not in recordings['payload']:

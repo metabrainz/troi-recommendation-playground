@@ -14,6 +14,7 @@ from unidecode import unidecode
 import peewee
 from tqdm import tqdm
 
+from troi.logging import info, error
 from troi.content_resolver.model.database import db, setup_db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata, FileIdType
 from troi.content_resolver.model.unresolved_recording import UnresolvedRecording
@@ -122,7 +123,7 @@ class Database:
                 Directory,
             ))
         except Exception as e:
-            print("Failed to create db file %r: %s" % (self.db_file, e))
+            error("Failed to create db file %r: %s" % (self.db_file, e))
 
     def open(self):
         """
@@ -132,7 +133,7 @@ class Database:
             setup_db(self.db_file)
             db.connect()
         except peewee.OperationalError:
-            print("Cannot open database index file: '%s'" % self.db_file)
+            error("Cannot open database index file: '%s'" % self.db_file)
             sys.exit(-1)
 
     def close(self):
@@ -144,14 +145,14 @@ class Database:
             Scan music directories and add tracks to sqlite.
         """
         if not music_dirs:
-            print("No directory to scan")
+            error("No directory to scan")
             return
 
         self.forced_scan = force
 
         self.music_dirs = tuple(sorted(set(existing_dirs(music_dirs))))
         if not self.music_dirs:
-            print("No valid directories to scan")
+            error("No valid directories to scan")
             return
 
         self.chunksize = chunksize
@@ -161,22 +162,22 @@ class Database:
         self.skip_dirs = set()
 
         if not self.quiet:
-            print("Check collection size...")
-            print("Counting candidates in %s ..." % ", ".join(self.music_dirs))
+            info("Check collection size...")
+            info("Counting candidates in %s ..." % ", ".join(self.music_dirs))
         self.traverse(dry_run=True)
         if not self.quiet:
-            print(self.counters.dry_run_stats())
+            info(self.counters.dry_run_stats())
 
         if not self.quiet:
             with tqdm(total=self.counters.audio_files) as self.progress_bar:
-                print("Scanning ...")
+                info("Scanning ...")
                 self.traverse()
         else:
             self.traverse()
 
         self.close()
         if not self.quiet:
-            print(self.counters.stats())
+            info(self.counters.stats())
 
     def traverse(self, dry_run=False):
         """
@@ -244,7 +245,7 @@ class Database:
             if directory is None or directory.mtime != mtime:
                 return mtime
         except Exception as e:
-            print("Can't stat dir %r: %s" % (dir_path, e))
+            error("Can't stat dir %r: %s" % (dir_path, e))
         return False
 
     def read_metadata(self, file_path, mtime):
@@ -428,28 +429,28 @@ class Database:
             PathId(d.dir_path, d.id) for d in Directory.select(Directory.dir_path, Directory.id) if not os.path.isdir(d.dir_path))
 
         if not recordings and not directories:
-            print("No cleanup needed.")
+            error("No cleanup needed.")
             return
 
         for elem in sorted(recordings + directories):
-            print("RM %s" % elem.path)
+            info("RM %s" % elem.path)
 
-        print("%d recordings and %d directory entries to remove from database" % (len(recordings), len(directories)))
+        info("%d recordings and %d directory entries to remove from database" % (len(recordings), len(directories)))
         if not dry_run:
             with db.atomic():
                 ids = tuple(r.id for r in recordings)
                 query = Recording.delete().where(Recording.id.in_(ids))
                 count = query.execute()
-                print("%d recordings removed" % count)
+                info("%d recordings removed" % count)
                 ids = tuple(d.id for d in directories)
                 query = Directory.delete().where(Directory.id.in_(ids))
                 count = query.execute()
-                print("%d directory entries removed" % count)
-            print("Vacuuming database...")
+                info("%d directory entries removed" % count)
+            info("Vacuuming database...")
             db.execute_sql('VACUUM')
-            print("Done.")
+            info("Done.")
         else:
-            print("Use command cleanup --remove to actually remove those.")
+            info("Use command cleanup --remove to actually remove those.")
 
     def metadata_sanity_check(self, include_subsonic=False):
         """
@@ -464,16 +465,16 @@ class Database:
             Recording.file_id_type).alias('count')).where(Recording.file_id_type == FileIdType.SUBSONIC_ID)[0].count
 
         if num_metadata == 0:
-            print("sanity check: You have not downloaded metadata for your collection. Run the metadata command.")
+            info("sanity check: You have not downloaded metadata for your collection. Run the metadata command.")
         elif num_metadata < num_recordings // 2:
-            print("sanity check: Only %d of your %d recordings have metadata information available. Run the metdata command." %
+            info("sanity check: Only %d of your %d recordings have metadata information available. Run the metdata command." %
                   (num_metadata, num_recordings))
 
         if include_subsonic:
             if num_subsonic == 0 and include_subsonic:
-                print(
+                info(
                     "sanity check: You have not matched your collection against the collection in subsonic. Run the subsonic command."
                 )
             elif num_subsonic < num_recordings // 2:
-                print("sanity check: Only %d of your %d recordings have subsonic matches. Run the subsonic command." %
+                info("sanity check: Only %d of your %d recordings have subsonic matches. Run the subsonic command." %
                       (num_subsonic, num_recordings))

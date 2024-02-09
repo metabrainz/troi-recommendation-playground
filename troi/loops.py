@@ -3,6 +3,7 @@ from copy import copy
 import sys
 
 import troi
+from troi.logging import info, error
 from troi import PipelineError, Element, User
 from troi.utils import discover_patches
 
@@ -47,14 +48,14 @@ class ForLoopElement(troi.Element):
                 self.patch_args["created_for"] = user.user_name
 
                 try:
-                    print("generate %s for %s" % (patch_slug, user.user_name))
+                    info("generate %s for %s" % (patch_slug, user.user_name))
                     playlist = troi.playlist.PlaylistElement()
                     playlist.set_sources(pipeline)
                     playlist.generate()
 
                     if self.patch_args["min_recordings"] is not None and \
                         len(playlist.playlists[0].recordings) < self.patch_args["min_recordings"]:
-                        print("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
+                        info("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
                         continue
 
                     if not self.patch_args["quiet"]:
@@ -70,13 +71,13 @@ class ForLoopElement(troi.Element):
                             else:
                                 playlist.submit(self.patch_args["token"])
                         except troi.PipelineError as err:
-                            print("Failed to submit playlist: %s, continuing..." % err, file=sys.stderr)
+                            error("Failed to submit playlist: %s, continuing..." % err, file=sys.stderr)
                             continue
 
                     outputs.append(playlist.playlists[0])
-                    print()
+                    info("")
                 except troi.PipelineError as err:
-                    print("Failed to generate playlist: %s" % err, file=sys.stderr)
+                    info("Failed to generate playlist: %s" % err, file=sys.stderr)
                     raise
 
         # Return None if you want to stop processing this pipeline

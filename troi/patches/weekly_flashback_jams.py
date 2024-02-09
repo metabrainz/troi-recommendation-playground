@@ -95,7 +95,6 @@ class WeeklyFlashbackJams(troi.patch.Patch):
     def create(self, inputs):
         user_name = inputs['user_name']
         type = inputs['type']
-        print(type)
 
         if type not in ("top", "similar", "raw"):
             raise PipelineError("type must be either 'top', 'similar' or 'raw'")

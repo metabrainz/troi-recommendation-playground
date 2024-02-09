@@ -5,6 +5,7 @@ import countryinfo
 import requests
 
 import troi.patch
+from troi.logging import info, error
 from troi import Element, Artist, Recording, Playlist, PipelineError, DEVELOPMENT_SERVER_URL
 
 
@@ -69,7 +70,7 @@ class WorldTripElement(Element):
             names = continents.keys()
             raise RuntimeError(f"Cannot find continent {self.continent}. Must be one of {names}")
 
-        print("Fetch tracks from countries:")
+        info("Fetch tracks from countries:")
         if self.latitude:
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][0], reverse=True)
         else:
@@ -100,9 +101,9 @@ class WorldTripElement(Element):
                 try:
                     recordings.append(country["recordings"][i])
                 except KeyError:
-                    print("Found no tracks for %s" % country["name"])
+                    error("Found no tracks for %s" % country["name"])
                 except IndexError:
-                    print("Found too few tracks for %s" % country["name"])
+                    error("Found too few tracks for %s" % country["name"])
 
         return recordings
 

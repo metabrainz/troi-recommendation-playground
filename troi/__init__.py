@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-import logging
 import random
 from typing import Dict
 
+from troi.logging import info, debug
 from troi.utils import recursively_update_dict
 
 DEVELOPMENT_SERVER_URL = "https://datasets.listenbrainz.org"
@@ -18,7 +18,6 @@ class Element(ABC):
 
     def __init__(self, patch=None):
         self.sources = []
-        self.logger = logging.getLogger(type(self).__name__)
         self.patch = patch
 
     def set_patch_object(self, patch):
@@ -38,13 +37,6 @@ class Element(ABC):
 
         return self.patch.local_storage
 
-
-    def log(self, msg):
-        '''
-            Log a message with the info log level, which is the default for troi.
-        '''
-        self.logger.info(msg)
-
     def set_sources(self, sources):
         """
            Set the source elements for this element.
@@ -53,7 +45,7 @@ class Element(ABC):
         """
 
         if not isinstance(sources, list):
-            sources = [ sources ]
+            sources = [sources]
 
         self.sources = sources
 
@@ -67,9 +59,7 @@ class Element(ABC):
                         break
 
                 if not matched:
-                    raise RuntimeError("Element %s cannot accept any of %s as input." %
-                                       (type(self).__name__, self.inputs())) 
-
+                    raise RuntimeError("Element %s cannot accept any of %s as input." % (type(self).__name__, self.inputs()))
 
     def check(self):
         """
@@ -82,7 +72,6 @@ class Element(ABC):
 
         for source in self.sources:
             source.check()
-
 
     def generate(self, quiet):
         """
@@ -102,7 +91,7 @@ class Element(ABC):
                 if len(self.inputs()) > 0 and \
                     len(result) > 0 and type(result[0]) not in self.inputs() and \
                     len(source.outputs()) > 0:
-                    raise RuntimeError("Element %s was expected to output %s, but actually output %s" % 
+                    raise RuntimeError("Element %s was expected to output %s, but actually output %s" %
                                        (type(source).__name__, source.outputs()[0], type(result[0])))
 
                 source_lists.append(result)
@@ -113,9 +102,9 @@ class Element(ABC):
 
         if not quiet:
             if len(items) > 0 and type(items[0]) == Playlist:
-                print("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
+                info("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
             else:
-                print("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
+                info("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
         return items
 
@@ -174,6 +163,7 @@ class Entity(ABC):
         of an artist or the listenbrainz dict might contain the BPM for a track.
         How exactly these dicts will be organized is TDB.
     """
+
     def __init__(self, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         self.name = None
         self.mbid = None
@@ -209,6 +199,7 @@ class Area(Entity):
     """
         The class that represents an area.
     """
+
     def __init__(self, id=id, name=None):
         Entity.__init__(self)
         self.name = name
@@ -222,8 +213,15 @@ class Artist(Entity):
     """
         The class that represents an artist.
     """
-    def __init__(self, name=None, mbids=None, artist_credit_id=None, ranking=None,
-                 musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+
+    def __init__(self,
+                 name=None,
+                 mbids=None,
+                 artist_credit_id=None,
+                 ranking=None,
+                 musicbrainz=None,
+                 listenbrainz=None,
+                 acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.artist_credit_id = artist_credit_id
@@ -242,8 +240,8 @@ class Release(Entity):
     """
         The class that represents a release.
     """
-    def __init__(self, name=None, mbid=None, artist=None, ranking=None,
-                 musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+
+    def __init__(self, name=None, mbid=None, artist=None, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.artist = artist
         self.name = name
@@ -257,10 +255,22 @@ class Recording(Entity):
     """
         The class that represents a recording.
     """
-    def __init__(self, name=None, mbid=None, msid=None, duration=None, artist=None, release=None,
-                 ranking=None, year=None, spotify_id=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+
+    def __init__(self,
+                 name=None,
+                 mbid=None,
+                 msid=None,
+                 duration=None,
+                 artist=None,
+                 release=None,
+                 ranking=None,
+                 year=None,
+                 spotify_id=None,
+                 musicbrainz=None,
+                 listenbrainz=None,
+                 acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
-        self.duration = duration # track duration in ms
+        self.duration = duration  # track duration in ms
         self.artist = artist
         self.release = release
         self.name = name
@@ -283,8 +293,20 @@ class Playlist(Entity):
         and that filename is the suggested filename that this playlist should be saved as, if the user asked to 
         do that and didn't provide a different filename.
     """
-    def __init__(self, name=None, mbid=None, filename=None, recordings=None, description=None, ranking=None,
-                 year=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None, patch_slug=None, user_name=None,
+
+    def __init__(self,
+                 name=None,
+                 mbid=None,
+                 filename=None,
+                 recordings=None,
+                 description=None,
+                 ranking=None,
+                 year=None,
+                 musicbrainz=None,
+                 listenbrainz=None,
+                 acousticbrainz=None,
+                 patch_slug=None,
+                 user_name=None,
                  additional_metadata=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
@@ -317,6 +339,7 @@ class User(Entity):
     """
         The class that represents a ListenBrainz user.
     """
+
     def __init__(self, user_name=None, user_id=None):
         Entity.__init__(self)
         self.user_name = user_name

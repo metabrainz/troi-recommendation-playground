@@ -7,6 +7,7 @@ from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio import LBRadioPatch
 from troi.splitter import plist
 
+from troi.logging import info
 from troi.content_resolver.tag_search import LocalRecordingSearchByTagService
 from troi.content_resolver.artist_search import LocalRecordingSearchByArtistService
 from troi.content_resolver.model.database import db
@@ -39,7 +40,7 @@ class ListenBrainzRadioLocal:
         try:
             playlist = patch.generate_playlist()
         except RuntimeError as err:
-            print(f"LB Radio generation failed: {err}")
+            info(f"LB Radio generation failed: {err}")
             return None
 
         if playlist == None:

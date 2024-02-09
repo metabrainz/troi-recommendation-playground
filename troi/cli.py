@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import logging
 import sys
+
 import click
 
+from troi.logging import set_log_level, info
 from troi.utils import discover_patches
 from troi.core import list_patches, patch_info, convert_patch_to_command
 from troi.content_resolver.cli import cli as resolver_cli, db_file_check, output_playlist
@@ -16,7 +19,6 @@ try:
     import config
 except ImportError as err:
     config = None
-
 
 @click.group()
 def cli():
@@ -63,10 +65,12 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
     """
     Generate a global MBID based playlist using a patch
     """
+
+    set_log_level(quiet)
     patchname = patch
     patches = discover_patches()
     if patchname not in patches:
-        print("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname, file=sys.stderr)
+        info("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname, file=sys.stderr)
         return None
 
     patch_args = {
@@ -101,10 +105,10 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
 
     user_feedback = patch.user_feedback()
     if len(user_feedback) > 0:
-        print("User feedback:")
+        info("User feedback:")
         for feedback in user_feedback:
-            print(f"  * {feedback}")
-        print()
+            info(f"  * {feedback}")
+        info()
 
     sys.exit(0 if ret else -1)
 
@@ -135,13 +139,14 @@ def info(patch):
 @click.argument('jspf_playlist')
 def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, jspf_playlist):
     """ Resolve a global JSPF playlist with MusicBrainz MBIDs to files in the local collection"""
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config, quiet)
     db.open()
     lbrl = ListenBrainzRadioLocal(quiet)
     playlist = read_jspf_playlist(jspf_playlist)
     lbrl.resolve_playlist(threshold, playlist)
-    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
 @cli.command(name="lb-radio", context_settings=dict(ignore_unknown_options=True, ))
@@ -156,18 +161,19 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
 @click.argument('prompt')
 def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, mode, prompt):
     """Use LB Radio to create a playlist from a prompt, using a local music collection"""
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config, quiet)
     db.open()
-    r = ListenBrainzRadioLocal()
-    playlist = r.generate(mode, prompt, threshold, quiet)
+    r = ListenBrainzRadioLocal(quiet)
+    playlist = r.generate(mode, prompt, threshold)
     try:
         _ = playlist.playlists[0].recordings[0]
     except (KeyError, IndexError, AttributeError):
         db.metadata_sanity_check(include_subsonic=upload_to_subsonic)
         return
 
-    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
 @cli.command("weekly-jams", context_settings=dict(ignore_unknown_options=True, ))
@@ -181,6 +187,7 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
 @click.argument('user_name')
 def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, user_name):
     "Generate a weekly jams playlist for your local collection"
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config, quiet)
     db.open()
@@ -193,7 +200,7 @@ def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_j
         db.metadata_sanity_check(include_subsonic=upload_to_subsonic)
         return
 
-    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True, ))

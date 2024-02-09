@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import sys 
 import sys
 
 import click
 
+from troi.logging import set_log_level, info, error
 from troi.content_resolver.content_resolver import ContentResolver
 from troi.content_resolver.database import Database
 from troi.content_resolver.model.recording import FileIdType
@@ -23,18 +23,16 @@ try:
     sys.path.insert(1, ".")
     import config
 except ImportError as err:
-    print(err)
     config = None
-
 
 DEFAULT_CHUNKSIZE = 100
 
 
-def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet):
+def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask):
     try:
         recording = playlist.playlists[0].recordings[0]
     except (KeyError, IndexError):
-        print("Cannot save empty playlist.")
+        error("Cannot save empty playlist.")
         return
 
     if upload_to_subsonic and config:
@@ -42,12 +40,11 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
             try:
                 _ = recording.musicbrainz["subsonic_id"]
             except KeyError:
-                print("Playlist does not appear to contain subsonic ids. Can't upload to subsonic.")
+                info("Playlist does not appear to contain subsonic ids. Can't upload to subsonic.")
                 return
 
             if dont_ask or ask_yes_no_question("Upload via subsonic? (Y/n)"):
-                if not quiet:
-                    print("uploading playlist")
+                info("uploading playlist")
                 db.upload_playlist(playlist)
             return
 
@@ -55,24 +52,22 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
         try:
             _ = recording.musicbrainz["filename"]
         except KeyError:
-            print("Playlist does not appear to contain file paths. Can't write a local playlist.")
+            error("Playlist does not appear to contain file paths. Can't write a local playlist.")
             return
 
     if save_to_m3u:
         if dont_ask or ask_yes_no_question(f"Save to '{save_to_m3u}'? (Y/n)"):
-            if not quiet:
-                print("saving playlist")
+            info("saving playlist")
             write_m3u_playlist(save_to_m3u, playlist)
         return
 
     if save_to_jspf:
         if dont_ask or ask_yes_no_question(f"Save to '{save_to_jspf}'? (Y/n)"):
-            print("saving playlist")
+            info("saving playlist")
             write_jspf_playlist(save_to_jspf, playlist)
         return
 
-    if not quiet:
-        print("Playlist displayed, but not saved. Use -j, -m or -u options to save/upload playlists.")
+    info("Playlist displayed, but not saved. Use -j, -m or -u options to save/upload playlists.")
 
 
 def db_file_check(db_file):
@@ -80,11 +75,11 @@ def db_file_check(db_file):
 
     if not db_file:
         if not config:
-            print("Database file not specified with -d (--db_file) argument. Consider adding it to config.py for ease of use.")
+            info("Database file not specified with -d (--db_file) argument. Consider adding it to config.py for ease of use.")
             sys.exit(-1)
 
         if not config.DATABASE_FILE:
-            print("config.py found, but DATABASE_FILE is empty. Please add it or use -d option to specify it.")
+            info("config.py found, but DATABASE_FILE is empty. Please add it or use -d option to specify it.")
             sys.exit(-1)
 
         return config.DATABASE_FILE
@@ -111,6 +106,7 @@ def cli():
 @click.option('--quiet', '-q', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 def create(db_file, quiet):
     """Create a new database to track a music collection"""
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = Database(db_file, quiet)
     db.create()
@@ -126,6 +122,7 @@ def scan(db_file, music_dirs, quiet, chunksize=DEFAULT_CHUNKSIZE, force=False):
     """Scan one or more directories and their subdirectories for music files to add to the collection.
        If no path is passed, check for MUSIC_DIRECTORIES in config instead.
     """
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = Database(db_file, quiet)
     db.open()
@@ -144,6 +141,7 @@ def scan(db_file, music_dirs, quiet, chunksize=DEFAULT_CHUNKSIZE, force=False):
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 def cleanup(db_file, remove, quiet):
     """Perform a database cleanup. Check that files exist and if they don't remove from the index"""
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = Database(db_file, quiet)
     db.open()
@@ -155,16 +153,16 @@ def cleanup(db_file, remove, quiet):
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 def metadata(db_file, quiet):
     """Lookup metadata (popularity and tags) for recordings"""
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = Database(db_file, quiet)
     db.open()
     lookup = MetadataLookup(quiet)
     lookup.lookup()
 
-    if not quiet:
-        print("\nThese top tags describe your collection:")
-        tt = TopTags()
-        tt.print_top_tags_tightly(100)
+    info("\nThese top tags describe your collection:")
+    tt = TopTags()
+    tt.print_top_tags_tightly(100)
 
 
 @click.command()
@@ -172,6 +170,7 @@ def metadata(db_file, quiet):
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 def subsonic(db_file, quiet):
     """Scan a remote subsonic music collection"""
+    set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config, quiet)
     db.open()
@@ -183,6 +182,7 @@ def subsonic(db_file, quiet):
 @click.argument('count', required=False, default=250)
 def top_tags(db_file, count):
     "Display the top most used tags in the music collection. Useful for writing LB Radio tag prompts"
+    set_log_level(False)
     db_file = db_file_check(db_file)
     db = Database(db_file, False)
     db.open()
@@ -192,11 +192,16 @@ def top_tags(db_file, count):
 
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
-@click.option('-e', '--exclude-different-release', help="Exclude duplicates that appear on different releases",
-                    required=False, default=False, is_flag=True)
+@click.option('-e',
+              '--exclude-different-release',
+              help="Exclude duplicates that appear on different releases",
+              required=False,
+              default=False,
+              is_flag=True)
 @click.option('-v', '--verbose', help="Display extra info about found files", required=False, default=False, is_flag=True)
 def duplicates(db_file, exclude_different_release, verbose):
     "Print all the tracks in the DB that are duplicated as per recording_mbid"
+    set_log_level(False)
     db_file = db_file_check(db_file)
     db = Database(db_file, False)
     db.open()
@@ -204,11 +209,11 @@ def duplicates(db_file, exclude_different_release, verbose):
     fd.print_duplicate_recordings(exclude_different_release, verbose)
 
 
-
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 def unresolved(db_file):
     "Show the top unresolved releases"
+    set_log_level(False)
     db_file = db_file_check(db_file)
     db = Database(db_file, False)
     db.open()

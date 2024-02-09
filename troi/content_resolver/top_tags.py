@@ -6,6 +6,7 @@ import sys
 import peewee
 import requests
 
+from troi.logging import info
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.recording_search_service import RecordingSearchByTagService
@@ -44,11 +45,11 @@ class TopTags:
 
         top_tags = self.get_top_tags(limit)
         for tt in top_tags:
-            print("%-40s %d" % (tt["tag"], tt["count"]))
-        print()
+            info("%-40s %d" % (tt["tag"], tt["count"]))
+        info()
 
     def print_top_tags_tightly(self, limit=250):
 
         top_tags = self.get_top_tags(limit)
 
-        print("; ".join(["%s %s" % (tt["tag"], tt["count"]) for tt in top_tags]))
+        info("; ".join(["%s %s" % (tt["tag"], tt["count"]) for tt in top_tags]))

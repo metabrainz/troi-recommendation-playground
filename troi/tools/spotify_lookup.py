@@ -5,6 +5,8 @@ import spotipy
 from more_itertools import chunked
 from spotipy import SpotifyException
 
+from troi.logging import info
+
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 
 
@@ -129,7 +131,7 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
     if len(spotify_track_ids) == 0:
         return None, None
 
-    print("submit %d tracks" % len(spotify_track_ids))
+    info("submit %d tracks" % len(spotify_track_ids))
 
     playlist_id, playlist_url = None, None
     if existing_url:
@@ -140,7 +142,7 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
             spotify.playlist_change_details(playlist_id=playlist_id, name=playlist.name, description=playlist.description)
         except SpotifyException as err:
             # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
-            print("provided playlist url has been unfollowed/deleted by the user, creating a new one")
+            info("provided playlist url has been unfollowed/deleted by the user, creating a new one")
             playlist_id, playlist_url = None, None
 
     if not playlist_id:
