@@ -93,9 +93,16 @@ Full documentation for Troi is available at [troi.readthedocs.org](https://troi.
 
 Troi is available for download via [PyPi](https://pypi.org/project/troi/).
 
+```
+virtualenv -p python3 .ve
+pip3 install troi[nmslib]
+troi --help
+```
+
 Troi also depends on [nmslib-metabrainz](https://github.com/metabrainz/nmslib-metabrainz)
 to enable fuzzy matching of tracks against a local collection. nmslib-metabrainz is not
-required to run troi, it's only required for fuzzy matching.
+required to run troi, it's only required for fuzzy matching, so if you're having a hard
+time installing nsmlib, omit it like this:
 
 ```
 virtualenv -p python3 .ve
@@ -105,7 +112,7 @@ troi --help
 
 ### Installation for Development
 
-Note: If you have trouble installing nmslib, it is optional. See above.
+Note: If you have trouble installing nmslib, it is optional. Remove nsmlib from the install command below:
 
 **Linux and Mac**
 
