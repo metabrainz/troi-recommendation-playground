@@ -9,10 +9,10 @@ def set_log_level(quiet):
     ch = logging.StreamHandler()
     if quiet:
         print("set ERROR")
-        ch.setLevel(logging.ERROR)
+        logger.setLevel(logging.ERROR)
     else:
         print("set INFO")
-        ch.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
 
     ch.setFormatter(logging.Formatter("%(message)s"))
     logger.addHandler(ch)
@@ -20,6 +20,7 @@ def set_log_level(quiet):
     print("Logging setup:")
     info("This is INFO")
     error("This is ERROR")
+    logger.info("info 2")
 
 
 def debug(msg=""):
