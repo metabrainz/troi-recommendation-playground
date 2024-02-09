@@ -70,7 +70,7 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
     patchname = patch
     patches = discover_patches()
     if patchname not in patches:
-        info("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname, file=sys.stderr)
+        info("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname)
         return None
 
     patch_args = {
@@ -122,7 +122,7 @@ def list_patches_cli():
 
 @cli.command(name="info")
 @click.argument("patch", nargs=1)
-def info(patch):
+def info_cmd(patch):
     """Get info for a given patch"""
     ret = patch_info(patch)
     sys.exit(0 if ret else -1)
