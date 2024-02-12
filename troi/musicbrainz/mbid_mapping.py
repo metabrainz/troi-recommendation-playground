@@ -31,8 +31,7 @@ class MBIDMappingLookupElement(Element):
         params = []
         for r in inputs[0]:
             if r.artist is not None and r.name is not None:
-                params.append({"[artist_credit_name]": r.artist.name,
-                               "[recording_name]": r.name})
+                params.append({"[artist_credit_name]": r.artist.name, "[recording_name]": r.name})
 
         if not params:
             return []
@@ -51,22 +50,28 @@ class MBIDMappingLookupElement(Element):
                 continue
 
             if r.mbid:
-                r.add_note("recording mbid %s overwritten by mbid_lookup" % (r.mbid))
+                r.add_note("recording mbid %s overwritten by mbid_lookup" % (r.mbid,))
             r.mbid = row['recording_mbid']
             r.name = row['recording_name']
-            r.year = row['year']
 
             if r.artist is None:
-                r.artist = Artist(artist_credit_id=row['artist_credit_id'], name=row['artist_credit_name'])
+                r.artist = Artist(
+                    artist_credit_id=row['artist_credit_id'],
+                    name=row['artist_credit_name'],
+                    mbids=row['artist_mbids']
+                )
             else:
                 if r.artist.artist_credit_id:
-                    r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id))
+                    r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id,))
+                if r.artist.mbids:
+                    r.artist.add_note("mbids %s overwritten by mbid_lookup" % (r.artist.mbids,))
                 r.artist.artist_credit_id = row['artist_credit_id']
                 r.artist.name = row['artist_credit_name']
+                r.artist.mbids = row['artist_mbids']
 
             if r.release:
                 if r.release.mbid:
-                    r.release.add_note("mbid %d overwritten by mbid_lookup" % (r.release.mbid))
+                    r.release.add_note("mbid %d overwritten by mbid_lookup" % (r.release.mbid,))
                 r.release.mbid = row['release_mbid']
                 r.release.name = row['release_name']
             else:
