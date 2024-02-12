@@ -16,7 +16,7 @@ return_data = [
         "recording_name": "Trigger Hippie",
         "release_mbid": "9db51cd6-38f6-3b42-8ad5-559963d68f35",
         "release_name": "Who Can You Trust?",
-        "year": 1996
+        "artist_mbids": ["067102ea-9519-4622-9077-57ca4164cfbb"]
     }
 ]
 
@@ -51,12 +51,11 @@ class TestMBIDMapping(unittest.TestCase):
         assert len(entities) == 1
         assert entities[0].artist.artist_credit_id == 963
         assert entities[0].artist.name == "Morcheeba"
+        assert entities[0].artist.mbids == ["067102ea-9519-4622-9077-57ca4164cfbb"]
         assert entities[0].release.mbid == "9db51cd6-38f6-3b42-8ad5-559963d68f35"
         assert entities[0].release.name == "Who Can You Trust?"
         assert entities[0].mbid == "97e69767-5d34-4c97-b36a-f3b2b1ef9dae"
         assert entities[0].name == "Trigger Hippie"
-        assert entities[0].year == 1996
-
 
     @unittest.mock.patch('requests.post')
     def test_read_remove_unmatched(self, req):
