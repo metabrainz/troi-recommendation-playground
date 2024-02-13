@@ -20,7 +20,8 @@ def list_patches():
     print("Available patches:")
     size = max([len(k) for k in patches])
     for slug in sorted(patches or []):
-        print("%s:%s %s" % (slug, " " * (size - len(slug)), patches[slug]().description()))
+        patch = patches[slug]
+        print("%s:%s %s" % (slug, " " * (size - len(slug)), patch.description()))
 
 
 def patch_info(patch):
