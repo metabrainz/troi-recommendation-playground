@@ -79,6 +79,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             Fetch artists names for a given list of artist_mbids 
         """
 
+        # TODO: Use mb artist cache
         data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
         r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
         if r.status_code != 200:
