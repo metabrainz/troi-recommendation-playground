@@ -84,7 +84,7 @@ class PrintRecordingList():
         if self.print_bpm or bpm:
             print(" %3d" % recording.acousticbrainz['bpm'], end='')
         if self.popularity or popularity:
-            print(" %3d" % recording.musicbrainz['popularity'], end='')
+            print(" %.3d" % recording.musicbrainz['popularity'], end='')
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
                 print(" never    ", end="")
