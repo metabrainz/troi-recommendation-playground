@@ -67,6 +67,25 @@ class RecordingSearchByArtistService(Service):
             NOTE: This search is poor -- it should span all recordings by an artist not, just the top ones!
         """
 
+# TODO: Finish this
+        self.data_cache = self.local_storage["data_cache"]
+        params = {
+                "max_similar_artists": 
+                "max_recordings_per_artist":
+                "begin_percent": 
+                "end_percent": 
+        }
+        url = f"https://test-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
+
+        r = requests.post(url, params=params)
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot lb_radio artists: {r.status_code} ({r.text})")
+
+        try:
+            artists = r.json()
+        except IndexError:
+            return []
+
         artists_recordings = {}
         for artist_mbid in artists:
             params={"artist_mbid": artist_mbid}

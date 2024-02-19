@@ -33,9 +33,6 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
-        self.artist_mbid = str(artist_mbid)
-        self.artist_name = None
-        self.similar_artists = []
         self.mode = mode
         self.include_similar_artists = include_similar_artists
         if include_similar_artists:
@@ -48,31 +45,6 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def outputs(self):
         return [Recording]
-
-    def get_similar_artists(self, artist_mbid):
-        """ Fetch similar artists, given an artist_mbid. Returns a sored plist of artists. """
-
-        r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
-                          json=[{
-                              'artist_mbid':
-                              artist_mbid,
-                              'algorithm':
-                              "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
-                          }])
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
-
-        try:
-            artists = r.json()[3]["data"]
-        except IndexError:
-            return []
-
-        # Knock down super hyped artists
-        for artist in artists:
-            if artist["artist_mbid"] in OVERHYPED_SIMILAR_ARTISTS:
-                artist["score"] /= 3  # Chop!
-
-        return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
 
     def fetch_artist_names(self, artist_mbids):
         """
@@ -92,8 +64,9 @@ class LBRadioArtistRecordingElement(troi.Element):
         # Fetch our mode ranges
         start, stop = self.local_storage["modes"][self.mode]
 
-        self.data_cache = self.local_storage["data_cache"]
-        artists = [{"mbid": self.artist_mbid}]
+        # Search artist and fetch MBID if not given.save to artist_mbid
+
+        # TODO: Work out what to do about overhyped artists
 
         self.recording_search_by_artist = self.patch.get_service(
             "recording-search-by-artist")
