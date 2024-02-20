@@ -60,14 +60,16 @@ class RecordingSearchByArtistService(Service):
     def __init__(self):
         super().__init__(self.SLUG)
 
-    def search(self, artists, begin_percent, end_percent, num_recordings):
+    def search(self, artist_mbid, begin_percent, end_percent, max_recordings_per_artist, max_similar_artists):
         """
-            Fetch the artist data from the LB API and return it as a dict.
+            Given a seed artist mbid, find and select similar artists (via LB similar artists data).
 
-            NOTE: This search is poor -- it should span all recordings by an artist not, just the top ones!
+            begin_percent: The lower bound on recording popularity
+            end_percent: The upper bound on recording popularity
+            max_recordings_per_artist: The number of recordings to collect for each artist.
+            max_similar_artists: The maximum number of similar artists to select.
         """
 
-# TODO: Finish this
         self.data_cache = self.local_storage["data_cache"]
         params = {
                 "max_similar_artists": 
@@ -86,22 +88,11 @@ class RecordingSearchByArtistService(Service):
         except IndexError:
             return []
 
-        artists_recordings = {}
         for artist_mbid in artists:
-            params={"artist_mbid": artist_mbid}
-            r = requests.get("https://api.listenbrainz.org/1/popularity/top-recordings-for-artist", params={"artist_mbid": artist_mbid})
-            if r.status_code != 200:
-                raise RuntimeError(f"Cannot fetch top artist recordings: {r.status_code} ({r.text})")
+            recordings = artists[artist_mbid]
+            updated = []
+            for rec in recordings:
+                updated.append(Recording(mbid=rec["recording_mbid"], musicbrainz={"total_listen_count": rec["total_listen_count"]}))
+            artists[artist_mbid] = updated
 
-            recordings = plist()
-            for recording in r.json():
-                artist = Artist(mbids=recording["artist_mbids"], name=recording["artist_name"])
-                recordings.append(
-                    Recording(mbid=recording["recording_mbid"],
-                              name=recording["recording_name"],
-                              duration=recording["length"],
-                              artist=artist))
-
-            artists_recordings[artist_mbid] = recordings.random_item(begin_percent, end_percent, num_recordings)
-
-        return artists_recordings
+        return artists

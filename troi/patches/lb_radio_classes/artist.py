@@ -7,20 +7,6 @@ from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
 from troi.recording_search_service import RecordingSearchByArtistService
 
-OVERHYPED_SIMILAR_ARTISTS = [
-    "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
-    "83d91898-7763-47d7-b03b-b92132375c47",  # Pink Floyd
-    "a74b1b7f-71a5-4011-9441-d0b5e4122711",  # Radiohead
-    "8bfac288-ccc5-448d-9573-c33ea2aa5c30",  # Red Hot Chili Peppers
-    "9c9f1380-2516-4fc9-a3e6-f9f61941d090",  # Muse
-    "cc197bad-dc9c-440d-a5b5-d52ba2e14234",  # Coldplay
-    "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",  # Metallica
-    "5b11f4ce-a62d-471e-81fc-a69a8278c7da",  # Nirvana
-    "f59c5520-5f46-4d2c-b2c4-822eabf53419",  # Linkin Park
-    "cc0b7089-c08d-4c10-b6b0-873582c17fd6",  # System of a Down
-    "ebfc1398-8d96-47e3-82c3-f782abcdb13d",  # Beach boys
-]
-
 
 class LBRadioArtistRecordingElement(troi.Element):
     """
