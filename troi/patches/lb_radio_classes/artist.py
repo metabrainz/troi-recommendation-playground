@@ -19,6 +19,7 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
+        self.artist_mbid = artist_mbid
         self.mode = mode
         self.include_similar_artists = include_similar_artists
         if include_similar_artists:
@@ -37,7 +38,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             Fetch artists names for a given list of artist_mbids 
         """
 
-        # TODO: Use mb artist cache
+        # TODO: Use the artist cache data
         data = [{"[artist_mbid]": mbid} for mbid in artist_mbids]
         r = requests.post("https://datasets.listenbrainz.org/artist-lookup/json", json=data)
         if r.status_code != 200:
@@ -50,28 +51,14 @@ class LBRadioArtistRecordingElement(troi.Element):
         # Fetch our mode ranges
         start, stop = self.local_storage["modes"][self.mode]
 
-        # Search artist and fetch MBID if not given.save to artist_mbid
-
         # TODO: Work out what to do about overhyped artists
-
         self.recording_search_by_artist = self.patch.get_service(
             "recording-search-by-artist")
 
-        # First, fetch similar artists if the user didn't override that.
-        if self.include_similar_artists:
-            # Fetch similar artists for original artist
-            similar_artists = self.get_similar_artists(self.artist_mbid)
-            #            if len(similar_artists) == 0:
-            #                raise RuntimeError(f"Not enough similar artist data available for artist {self.artist_name}. Please choose a different artist.")
-
-            # select artists
-            for artist in similar_artists[start:stop]:
-                artists.append({"mbid": artist["artist_mbid"]})
-                if len(artists) >= self.MAX_NUM_SIMILAR_ARTISTS:
-                    break
+        artist_recordings = self.recording_search_by_artist.search(self.artist_mbid, start, stop, self.max_top_recordings_per_artist, self.MAX_NUM_SIMILAR_ARTISTS)
 
         # For all fetched artists, fetch their names
-        artist_names = self.fetch_artist_names([i["mbid"] for i in artists])
+        artist_names = self.fetch_artist_names(list(artist_recordings))
         for artist in artists:
             if artist["mbid"] not in artist_names:
                 raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist["artist_mbid"])
@@ -99,18 +86,10 @@ class LBRadioArtistRecordingElement(troi.Element):
             self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
 
-        artist_mbids = [ artist["mbid"] for artist in artists ]
-        artist_mbids = list(set(artist_mbids))
-        artist_recordings = self.recording_search_by_artist.search(artist_mbids, start, stop, self.max_top_recordings_per_artist)
 
         # Now collect recordings from the artist and similar artists and return an interleaved
         # stream of recordings.
         for i, artist in enumerate(artists):
-
-            # TODO: This disables top recordings caching, which needs to be re-thought given the new approach
-            #if artist["mbid"] + "_top_recordings" in self.data_cache:
-            #    artist["recordings"] = self.data_cache[artist["mbid"] + "_top_recordings"]
-            #    continue
 
             recs_plist = plist(artist_recordings[artist["mbid"]])
             if len(recs_plist) < 20:

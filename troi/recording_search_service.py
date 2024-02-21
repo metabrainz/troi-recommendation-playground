@@ -70,12 +70,11 @@ class RecordingSearchByArtistService(Service):
             max_similar_artists: The maximum number of similar artists to select.
         """
 
-        self.data_cache = self.local_storage["data_cache"]
         params = {
-                "max_similar_artists": 
-                "max_recordings_per_artist":
-                "begin_percent": 
-                "end_percent": 
+                "max_similar_artists": max_similar_artists,
+                "max_recordings_per_artist": max_recordings_per_artist,
+                "begin_percent": begin_percent,
+                "end_percent": end_percent
         }
         url = f"https://test-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
 

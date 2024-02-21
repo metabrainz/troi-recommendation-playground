@@ -76,7 +76,6 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
         If only few recordings match, the begin_percent and end_percent are ignored.
         """
 
-        #TODO: Finish reviewing/updating this function
         similar_artists = self.get_similar_artists(artist_mbid)
         query = """SELECT popularity
                         , recording_mbid
