@@ -19,7 +19,7 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def __init__(self, artist_mbid, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
-        self.artist_mbid = artist_mbid
+        self.artist_mbid = str(artist_mbid)
         self.mode = mode
         self.include_similar_artists = include_similar_artists
         if include_similar_artists:
@@ -48,6 +48,8 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     def read(self, entities):
 
+        self.data_cache = self.local_storage["data_cache"]
+
         # Fetch our mode ranges
         start, stop = self.local_storage["modes"][self.mode]
 
@@ -59,49 +61,43 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         # For all fetched artists, fetch their names
         artist_names = self.fetch_artist_names(list(artist_recordings))
-        for artist in artists:
-            if artist["mbid"] not in artist_names:
+        for artist_mbid in artist_recordings:
+            if artist_mbid not in artist_names:
                 raise RuntimeError("Artist %s could not be found. Is this MBID valid?" % artist["artist_mbid"])
 
-            artist["name"] = artist_names[artist["mbid"]]
-
             # Store data in cache, so the post processor can create decent descriptions, title
-            self.data_cache[artist["mbid"]] = artist["name"]
+            self.data_cache[artist_mbid] = artist_names[artist_mbid]
 
         # start crafting user feedback messages
         msgs = []
-        if self.include_similar_artists and len(artists) == 1:
+        if self.include_similar_artists and len(artist_recordings) == 1:
             msgs.append(f"Seed artist {artist_names[self.artist_mbid]} no similar artists.")
         else:
-            if self.include_similar_artists and len(artists) < 4:
+            if self.include_similar_artists and len(artist_recordings) < 4:
                 msgs.append(f"Seed artist {artist_names[self.artist_mbid]} few similar artists.")
-            msg = "artist: using seed artist %s" % artists[0]["name"]
+            msg = "artist: using seed artist %s" % artist_names[self.artist_mbid]
             if self.include_similar_artists:
-                msg += " and similar artists: " + ", ".join([a["name"] for a in artists[1:]])
+                mbids = list(artist_recordings)
+                del mbids[mbids.index(self.artist_mbid)]
+                msg += " and similar artists: " + ", ".join([artist_names[mbid] for mbid in mbids])
             else:
                 msg += " only"
             msgs.append(msg)
 
         for msg in msgs:
             self.local_storage["user_feedback"].append(msg)
-        self.data_cache["element-descriptions"].append("artist %s" % artists[0]["name"])
+        self.data_cache["element-descriptions"].append("artist %s" % artist_names[self.artist_mbid])
 
 
         # Now collect recordings from the artist and similar artists and return an interleaved
         # stream of recordings.
-        for i, artist in enumerate(artists):
+        for i, artist_mbid in enumerate(artist_recordings):
 
-            recs_plist = plist(artist_recordings[artist["mbid"]])
+            recs_plist = plist(artist_recordings[artist_mbid])
             if len(recs_plist) < 20:
                 self.local_storage["user_feedback"].append(
-                    f"Artist {artist['name']} only has {'no' if len(recs_plist) == 0 else 'few'} top recordings.")
+                    f"Artist {artist_names[artist_mbid]} only has {'no' if len(recs_plist) == 0 else 'few'} top recordings.")
 
             recordings = recs_plist.random_item(start, stop, self.max_top_recordings_per_artist)
 
-            # Now tuck away the data for caching and interleaving
-            # The whole artist caching concept hasn't worked very well, and with future changes, it will likely go away.
-            # For now, ignore.
-            #self.data_cache[artist["mbid"] + "_top_recordings"] = recordings
-            artist["recordings"] = recordings
-
-        return interleave([a["recordings"] for a in artists])
+        return interleave([artist_recordings[mbid] for mbid in artist_recordings])

@@ -76,9 +76,9 @@ class RecordingSearchByArtistService(Service):
                 "begin_percent": begin_percent,
                 "end_percent": end_percent
         }
-        url = f"https://test-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
+        url = f"https://beta-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
 
-        r = requests.post(url, params=params)
+        r = requests.get(url, params=params)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot lb_radio artists: {r.status_code} ({r.text})")
 
