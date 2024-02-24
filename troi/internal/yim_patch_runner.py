@@ -1,11 +1,14 @@
+import logging
+
 import click
 
 import troi
-from troi.logging import info
-from troi import Element, Artist, Recording, Playlist, PipelineError
+from troi import Element, Playlist
 from troi.listenbrainz.yim_user import YIMUserListElement
 from troi.loops import ForLoopElement
 from troi.playlist import PlaylistElement
+
+logger = logging.getLogger(__name__)
 
 
 @click.group()
@@ -37,12 +40,12 @@ class YIMSubmitterElement(Element):
         slug = inputs[0][0].patch_slug
         metadata = {"algorithm_metadata": {"source_patch": slug}}
         with open("%s-playlists.json" % slug, "w") as f:
-            info("YIMSubmitter:")
+            logger.info("YIMSubmitter:")
             for playlist in inputs[0]:
                 if len(playlist.recordings) == 0:
                     continue
 
-                info("  ", playlist.patch_slug, playlist.user_name)
+                logger.info("  ", playlist.patch_slug, playlist.user_name)
                 f.write("%s\n" % playlist.user_name)
                 f.write("%s\n" % playlist.mbid)
 
@@ -54,7 +57,7 @@ class YIMSubmitterElement(Element):
                 playlist_element.save(track_count=5, file_obj=f)
                 f.write("\n")
 
-            info("")
+            logger.info("")
 
         return None
 
@@ -102,9 +105,9 @@ class YIMRunnerPatch(troi.patch.Patch):
 
     def create(self, inputs):
         patch_slugs = [ slug for slug in inputs["patch_slugs"].split(",") ]
-        info("Running the following patches:")
+        logger.info("Running the following patches:")
         for slug in patch_slugs:
-            info("  %s" % slug)
+            logger.info("  %s" % slug)
 
         u = YIMUserListElement()
         

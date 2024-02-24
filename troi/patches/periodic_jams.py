@@ -104,8 +104,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name,
                                                                           "raw",
-                                                                          count=1000,
-                                                                          auth_token=inputs.get("token"))
+                                                                          count=1000)
 
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name,
                                                                                        days=2,

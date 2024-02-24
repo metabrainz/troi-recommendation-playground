@@ -1,11 +1,11 @@
-from collections import defaultdict
+import logging
 from copy import copy
-import sys
 
 import troi
-from troi.logging import info, error
-from troi import PipelineError, Element, User
+from troi import PipelineError, User
 from troi.utils import discover_patches
+
+logger = logging.getLogger(__name__)
 
 
 class ForLoopElement(troi.Element):
@@ -48,14 +48,14 @@ class ForLoopElement(troi.Element):
                 self.patch_args["created_for"] = user.user_name
 
                 try:
-                    info("generate %s for %s" % (patch_slug, user.user_name))
+                    logger.info("generate %s for %s" % (patch_slug, user.user_name))
                     playlist = troi.playlist.PlaylistElement()
                     playlist.set_sources(pipeline)
                     playlist.generate()
 
                     if self.patch_args["min_recordings"] is not None and \
                         len(playlist.playlists[0].recordings) < self.patch_args["min_recordings"]:
-                        info("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
+                        logger.info("Playlist does not have at least %d recordings, not submitting.\n" % self.patch_args["min_recordings"])
                         continue
 
                     if not self.patch_args["quiet"]:
@@ -71,13 +71,13 @@ class ForLoopElement(troi.Element):
                             else:
                                 playlist.submit(self.patch_args["token"])
                         except troi.PipelineError as err:
-                            error("Failed to submit playlist: %s, continuing..." % err, file=sys.stderr)
+                            logger.error("Failed to submit playlist: %s, continuing..." % err)
                             continue
 
                     outputs.append(playlist.playlists[0])
-                    info("")
+                    logger.info("")
                 except troi.PipelineError as err:
-                    info("Failed to generate playlist: %s" % err, file=sys.stderr)
+                    logger.info("Failed to generate playlist: %s" % err)
                     raise
 
         # Return None if you want to stop processing this pipeline

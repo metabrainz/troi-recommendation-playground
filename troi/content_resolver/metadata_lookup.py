@@ -1,16 +1,15 @@
-import os
+import logging
 from collections import defaultdict, namedtuple
 import datetime
-import sys
 
-import peewee
 import requests
 from tqdm import tqdm
 
-from troi.logging import info
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.model.tag import RecordingTag
+
+logger = logging.getLogger(__name__)
 
 
 RecordingRow = namedtuple('RecordingRow', ('id', 'mbid', 'metadata_id'))
@@ -42,7 +41,7 @@ class MetadataLookup:
             for row in cursor.fetchall()
         )
 
-        info("[ %d recordings to lookup ]" % len(recordings))
+        logger.info("[ %d recordings to lookup ]" % len(recordings))
 
         offset = 0
 
@@ -70,7 +69,7 @@ class MetadataLookup:
 
         r = requests.post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
         if r.status_code != 200:
-            info("Fail: %d %s" % (r.status_code, r.text))
+            logger.info("Fail: %d %s" % (r.status_code, r.text))
             return False
 
         recording_pop = {}

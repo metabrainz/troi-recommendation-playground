@@ -1,14 +1,14 @@
-from collections import defaultdict
 import datetime
-from math import ceil
+import logging
+from collections import defaultdict
 from operator import itemgetter
+from time import sleep
+
 import requests
 
-import peewee
-
-from troi.logging import info
 from troi.content_resolver.model.database import db
-from troi.content_resolver.model.unresolved_recording import UnresolvedRecording
+
+logger = logging.getLogger(__name__)
 
 
 class UnresolvedRecordingTracker:
@@ -101,7 +101,7 @@ class UnresolvedRecordingTracker:
             while True:
                 r = requests.get("https://api.listenbrainz.org/1/metadata/recording", params=params)
                 if r.status_code != 200:
-                    info("Failed to fetch metadata for recordings: ", r.text)
+                    logger.info("Failed to fetch metadata for recordings: ", r.text)
                     return []
 
                 if r.status_code == 429:

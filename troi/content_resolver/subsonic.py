@@ -1,17 +1,16 @@
 import datetime
-import os
-import sys
-from uuid import UUID
+import logging
 
 import peewee
 from tqdm import tqdm
 
-from troi.logging import info, error
 from troi.content_resolver.database import Database
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, FileIdType
 from troi.content_resolver.utils import bcolors
 from troi.content_resolver.py_sonic_fix import FixedConnection
+
+logger = logging.getLogger(__name__)
 
 
 class SubsonicDatabase(Database):
@@ -39,16 +38,16 @@ class SubsonicDatabase(Database):
 
         self.run_sync()
         
-        info("Checked %s albums:" % self.total)
-        info("  %5d albums matched" % self.matched)
-        info("  %5d recordings with errors" % self.error)
+        logger.info("Checked %s albums:" % self.total)
+        logger.info("  %5d albums matched" % self.matched)
+        logger.info("  %5d recordings with errors" % self.error)
 
     def connect(self):
         if not self.config:
-            error("Missing credentials to connect to subsonic")
+            logger.error("Missing credentials to connect to subsonic")
             return None
 
-        info("[ connect to subsonic ]")
+        logger.info("[ connect to subsonic ]")
 
         return FixedConnection(
             self.config.SUBSONIC_HOST,
@@ -68,7 +67,7 @@ class SubsonicDatabase(Database):
 
         cursor = db.connection().cursor()
 
-        info("[ load albums ]")
+        logger.info("[ load albums ]")
         album_ids = set()
         albums = []
         offset = 0
@@ -82,7 +81,7 @@ class SubsonicDatabase(Database):
             if album_count < self.BATCH_SIZE:
                 break
 
-        info("[ loaded %d albums ]" % len(album_ids))
+        logger.info("[ loaded %d albums ]" % len(album_ids))
 
         if not self.quiet:
             pbar = tqdm(total=len(album_ids))

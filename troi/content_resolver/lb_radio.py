@@ -1,18 +1,14 @@
-import datetime
-import os
+import logging
 
 from troi import Playlist
 from troi.playlist import PlaylistElement
-from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio import LBRadioPatch
-from troi.splitter import plist
 
-from troi.logging import info
 from troi.content_resolver.tag_search import LocalRecordingSearchByTagService
 from troi.content_resolver.artist_search import LocalRecordingSearchByArtistService
-from troi.content_resolver.model.database import db
-from troi.content_resolver.model.recording import FileIdType
 from troi.content_resolver.content_resolver import ContentResolver
+
+logger = logging.getLogger(__name__)
 
 
 class ListenBrainzRadioLocal:
@@ -40,10 +36,10 @@ class ListenBrainzRadioLocal:
         try:
             playlist = patch.generate_playlist()
         except RuntimeError as err:
-            info(f"LB Radio generation failed: {err}")
+            logger.info(f"LB Radio generation failed: {err}")
             return None
 
-        if playlist == None:
+        if playlist is None:
             return playlist
 
         # Resolve any tracks that have not been resolved to a subsonic_id or a local file

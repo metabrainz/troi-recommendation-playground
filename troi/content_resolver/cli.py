@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-
-import os
+import logging
 import sys
 
 import click
 
-from troi.logging import set_log_level, info, error
-from troi.content_resolver.content_resolver import ContentResolver
+from troi.logging_utils import set_log_level
 from troi.content_resolver.database import Database
-from troi.content_resolver.model.recording import FileIdType
 from troi.content_resolver.subsonic import SubsonicDatabase
 from troi.content_resolver.metadata_lookup import MetadataLookup
 from troi.content_resolver.utils import ask_yes_no_question
@@ -16,7 +13,8 @@ from troi.content_resolver.top_tags import TopTags
 from troi.content_resolver.duplicates import FindDuplicates
 from troi.content_resolver.playlist import write_m3u_playlist, write_jspf_playlist
 from troi.content_resolver.unresolved_recording import UnresolvedRecordingTracker
-from troi.playlist import PLAYLIST_TRACK_EXTENSION_URI
+
+logger = logging.getLogger(__name__)
 
 # TODO: Soon we will need a better configuration file, so we can get rid of this hack
 try:
@@ -32,7 +30,7 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
     try:
         recording = playlist.playlists[0].recordings[0]
     except (KeyError, IndexError):
-        error("Cannot save empty playlist.")
+        logger.error("Cannot save empty playlist.")
         return
 
     if upload_to_subsonic and config:
@@ -40,11 +38,11 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
             try:
                 _ = recording.musicbrainz["subsonic_id"]
             except KeyError:
-                info("Playlist does not appear to contain subsonic ids. Can't upload to subsonic.")
+                logger.info("Playlist does not appear to contain subsonic ids. Can't upload to subsonic.")
                 return
 
             if dont_ask or ask_yes_no_question("Upload via subsonic? (Y/n)"):
-                info("uploading playlist")
+                logger.info("uploading playlist")
                 db.upload_playlist(playlist)
             return
 
@@ -52,22 +50,22 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
         try:
             _ = recording.musicbrainz["filename"]
         except KeyError:
-            error("Playlist does not appear to contain file paths. Can't write a local playlist.")
+            logger.error("Playlist does not appear to contain file paths. Can't write a local playlist.")
             return
 
     if save_to_m3u:
         if dont_ask or ask_yes_no_question(f"Save to '{save_to_m3u}'? (Y/n)"):
-            info("saving playlist")
+            logger.info("saving playlist")
             write_m3u_playlist(save_to_m3u, playlist)
         return
 
     if save_to_jspf:
         if dont_ask or ask_yes_no_question(f"Save to '{save_to_jspf}'? (Y/n)"):
-            info("saving playlist")
+            logger.info("saving playlist")
             write_jspf_playlist(save_to_jspf, playlist)
         return
 
-    info("Playlist displayed, but not saved. Use -j, -m or -u options to save/upload playlists.")
+    logger.info("Playlist displayed, but not saved. Use -j, -m or -u options to save/upload playlists.")
 
 
 def db_file_check(db_file):
@@ -75,11 +73,11 @@ def db_file_check(db_file):
 
     if not db_file:
         if not config:
-            info("Database file not specified with -d (--db_file) argument. Consider adding it to config.py for ease of use.")
+            logger.info("Database file not specified with -d (--db_file) argument. Consider adding it to config.py for ease of use.")
             sys.exit(-1)
 
         if not config.DATABASE_FILE:
-            info("config.py found, but DATABASE_FILE is empty. Please add it or use -d option to specify it.")
+            logger.info("config.py found, but DATABASE_FILE is empty. Please add it or use -d option to specify it.")
             sys.exit(-1)
 
         return config.DATABASE_FILE
@@ -160,7 +158,7 @@ def metadata(db_file, quiet):
     lookup = MetadataLookup(quiet)
     lookup.lookup()
 
-    info("\nThese top tags describe your collection:")
+    logger.info("\nThese top tags describe your collection:")
     tt = TopTags()
     tt.print_top_tags_tightly(100)
 

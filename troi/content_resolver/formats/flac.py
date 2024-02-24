@@ -1,4 +1,3 @@
-import mutagen
 import mutagen.flac
 
 from troi.content_resolver.formats.tag_utils import get_tag_value, extract_track_number

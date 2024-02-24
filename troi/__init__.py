@@ -1,9 +1,15 @@
-from abc import ABC, abstractmethod
+import logging
 import random
+from abc import ABC, abstractmethod
 from typing import Dict
 
-from troi.logging import info, debug
 from troi.utils import recursively_update_dict
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter("%(message)s"))
+logger.addHandler(_handler)
 
 DEVELOPMENT_SERVER_URL = "https://datasets.listenbrainz.org"
 
@@ -102,9 +108,9 @@ class Element(ABC):
 
         if not quiet:
             if len(items) > 0 and type(items[0]) == Playlist:
-                info("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
+                logger.info("  %-50s %d items" % (type(self).__name__[:49], len(items[0].recordings or [])))
             else:
-                info("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
+                logger.info("  %-50s %d items" % (type(self).__name__[:49], len(items or [])))
 
         return items
 

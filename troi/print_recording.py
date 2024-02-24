@@ -1,9 +1,12 @@
 import datetime
+import logging
 
-from troi.logging import info, error
 from troi import Recording, Playlist, PipelineError
 
-class PrintRecordingList():
+logger = logging.getLogger(__name__)
+
+
+class PrintRecordingList:
     """
         Print a list of recordings in a sane matter intended to fit on a reasonably sized screen.
         It prints recording name and artist name always, and year, bpm, listen_count or moods
@@ -96,7 +99,7 @@ class PrintRecordingList():
             text = " %s" % ",".join(recording.musicbrainz.get("genres", []))
             text = " %s" % ",".join(recording.musicbrainz.get("tags", []))
 
-        info(text)
+        logger.info(text)
 
 
     def print(self, entity):

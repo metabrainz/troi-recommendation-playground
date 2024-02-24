@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-
 import logging
 import sys
 
 import click
 
-from troi.logging import set_log_level, info
+from troi.logging_utils import set_log_level
 from troi.utils import discover_patches
 from troi.core import list_patches, patch_info, convert_patch_to_command
 from troi.content_resolver.cli import cli as resolver_cli, db_file_check, output_playlist
@@ -14,11 +13,14 @@ from troi.content_resolver.lb_radio import ListenBrainzRadioLocal
 from troi.content_resolver.playlist import read_jspf_playlist
 from troi.local.periodic_jams_local import PeriodicJamsLocal
 
+logger = logging.getLogger(__name__)
+
 try:
     sys.path.insert(1, ".")
     import config
 except ImportError as err:
     config = None
+
 
 @click.group()
 def cli():
@@ -70,7 +72,7 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
     patchname = patch
     patches = discover_patches()
     if patchname not in patches:
-        info("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname)
+        logger.info("Cannot load patch '%s'. Use the list command to get a list of available patches." % patchname)
         return None
 
     patch_args = {
@@ -105,10 +107,10 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
 
     user_feedback = patch.user_feedback()
     if len(user_feedback) > 0:
-        info("User feedback:")
+        logger.info("User feedback:")
         for feedback in user_feedback:
-            info(f"  * {feedback}")
-        info()
+            logger.info(f"  * {feedback}")
+        logger.info("")
 
     sys.exit(0 if ret else -1)
 
@@ -203,7 +205,7 @@ def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_j
     output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True, ))
+@cli.command(context_settings=dict(ignore_unknown_options=True,))
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def test(args):
     """Run unit tests"""

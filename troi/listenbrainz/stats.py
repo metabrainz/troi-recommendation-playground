@@ -1,7 +1,10 @@
-from troi.logging import info
+import logging
+
 from troi import Element, Artist, Release, Recording
 import liblistenbrainz
 import liblistenbrainz.errors
+
+logger = logging.getLogger(__name__)
 
 
 class UserArtistsElement(Element):
@@ -27,7 +30,7 @@ class UserArtistsElement(Element):
     def outputs(self):
         return [Artist]
 
-    def read(self, inputs = []):
+    def read(self, inputs=[]):
 
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
@@ -60,7 +63,7 @@ class UserReleasesElement(Element):
     def outputs(self):
         return [Release]
 
-    def read(self, inputs = []):
+    def read(self, inputs=[]):
 
         release_list = []
         releases = self.client.get_user_releases(self.user_name, self.count, self.offset, self.time_range)
@@ -92,12 +95,12 @@ class UserRecordingElement(Element):
     def outputs(self):
         return [Recording]
 
-    def read(self, inputs = []):
+    def read(self, inputs=[]):
         recording_list = []
         try:
             recordings = self.client.get_user_recordings(self.user_name, self.count, self.offset, self.time_range)
         except liblistenbrainz.errors.ListenBrainzAPIException as err:
-            info("Cannot fetch recording stats for user %s" % self.user_name)
+            logger.info("Cannot fetch recording stats for user %s" % self.user_name)
             return []
 
         if recordings is None or "recordings" not in recordings['payload']:

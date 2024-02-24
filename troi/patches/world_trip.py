@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from urllib.parse import quote
 
@@ -5,8 +6,9 @@ import countryinfo
 import requests
 
 import troi.patch
-from troi.logging import info, error
 from troi import Element, Artist, Recording, Playlist, PipelineError, DEVELOPMENT_SERVER_URL
+
+logger = logging.getLogger(__name__)
 
 
 def recording_from_row(row):
@@ -70,7 +72,7 @@ class WorldTripElement(Element):
             names = continents.keys()
             raise RuntimeError(f"Cannot find continent {self.continent}. Must be one of {names}")
 
-        info("Fetch tracks from countries:")
+        logger.info("Fetch tracks from countries:")
         if self.latitude:
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][0], reverse=True)
         else:
@@ -101,9 +103,9 @@ class WorldTripElement(Element):
                 try:
                     recordings.append(country["recordings"][i])
                 except KeyError:
-                    error("Found no tracks for %s" % country["name"])
+                    logger.error("Found no tracks for %s" % country["name"])
                 except IndexError:
-                    error("Found too few tracks for %s" % country["name"])
+                    logger.error("Found too few tracks for %s" % country["name"])
 
         return recordings
 

@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 import json
 
@@ -5,12 +6,12 @@ import json
 import requests
 import spotipy
 
-from troi.logging import info
 from troi import Recording, Playlist, PipelineError, Element, Artist, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.spotify_lookup import submit_to_spotify
-from troi.playlist import PrintRecordingList
+
+logger = logging.getLogger(__name__)
 
 LISTENBRAINZ_SERVER_URL = "https://listenbrainz.org"
 LISTENBRAINZ_API_URL = "https://api.listenbrainz.org"
@@ -28,6 +29,7 @@ SUBSONIC_URI_PREFIX = "https://subsonic.org/entity/song/"
 #       And recording lookup needs to be replace with metadata lookup. retire the labs API endpoint!
 #       Artist.mbids is totatlly stupid (see ^^). We need [artists] with "join_phrase" in musicbrainz hash.
 #       All this for the next PR.
+
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None):
     """
@@ -180,7 +182,7 @@ class PlaylistElement(Element):
 
         for input in inputs:
             if len(input) == 0:
-                info("No recordings or playlists generated to save.")
+                logger.info("No recordings or playlists generated to save.")
                 continue
 
             if isinstance(input[0], Recording):
@@ -200,18 +202,18 @@ class PlaylistElement(Element):
         """Prints the resultant playlists, one after another."""
 
         if not self.playlists:
-            error("[no playlist(s) generated yet]")
+            logger.error("[no playlist(s) generated yet]")
             return
 
         for i, playlist in enumerate(self.playlists):
             if playlist.name:
-                info("playlist: '%s'" % playlist.name)
+                logger.info("playlist: '%s'" % playlist.name)
             else:
-                info("playlist: %d" % i)
+                logger.info("playlist: %d" % i)
 
             for recording in playlist.recordings:
                 if not recording:
-                    info("[invalid Recording]")
+                    logger.info("[invalid Recording]")
                     continue
                 self.print_recording.print(recording)
 

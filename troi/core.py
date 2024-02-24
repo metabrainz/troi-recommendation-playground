@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
+import logging
 import sys
-from typing import Dict
 
 import click
 
 import troi
-from troi.logging import info, error
 import troi.playlist
 import troi.utils
-from troi.patch import Patch
 
+
+logger = logging.getLogger(__name__)
 
 
 def list_patches():
@@ -18,7 +18,7 @@ def list_patches():
     """
     patches = troi.utils.discover_patches()
 
-    info("Available patches:")
+    logger.info("Available patches:")
     size = max([len(k) for k in patches])
     for slug in sorted(patches or []):
         patch = patches[slug]
@@ -34,7 +34,7 @@ def patch_info(patch):
 
     patches = troi.utils.discover_patches()
     if patch not in patches:
-        error("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch, file=sys.stderr)
+        logger.error("Cannot load patch '%s'. Use the list command to get a list of available patches." % patch)
         sys.exit(1)
 
     apatch = patches[patch]
