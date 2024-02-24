@@ -17,6 +17,7 @@ class PrintRecordingList():
         self.print_genre = False
         self.print_latest_listened_at = False
         self.print_ranking = False
+        self.print_popularity = False
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -40,6 +41,9 @@ class PrintRecordingList():
 
         if recording.ranking:
             self.print_ranking = True
+        
+        if "popularity" in recording.musicbrainz:
+            self.print_popularity = True
 
     def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
@@ -79,6 +83,8 @@ class PrintRecordingList():
             print(" %4d" % recording.listenbrainz['listen_count'], end='')
         if self.print_bpm or bpm:
             print(" %3d" % recording.acousticbrainz['bpm'], end='')
+        if self.popularity or popularity:
+            print(" %.3f" % recording.musicbrainz['popularity'], end='')
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
                 print(" never    ", end="")
