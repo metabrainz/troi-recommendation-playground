@@ -1,7 +1,8 @@
 import datetime
 from troi import Recording, Playlist, PipelineError
 
-class PrintRecordingList():
+
+class PrintRecordingList:
     """
         Print a list of recordings in a sane matter intended to fit on a reasonably sized screen.
         It prints recording name and artist name always, and year, bpm, listen_count or moods
@@ -45,11 +46,10 @@ class PrintRecordingList():
         if "popularity" in recording.musicbrainz:
             self.print_popularity = True
 
-    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
+    def _print_recording(self, recording, year=False, popularity=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
             The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
-
 
         if recording.artist is None:
             artist = "[missing]"
@@ -83,7 +83,7 @@ class PrintRecordingList():
             print(" %4d" % recording.listenbrainz['listen_count'], end='')
         if self.print_bpm or bpm:
             print(" %3d" % recording.acousticbrainz['bpm'], end='')
-        if self.popularity or popularity:
+        if self.print_popularity or popularity:
             print(" %.3f" % recording.musicbrainz['popularity'], end='')
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
@@ -100,7 +100,6 @@ class PrintRecordingList():
             print(" %s" % ",".join(recording.musicbrainz.get("tags", [])), end='')
 
         print()
-
 
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
