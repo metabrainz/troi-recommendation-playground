@@ -34,8 +34,8 @@ class TopTracksYouListenedToPatch(troi.patch.Patch):
               This is a review playlist that we hope will give insights the music released during the year.
               </p>"""
 
-    def __init__(self, debug=False, max_num_recordings=50):
-        troi.patch.Patch.__init__(self, debug)
+    def __init__(self, max_num_recordings=50):
+        troi.patch.Patch.__init__(self)
         self.max_num_recordings = max_num_recordings
 
     @staticmethod

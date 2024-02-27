@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from collections import namedtuple
 from enum import IntEnum
@@ -6,11 +7,9 @@ import datetime
 from mutagen import MutagenError
 from pathlib import Path
 import sys
-from time import time
 from types import SimpleNamespace
 from uuid import UUID
 
-from unidecode import unidecode
 import peewee
 from tqdm import tqdm
 
@@ -22,6 +21,8 @@ from troi.content_resolver.model.directory import Directory
 from troi.content_resolver.formats import mp3, m4a, flac, ogg_opus, ogg_vorbis, wma
 
 from troi.content_resolver.utils import existing_dirs
+
+logger = logging.getLogger(__name__)
 
 SUPPORTED_FORMATS = (
     flac,
@@ -97,10 +98,11 @@ class Database:
     Keep a database with metadata for a collection of local music files.
     '''
 
-    def __init__(self, db_file):
+    def __init__(self, db_file, quiet):
         self.db_file = db_file
         self.fuzzy_index = None
         self.forced_scan = False
+        self.quiet = quiet
 
     def create(self):
         """
@@ -121,7 +123,7 @@ class Database:
                 Directory,
             ))
         except Exception as e:
-            print("Failed to create db file %r: %s" % (self.db_file, e))
+            logger.error("Failed to create db file %r: %s" % (self.db_file, e))
 
     def open(self):
         """
@@ -131,7 +133,7 @@ class Database:
             setup_db(self.db_file)
             db.connect()
         except peewee.OperationalError:
-            print("Cannot open database index file: '%s'" % self.db_file)
+            logger.error("Cannot open database index file: '%s'" % self.db_file)
             sys.exit(-1)
 
     def close(self):
@@ -143,14 +145,14 @@ class Database:
             Scan music directories and add tracks to sqlite.
         """
         if not music_dirs:
-            print("No directory to scan")
+            logger.error("No directory to scan")
             return
 
         self.forced_scan = force
 
         self.music_dirs = tuple(sorted(set(existing_dirs(music_dirs))))
         if not self.music_dirs:
-            print("No valid directories to scan")
+            logger.error("No valid directories to scan")
             return
 
         self.chunksize = chunksize
@@ -159,17 +161,23 @@ class Database:
         self.counters = ScanCounters()
         self.skip_dirs = set()
 
-        print("Check collection size...")
-        print("Counting candidates in %s ..." % ", ".join(self.music_dirs))
+        if not self.quiet:
+            logger.info("Check collection size...")
+            logger.info("Counting candidates in %s ..." % ", ".join(self.music_dirs))
         self.traverse(dry_run=True)
-        print(self.counters.dry_run_stats())
+        if not self.quiet:
+            logger.info(self.counters.dry_run_stats())
 
-        with tqdm(total=self.counters.audio_files) as self.progress_bar:
-            print("Scanning ...")
+        if not self.quiet:
+            with tqdm(total=self.counters.audio_files) as self.progress_bar:
+                logger.info("Scanning ...")
+                self.traverse()
+        else:
             self.traverse()
 
         self.close()
-        print(self.counters.stats())
+        if not self.quiet:
+            logger.info(self.counters.stats())
 
     def traverse(self, dry_run=False):
         """
@@ -237,7 +245,7 @@ class Database:
             if directory is None or directory.mtime != mtime:
                 return mtime
         except Exception as e:
-            print("Can't stat dir %r: %s" % (dir_path, e))
+            logger.error("Can't stat dir %r: %s" % (dir_path, e))
         return False
 
     def read_metadata(self, file_path, mtime):
@@ -345,7 +353,8 @@ class Database:
             Update status counter and display matching progress
         """
         self.counters.status[statusdata.status] += 1
-        self.progress_bar.write(self.fmtdetails(statusdata))
+        if not self.quiet:
+            self.progress_bar.write(self.fmtdetails(statusdata))
 
     def add(self, file_path, audio_file_count):
         """
@@ -355,7 +364,8 @@ class Database:
         """
 
         # update the progress bar
-        self.progress_bar.update(1)
+        if not self.quiet:
+            self.progress_bar.update(1)
 
         self.counters.total += 1
 
@@ -419,28 +429,28 @@ class Database:
             PathId(d.dir_path, d.id) for d in Directory.select(Directory.dir_path, Directory.id) if not os.path.isdir(d.dir_path))
 
         if not recordings and not directories:
-            print("No cleanup needed.")
+            logger.error("No cleanup needed.")
             return
 
         for elem in sorted(recordings + directories):
-            print("RM %s" % elem.path)
+            logger.info("RM %s" % elem.path)
 
-        print("%d recordings and %d directory entries to remove from database" % (len(recordings), len(directories)))
+        logger.info("%d recordings and %d directory entries to remove from database" % (len(recordings), len(directories)))
         if not dry_run:
             with db.atomic():
                 ids = tuple(r.id for r in recordings)
                 query = Recording.delete().where(Recording.id.in_(ids))
                 count = query.execute()
-                print("%d recordings removed" % count)
+                logger.info("%d recordings removed" % count)
                 ids = tuple(d.id for d in directories)
                 query = Directory.delete().where(Directory.id.in_(ids))
                 count = query.execute()
-                print("%d directory entries removed" % count)
-            print("Vacuuming database...")
+                logger.info("%d directory entries removed" % count)
+            logger.info("Vacuuming database...")
             db.execute_sql('VACUUM')
-            print("Done.")
+            logger.info("Done.")
         else:
-            print("Use command cleanup --remove to actually remove those.")
+            logger.info("Use command cleanup --remove to actually remove those.")
 
     def metadata_sanity_check(self, include_subsonic=False):
         """
@@ -455,16 +465,15 @@ class Database:
             Recording.file_id_type).alias('count')).where(Recording.file_id_type == FileIdType.SUBSONIC_ID)[0].count
 
         if num_metadata == 0:
-            print("sanity check: You have not downloaded metadata for your collection. Run the metadata command.")
+            logger.info("sanity check: You have not downloaded metadata for your collection. Run the metadata command.")
         elif num_metadata < num_recordings // 2:
-            print("sanity check: Only %d of your %d recordings have metadata information available. Run the metdata command." %
-                  (num_metadata, num_recordings))
+            logger.info("sanity check: Only %d of your %d recordings have metadata information available."
+                        " Run the metdata command." % (num_metadata, num_recordings))
 
         if include_subsonic:
             if num_subsonic == 0 and include_subsonic:
-                print(
-                    "sanity check: You have not matched your collection against the collection in subsonic. Run the subsonic command."
-                )
+                logger.info("sanity check: You have not matched your collection against the collection in subsonic."
+                            " Run the subsonic command.")
             elif num_subsonic < num_recordings // 2:
-                print("sanity check: Only %d of your %d recordings have subsonic matches. Run the subsonic command." %
-                      (num_subsonic, num_recordings))
+                logger.info("sanity check: Only %d of your %d recordings have subsonic matches."
+                            " Run the subsonic command." % (num_subsonic, num_recordings))

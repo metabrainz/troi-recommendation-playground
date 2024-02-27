@@ -1,9 +1,11 @@
 import importlib
 import inspect
+import logging
 import os
 import traceback
 import sys
 
+logger = logging.getLogger(__name__)
 
 
 def discover_patches():
@@ -43,7 +45,7 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
             try:
                 patch = importlib.import_module(module_path + path[:-3])
             except ImportError as err:
-                print("Cannot import %s, skipping:" % (path), file=sys.stderr)
+                logger.info("Cannot import %s, skipping:" % (path), file=sys.stderr)
                 traceback.print_exc()
                 continue
 

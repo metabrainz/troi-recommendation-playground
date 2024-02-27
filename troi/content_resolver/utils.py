@@ -1,8 +1,11 @@
+import logging
 import os
 
 from troi.splitter import plist
 from troi import Recording as TroiRecording
 from troi.content_resolver.model.recording import FileIdType
+
+logger = logging.getLogger(__name__)
 
 
 def ask_yes_no_question(prompt):
@@ -18,7 +21,7 @@ def ask_yes_no_question(prompt):
         elif resp == 'n':
             return False
         else:
-            print("eh? try again.")
+            logging.info("eh? try again.")
 
 
 def select_recordings_on_popularity(recordings, begin_percent, end_percent, num_recordings):

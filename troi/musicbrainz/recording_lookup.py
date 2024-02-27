@@ -45,8 +45,6 @@ class RecordingLookupElement(Element):
         if len(data) == 0:
             return inputs[0]
 
-        self.debug("- debug %d recordings" % len(recordings))
-
         while True:
             r = requests.post(self.SERVER_URL % len(recordings), json=data)
             if r.status_code == 429:
@@ -60,7 +58,6 @@ class RecordingLookupElement(Element):
 
         try:
             rows = ujson.loads(r.text)
-            self.debug("- debug %d rows in response" % len(rows))
         except ValueError as err:
             raise PipelineError("Cannot fetch recordings from ListenBrainz: " + str(err))
 
@@ -75,9 +72,7 @@ class RecordingLookupElement(Element):
                 if row["recording_mbid"] is None:
                     continue
             except KeyError:
-                if self.skip_not_found:
-                    self.debug("- debug recording MBID %s not found, skipping." % r.mbid)
-                else:
+                if not self.skip_not_found:
                     output.append(r)
                 continue
 

@@ -215,7 +215,7 @@ class TestHatedRecordingsFilterElement(unittest.TestCase):
         filter_element = troi.filters.HatedRecordingsFilterElement()
         filter_element.set_sources(feedback_lookup)
 
-        received = filter_element.generate()
+        received = filter_element.generate(quiet=True)
         expected = [
             Recording(mbid="53969964-673a-4407-9396-3087be9245f6", listenbrainz={"score": 1}),
             Recording(mbid="8e7a9ff8-c31d-4ac0-a01d-20a7fcc28c8f", listenbrainz={"score": 0})
