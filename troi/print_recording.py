@@ -5,7 +5,6 @@ from troi import Recording, Playlist, PipelineError
 
 logger = logging.getLogger(__name__)
 
-
 class PrintRecordingList:
     """
         Print a list of recordings in a sane matter intended to fit on a reasonably sized screen.
@@ -22,6 +21,7 @@ class PrintRecordingList:
         self.print_genre = False
         self.print_latest_listened_at = False
         self.print_ranking = False
+        self.print_popularity = False
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -45,12 +45,14 @@ class PrintRecordingList:
 
         if recording.ranking:
             self.print_ranking = True
+        
+        if "popularity" in recording.musicbrainz:
+            self.print_popularity = True
 
-    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
+    def _print_recording(self, recording, year=False, popularity=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
             The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
-
 
         if recording.artist is None:
             artist = "[missing]"
@@ -85,6 +87,8 @@ class PrintRecordingList:
             text += " %4d" % recording.listenbrainz['listen_count']
         if self.print_bpm or bpm:
             text += " %3d" % recording.acousticbrainz['bpm']
+        if self.print_popularity or popularity:
+            text += " %.3f" % recording.musicbrainz['popularity']
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
                 text += " never    "
@@ -100,7 +104,6 @@ class PrintRecordingList:
             text = " %s" % ",".join(recording.musicbrainz.get("tags", []))
 
         logger.info(text)
-
 
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
