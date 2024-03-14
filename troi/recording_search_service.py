@@ -60,7 +60,7 @@ class RecordingSearchByArtistService(Service):
     def __init__(self):
         super().__init__(self.SLUG)
 
-    def search(self, artist_mbid, begin_percent, end_percent, max_recordings_per_artist, max_similar_artists):
+    def search(self, mode, artist_mbid, begin_percent, end_percent, max_recordings_per_artist, max_similar_artists):
         """
             Given a seed artist mbid, find and select similar artists (via LB similar artists data).
 
@@ -71,12 +71,15 @@ class RecordingSearchByArtistService(Service):
         """
 
         params = {
+                "mode": mode,
                 "max_similar_artists": max_similar_artists,
                 "max_recordings_per_artist": max_recordings_per_artist,
                 "begin_percent": begin_percent,
                 "end_percent": end_percent
         }
-        url = f"https://beta-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
+        # TODO: Update for production
+#        url = f"https://beta-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
+        url = f"http://localhost:8100/1/lb-radio/artist/{artist_mbid}"
 
         r = requests.get(url, params=params)
         if r.status_code != 200:

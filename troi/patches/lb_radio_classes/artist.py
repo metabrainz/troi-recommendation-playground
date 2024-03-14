@@ -52,12 +52,10 @@ class LBRadioArtistRecordingElement(troi.Element):
 
         # Fetch our mode ranges
         start, stop = self.local_storage["modes"][self.mode]
-
-        # TODO: Work out what to do about overhyped artists
-        self.recording_search_by_artist = self.patch.get_service(
-            "recording-search-by-artist")
-
-        artist_recordings = self.recording_search_by_artist.search(self.artist_mbid, start, stop, self.max_top_recordings_per_artist, self.MAX_NUM_SIMILAR_ARTISTS)
+        self.recording_search_by_artist = self.patch.get_service("recording-search-by-artist")
+        artist_recordings = self.recording_search_by_artist.search(self.mode, self.artist_mbid, start, stop,
+                                                                   self.max_top_recordings_per_artist,
+                                                                   self.MAX_NUM_SIMILAR_ARTISTS)
 
         # For all fetched artists, fetch their names
         artist_names = self.fetch_artist_names(list(artist_recordings))
@@ -87,7 +85,6 @@ class LBRadioArtistRecordingElement(troi.Element):
         for msg in msgs:
             self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % artist_names[self.artist_mbid])
-
 
         # Now collect recordings from the artist and similar artists and return an interleaved
         # stream of recordings.
