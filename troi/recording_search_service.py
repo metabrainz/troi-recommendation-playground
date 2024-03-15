@@ -10,8 +10,6 @@ from troi.splitter import plist
 # Tags:
 #    - flatten tag data for simplicity
 #    - use series of tighter random spots to speed up or searches for popular tags
-# Artist:
-#    - Support percent based popular track lookups and move logic to server
 
 
 class RecordingSearchByTagService(Service):
@@ -21,7 +19,7 @@ class RecordingSearchByTagService(Service):
     def __init__(self):
         super().__init__(self.SLUG)
 
-    def search(self, tags, operator, begin_percent, end_percent, num_recordings):
+    def search(self, tags, operator, pop_begin, pop_end, num_recordings):
         """
             Fetch the tag data from the LB API and return it as a dict.
         """
@@ -29,8 +27,8 @@ class RecordingSearchByTagService(Service):
         data = {
             "condition": operator,
             "count": num_recordings,
-            "begin_percent": begin_percent,
-            "end_percent": end_percent,
+            "begin_percent": pop_begin,
+            "end_percent": pop_end,
             "tag": tags,
             "min_tag_count": 1
         }
@@ -60,12 +58,12 @@ class RecordingSearchByArtistService(Service):
     def __init__(self):
         super().__init__(self.SLUG)
 
-    def search(self, mode, artist_mbid, begin_percent, end_percent, max_recordings_per_artist, max_similar_artists):
+    def search(self, mode, artist_mbid, pop_begin, pop_end, max_recordings_per_artist, max_similar_artists):
         """
             Given a seed artist mbid, find and select similar artists (via LB similar artists data).
 
-            begin_percent: The lower bound on recording popularity
-            end_percent: The upper bound on recording popularity
+            pop_begin: The lower bound on recording popularity
+            pop_end: The upper bound on recording popularity
             max_recordings_per_artist: The number of recordings to collect for each artist.
             max_similar_artists: The maximum number of similar artists to select.
         """
@@ -74,8 +72,8 @@ class RecordingSearchByArtistService(Service):
                 "mode": mode,
                 "max_similar_artists": max_similar_artists,
                 "max_recordings_per_artist": max_recordings_per_artist,
-                "begin_percent": begin_percent,
-                "end_percent": end_percent
+                "pop_begin": pop_begin,
+                "pop_end": pop_end
         }
         # TODO: Update for production
 #        url = f"https://beta-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
@@ -83,7 +81,7 @@ class RecordingSearchByArtistService(Service):
 
         r = requests.get(url, params=params)
         if r.status_code != 200:
-            raise RuntimeError(f"Cannot lb_radio artists: {r.status_code} ({r.text})")
+            raise RuntimeError(f"Cannot fetch lb_radio artists: {r.status_code} ({r.text})")
 
         try:
             artists = r.json()

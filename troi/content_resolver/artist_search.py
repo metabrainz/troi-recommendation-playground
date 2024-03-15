@@ -59,22 +59,22 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
 
         return plist(sorted(artists, key=lambda a: a["score"], reverse=True))
 
-    def search(self, mode, artist_mbid, begin_percent, end_percent, max_recordings_per_artist, max_similar_artists):
+    def search(self, mode, artist_mbid, pop_begin, pop_end, max_recordings_per_artist, max_similar_artists):
 
         """
         Perform an artist search. Parameters:
 
         mode: the mode used for this artist search
-        begin_percent: if many recordings match the above parameters, return only
+        pop_begin: if many recordings match the above parameters, return only
                        recordings that have a minimum popularity percent score
-                       of begin_percent.
-        end_percent: if many recordings match the above parameters, return only
+                       of pop_begin.
+        pop_end: if many recordings match the above parameters, return only
                      recordings that have a maximum popularity percent score
-                     of end_percent.
+                     of pop_end.
         max_recordings_per_artist: The number of recordings to collect for each artist.
         max_similar_artists: The maximum number of similar artists to select.
 
-        If only few recordings match, the begin_percent and end_percent are ignored.
+        If only few recordings match, the pop_begin and pop_end are ignored.
         """
 
         similar_artists = self.get_similar_artists(artist_mbid)
@@ -104,6 +104,6 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
             })
 
         for artist in artists:
-            artists[artist] = select_recordings_on_popularity(artists[artist], begin_percent, end_percent, num_recordings)
+            artists[artist] = select_recordings_on_popularity(artists[artist], pop_begin, pop_end, num_recordings)
 
         return artists
