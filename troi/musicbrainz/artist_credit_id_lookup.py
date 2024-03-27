@@ -9,7 +9,6 @@ class ArtistCreditIdLookupElement(Element):
        Look up artist_credit_name and artist_credit_mbids for the Artists that have artist_credit_id defined.
 
        No parameters needed for objection creation.
-
     '''
 
     SERVER_URL = DEVELOPMENT_SERVER_URL + "/artist-credit-id-lookup/json"
@@ -19,11 +18,11 @@ class ArtistCreditIdLookupElement(Element):
 
     @staticmethod
     def inputs():
-        return [Artist]
+        return [ArtistCredit]
 
     @staticmethod
     def outputs():
-        return [Artist]
+        return [ArtistCredit]
 
     def read(self, inputs):
 
@@ -43,6 +42,7 @@ class ArtistCreditIdLookupElement(Element):
         except Exception as err:
             raise PipelineError("Cannot fetch artist credits from ListenBrainz: Invalid JSON returned: " + str(err))
 
+        # TODO: Unclear how to proceed here, needs internet
         entities = []
         for row in artists:
             a = index[row['artist_credit_id']]

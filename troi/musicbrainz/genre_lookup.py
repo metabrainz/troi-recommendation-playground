@@ -72,6 +72,7 @@ class GenreLookupElement(Element):
             r.musicbrainz["genre"] = genres
             r.musicbrainz["tag"] = tags
 
+            # TODO: Unclear how to proceed, must look at net docs
             if r.artist is not None and "artist" in data[r.mbid]["tag"]:
                 artist_genres = []
                 artist_tags = []

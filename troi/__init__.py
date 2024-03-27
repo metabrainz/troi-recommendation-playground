@@ -126,20 +126,20 @@ class Element(ABC):
     @staticmethod
     def inputs():
         """
-            Return a list of Artist, Release or Recording classes that define
-            the type and number of input lists to this element.
-            e.g. [ Artist, Recording ] means that this element expects
-            a list of artists and a list of recordings for inputs.
+            Return a list of Artist, ArtistCredit, Release or Recording classes
+            that define the type and number of input lists to this element.
+            e.g. [ Artistm ArtistCredit, Recording ] means that this element expects
+            a list of artist credits and a list of recordings for inputs.
         """
         return None
 
     @staticmethod
     def outputs():
         """
-            Return a list of Artist, Release or Recording classes that define
-            the type and number of output lists returned by this element.
-            e.g. [ Artist, Recording ] means that this element returns
-            a list of artists and a list of recordings.
+            Return a list of Artist, ArtistCreditm Release or Recording classes
+            that define the type and number of output lists returned by this element.
+            e.g. [ Artist, ArtistCredit, Recording ] means that this element returns
+            a list of artist credits and a list of recordings.
         """
         return None
 
@@ -222,24 +222,45 @@ class Artist(Entity):
 
     def __init__(self,
                  name=None,
-                 mbids=None,
+                 mbid=None,
+                 artist_id=None,
+                 ranking=None,
+                 musicbrainz=None,
+                 listenbrainz=None,
+                 acousticbrainz=None):
+        Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz,
+                        listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
+        self.name = name
+        self.artist_id = artist_id
+
+    def __str__(self):
+        return "<Artist('%s', [%s], %s)>" % (self.name, self.mbid, self.artist_id)
+
+
+class ArtistCredit(Entity):
+    """
+        The class that represents an artist credit.
+    """
+
+    def __init__(self,
+                 name=None,
+                 artists=None,
                  artist_credit_id=None,
                  ranking=None,
                  musicbrainz=None,
                  listenbrainz=None,
                  acousticbrainz=None):
-        Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
+        Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz,
+                        listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.artist_credit_id = artist_credit_id
-        if mbids:
-            if not isinstance(mbids, list) and not isinstance(mbids, tuple):
-                raise TypeError("Artist mbids must be a list.")
-            self.mbids = sorted(mbids)
-        else:
-            self.mbids = None
+        if artists:
+            if not isinstance(artists, list) and not isinstance(artists, tuple):
+                raise TypeError("Artists must be a list.")
+            self.artists = artists
 
     def __str__(self):
-        return "<Artist('%s', [%s], %s)>" % (self.name, ",".join(self.mbids or []), self.artist_credit_id)
+        return "<ArtistCredit('%s', [%s], %s)>" % (self.name, ",".join([ a.mbid for a in self.artists), self.artist_credit_id)
 
 
 class Release(Entity):
@@ -247,9 +268,9 @@ class Release(Entity):
         The class that represents a release.
     """
 
-    def __init__(self, name=None, mbid=None, artist=None, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, name=None, mbid=None, artist_credit=None, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
-        self.artist = artist
+        self.artist_credit = artist_credit
         self.name = name
         self.mbid = mbid
 
@@ -267,7 +288,7 @@ class Recording(Entity):
                  mbid=None,
                  msid=None,
                  duration=None,
-                 artist=None,
+                 artist_credit=None,
                  release=None,
                  ranking=None,
                  year=None,
@@ -277,7 +298,7 @@ class Recording(Entity):
                  acousticbrainz=None):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.duration = duration  # track duration in ms
-        self.artist = artist
+        self.artist_credit = artist_credit
         self.release = release
         self.name = name
         self.mbid = mbid

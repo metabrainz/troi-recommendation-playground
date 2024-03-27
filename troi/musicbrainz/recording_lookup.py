@@ -38,7 +38,7 @@ class RecordingLookupElement(Element):
 
         data = []
         for r in recordings:
-            if r.artist is None or r.artist.name is None or len(r.artist.mbids) == 0 or r.name is None:
+            if r.artist_credit is None or r.artist_credit.name is None or len(r.artist.mbids) == 0 or r.name is None:
                 data.append({ '[recording_mbid]': r.mbid })
 
         # If we have all the data for all the recordings, no need to lookup anything and simply pass the data along
@@ -76,6 +76,7 @@ class RecordingLookupElement(Element):
                     output.append(r)
                 continue
 
+            # TODO Finish this.
             if r.artist:
                 r.artist.name = row['artist_credit_name']
                 r.artist.mbids = row.get('[artist_credit_mbids]', [])
