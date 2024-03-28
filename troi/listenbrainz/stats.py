@@ -1,6 +1,6 @@
 import logging
 
-from troi import Element, Artist, Release, Recording
+from troi import Element, Artist, ArtistCredit, Release, Recording
 import liblistenbrainz
 import liblistenbrainz.errors
 
@@ -35,7 +35,8 @@ class UserArtistsElement(Element):
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
         for a in artists['payload']['artists']:
-            artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids']))
+            artists = [ Artist(mbid=mbid) for mbid in a['artist_mbids'] ]
+            artist_list.append(ArtistCredit(name=a['artist_name'], artists=artists)
 
         return artist_list
 
