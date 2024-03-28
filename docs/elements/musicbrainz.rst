@@ -4,14 +4,6 @@ MusicBrainz Elements
 The following elements fetch data from MusicBrainz:
 
 
-troi.musicbrainz.artist_credit_id_lookup
-----------------------------------------
-
-Load artist_credit_name and artist_credit_mbids for Artist objects that have an artist_credit_id:
-
-.. autoclass:: troi.musicbrainz.artist_credit_id_lookup.ArtistCreditIdLookupElement
-
-
 troi.musicbrainz.genre_lookup
 -----------------------------
 

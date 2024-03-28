@@ -224,6 +224,7 @@ class Artist(Entity):
                  name=None,
                  mbid=None,
                  artist_id=None,
+                 join_phrase=None,
                  ranking=None,
                  musicbrainz=None,
                  listenbrainz=None,
@@ -232,6 +233,7 @@ class Artist(Entity):
                         listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.artist_id = artist_id
+        self.join_phrase = join_phrase
 
     def __str__(self):
         return "<Artist('%s', [%s], %s)>" % (self.name, self.mbid, self.artist_id)
@@ -268,11 +270,26 @@ class Release(Entity):
         The class that represents a release.
     """
 
-    def __init__(self, name=None, mbid=None, artist_credit=None, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
-        Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz, listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
+    def __init__(self,
+                 name=None,
+                 mbid=None,
+                 artist_credit=None,
+                 ranking=None,
+                 caa_id=None,
+                 caa_release_mbid=None,
+                 musicbrainz=None,
+                 listenbrainz=None,
+                 acousticbrainz=None):
+        Entity.__init__(self,
+                        ranking=ranking,
+                        musicbrainz=musicbrainz,
+                        listenbrainz=listenbrainz,
+                        acousticbrainz=acousticbrainz)
         self.artist_credit = artist_credit
         self.name = name
         self.mbid = mbid
+        self.caa_id = caa_id
+        self.caa_release_mbid = caa_release_mbid
 
     def __str__(self):
         return "<Release('%s', %s)>" % (self.name, self.mbid)
