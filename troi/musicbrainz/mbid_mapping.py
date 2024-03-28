@@ -54,27 +54,13 @@ class MBIDMappingLookupElement(Element):
             r.mbid = row['recording_mbid']
             r.name = row['recording_name']
 
-            if r.artist_credit is None:
-                r.artist_credit = ArtistCredit(
-                    artist_credit_id=row['artist_credit_id'],
-                    name=row['artist_credit_name'],
-                    # TODO: Use artist names as well
-                    r.artist_credit.artists=[ Artist(mbid=mbid) for mbid in artist.mbids ] 
-                )
-            else:
-                r.artist_credit.artist_credit_id = row['artist_credit_id']
-                r.artist_credit.name = row['artist_credit_name']
-                r.artist_credit.mbids = row['artist_mbids']
-                # TODO: Use artist names as well
+            r.artist_credit = ArtistCredit(
+                artist_credit_id=row['artist_credit_id'],
+                name=row['artist_credit_name'],
                 r.artist_credit.artists=[ Artist(mbid=mbid) for mbid in artist.mbids ] 
+            )
 
-            if r.release:
-                if r.release.mbid:
-                    r.release.add_note("mbid %d overwritten by mbid_lookup" % (r.release.mbid,))
-                r.release.mbid = row['release_mbid']
-                r.release.name = row['release_name']
-            else:
-                r.release = Release(row['release_name'], mbid=row['release_mbid'])
+            r.release = Release(row['release_name'], mbid=row['release_mbid'])
 
             entities.append(r)
 
