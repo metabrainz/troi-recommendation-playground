@@ -4,17 +4,6 @@ MusicBrainz Elements
 The following elements fetch data from MusicBrainz:
 
 
-troi.musicbrainz.genre_lookup
------------------------------
-
-Retrieve genre tags for Recordings that have their mbid set correctly:
-
-.. autoclass:: troi.musicbrainz.genre_lookup.GenreLookupElement
-
-The Recordings passed into this Element will have the "tags" and "genres" fields in the Recording.musicbrainz dict
-that contain lists of tags and genres. If one of these list is empty, there are no tags/genres for this Recording.
-
-
 troi.musicbrainz.mbid_mapping
 -----------------------------
 
