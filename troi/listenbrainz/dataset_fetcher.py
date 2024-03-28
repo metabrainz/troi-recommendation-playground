@@ -6,7 +6,7 @@ from troi import Element, Artist, Recording, Playlist, PipelineError
 class DataSetFetcherElement(Element):
     '''
         Fetch a dataset from the ListenBrainz experimental APIs that contains at least a recording_mbid.
-        Recording.name, listenbrainz.listen_count and Artist.artist_credit_name will also be filled out
+        Recording.name, listenbrainz.listen_count and ArtistCredit.name will also be filled out
         if it is available in the returned data.
 
         :param server_url: the URL to POST to
@@ -29,10 +29,14 @@ class DataSetFetcherElement(Element):
 
     def create_recording(self, row):
 
-        r = Recording(mbid=row['recording_mbid'])
-        if 'artist_credit_name' in row:
-            if 'artist_credit_id' in row:
-                r.artist.artist_credit_id = row['artist_credit_id']
+
+        """SELECT r.gid::TEXT AS recording_mbid
+                                , r.name AS recording_name
+                                , ac.name AS artist_credit_name
+                                , array_agg(a.gid::TEXT) AS artist_mbids
+                                , date_year AS year
+
+
 
         r.artist = self.create_artist(row)
 
@@ -87,9 +91,9 @@ class DataSetFetcherElement(Element):
             else:
                 continue
 
+        r = Recording(mbid=row['recording_mbid'])
+        if 'artist_credit_name' in row:
+            if 'artist_credit_id' in row:
+                r.artist_credit = ArtistCredit(artist_credit_id = row['artist_credit_id'],
+                                               name = row['artist_credit_name'])
             output.append(r)
-
-        if self.max_num_items is not None:
-            output = output[:self.max_num_items]
-
-        return output
