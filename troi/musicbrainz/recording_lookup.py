@@ -1,4 +1,4 @@
-from collection import defaultdict
+from collections import defaultdict
 from time import sleep
 
 import requests
@@ -15,7 +15,6 @@ class RecordingLookupElement(Element):
     '''
 
     SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
-    /?recording_mbids=e68ffa73-0855-4180-9299-379af77cc6bc&inc=artist%20release
 
     def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None):
         Element.__init__(self)
@@ -85,9 +84,9 @@ class RecordingLookupElement(Element):
             for genre in data[r.mbid]["tag"]["artist"]:
                 if genre["count"] >= self.count_threshold:
                     if "genre_mbid" in genre:
-                        artist_genres[genre["artist_mbid"].append(genre["tag"])
+                        artist_genres[genre["artist_mbid"]].append(genre["tag"])
                     else:
-                        artist_tags[genre["artist_mbid"].append(genre["tag"])
+                        artist_tags[genre["artist_mbid"]].append(genre["tag"])
 
             # Now build the artists
             artists = []
