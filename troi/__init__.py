@@ -170,9 +170,9 @@ class Entity(ABC):
         How exactly these dicts will be organized is TDB.
     """
 
-    def __init__(self, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
+    def __init__(self, mbid=None, ranking=None, musicbrainz=None, listenbrainz=None, acousticbrainz=None):
         self.name = None
-        self.mbid = None
+        self.mbid = mbid
         self.musicbrainz = musicbrainz or {}
         self.listenbrainz = listenbrainz or {}
         self.acousticbrainz = acousticbrainz or {}
@@ -229,7 +229,7 @@ class Artist(Entity):
                  musicbrainz=None,
                  listenbrainz=None,
                  acousticbrainz=None):
-        Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz,
+        Entity.__init__(self, mbid=mbid, ranking=ranking, musicbrainz=musicbrainz,
                         listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
         self.artist_id = artist_id
@@ -255,6 +255,7 @@ class ArtistCredit(Entity):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz,
                         listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
+        self.artists = artists
         self.artist_credit_id = artist_credit_id
         if artists:
             if not isinstance(artists, list) and not isinstance(artists, tuple):
@@ -262,7 +263,7 @@ class ArtistCredit(Entity):
             self.artists = artists
 
     def __str__(self):
-        return "<ArtistCredit('%s', [%s], %s)>" % (self.name, ",".join([ a.mbid for a in self.artists), self.artist_credit_id)
+        return "<ArtistCredit('%s', [%s], %s)>" % (self.name, ",".join([ a.mbid for a in self.artists ]), self.artist_credit_id)
 
 
 class Release(Entity):

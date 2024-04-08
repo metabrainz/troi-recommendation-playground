@@ -47,14 +47,14 @@ class ArtistCreditFilterElement(troi.Element):
 
         results = []
         for r in recordings:
-            if not r.artist or not r.artist.artist_credit_id:
+            if not r.artist_credit or not r.artist_credit.artist_credit_id:
                 continue
 
             if self.include:
-                if r.artist.artist_credit_id in ac_index:
+                if r.artist_credit.artist_credit_id in ac_index:
                     results.append(r)
             else:
-                if r.artist.artist_credit_id not in ac_index:
+                if r.artist_credit.artist_credit_id not in ac_index:
                     results.append(r)
 
         return results
@@ -96,7 +96,7 @@ class ArtistCreditLimiterElement(troi.Element):
         all_have_rankings = True
         for rec in recordings:
             try:
-                ac_index[rec.artist.artist_credit_id].append((rec.mbid, rec.ranking))
+                ac_index[rec.artist_credit.artist_credit_id].append((rec.mbid, rec.ranking))
                 if rec.ranking is None:
                     all_have_rankings = False
             except KeyError:

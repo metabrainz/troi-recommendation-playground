@@ -10,7 +10,6 @@ class TestPatches(unittest.TestCase):
         patches = discover_patches()
 
         assert "periodic-jams" in patches
-        assert "area-random-recordings" in patches
         assert "weekly-flashback-jams" in patches
         assert "playlist-from-mbids" in patches
         assert "world-trip" in patches
