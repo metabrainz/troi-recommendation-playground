@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from urllib.parse import quote
 
@@ -6,6 +7,8 @@ import requests
 
 import troi.patch
 from troi import Element, Artist, Recording, Playlist, PipelineError, DEVELOPMENT_SERVER_URL
+
+logger = logging.getLogger(__name__)
 
 
 def recording_from_row(row):
@@ -69,15 +72,13 @@ class WorldTripElement(Element):
             names = continents.keys()
             raise RuntimeError(f"Cannot find continent {self.continent}. Must be one of {names}")
 
-        print("Fetch tracks from countries:")
+        logger.info("Fetch tracks from countries:")
         if self.latitude:
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][0], reverse=True)
         else:
             continent = sorted(continents[self.continent], key=lambda c: c['latlng'][1])
 
         for i, country in enumerate(continent):
-            self.debug("   %s" % country["name"])
-
             r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % country['name'])
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
@@ -102,9 +103,9 @@ class WorldTripElement(Element):
                 try:
                     recordings.append(country["recordings"][i])
                 except KeyError:
-                    print("Found no tracks for %s" % country["name"])
+                    logger.error("Found no tracks for %s" % country["name"])
                 except IndexError:
-                    print("Found too few tracks for %s" % country["name"])
+                    logger.error("Found too few tracks for %s" % country["name"])
 
         return recordings
 
@@ -122,8 +123,8 @@ class WorldTripPatch(troi.patch.Patch):
               </p>
            """
 
-    def __init__(self, debug=False):
-        troi.patch.Patch.__init__(self, debug)
+    def __init__(self):
+        troi.patch.Patch.__init__(self)
 
     @staticmethod
     def inputs():

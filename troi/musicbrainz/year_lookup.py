@@ -64,9 +64,7 @@ class YearLookupElement(Element):
             try:
                 r.year = mbid_index[r.artist.name + r.name]
             except KeyError:
-                if self.skip_not_found:
-                    self.debug("recording (%s %s) not found, skipping." % (r.artist.name, r.name))
-                else:
+                if not self.skip_not_found:
                     output.append(r)
                 continue
 

@@ -63,8 +63,8 @@ class WeeklyFlashbackJams(troi.patch.Patch):
         See below for description
     """
 
-    def __init__(self, args, debug=False):
-        troi.patch.Patch.__init__(self, args, debug)
+    def __init__(self, args):
+        troi.patch.Patch.__init__(self, args)
 
     @staticmethod
     def inputs():
@@ -95,7 +95,6 @@ class WeeklyFlashbackJams(troi.patch.Patch):
     def create(self, inputs):
         user_name = inputs['user_name']
         type = inputs['type']
-        print(type)
 
         if type not in ("top", "similar", "raw"):
             raise PipelineError("type must be either 'top', 'similar' or 'raw'")

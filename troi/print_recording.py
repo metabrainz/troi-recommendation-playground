@@ -1,7 +1,11 @@
 import datetime
+import logging
+
 from troi import Recording, Playlist, PipelineError
 
-class PrintRecordingList():
+logger = logging.getLogger(__name__)
+
+class PrintRecordingList:
     """
         Print a list of recordings in a sane matter intended to fit on a reasonably sized screen.
         It prints recording name and artist name always, and year, bpm, listen_count or moods
@@ -17,6 +21,7 @@ class PrintRecordingList():
         self.print_genre = False
         self.print_latest_listened_at = False
         self.print_ranking = False
+        self.print_popularity = False
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -40,12 +45,14 @@ class PrintRecordingList():
 
         if recording.ranking:
             self.print_ranking = True
+        
+        if "popularity" in recording.musicbrainz:
+            self.print_popularity = True
 
-    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
+    def _print_recording(self, recording, year=False, popularity=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
             The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
-
 
         if recording.artist is None:
             artist = "[missing]"
@@ -63,38 +70,40 @@ class PrintRecordingList():
         else:
             rec_name = recording.name
         rec_mbid = recording.mbid[:5] if recording.mbid else "[[ ]]"
-        print("%-60s %-50s %5s" % (rec_name[:59], artist[:49], rec_mbid), end='')
+
+        text = "%-60s %-50s %5s" % (rec_name[:59], artist[:49], rec_mbid)
 
         if recording.artist is not None:
             if recording.artist.mbids is not None:
-                print(" %-20s" % ",".join([ mbid[:5] for mbid in recording.artist.mbids ]), end='')
+                text += " %-20s" % ",".join([ mbid[:5] for mbid in recording.artist.mbids ])
             if recording.artist.artist_credit_id is not None:
-                print(" %8d" % recording.artist.artist_credit_id, end='')
+                text += " %8d" % recording.artist.artist_credit_id
 
         if self.print_year and recording.year is not None:
-            print(" %d" % recording.year, end='')
+            text += " %d" % recording.year
         if self.print_ranking:
-            print(" %.3f" % recording.ranking, end='')
+            text += " %.3f" % recording.ranking
         if self.print_listen_count or listen_count:
-            print(" %4d" % recording.listenbrainz['listen_count'], end='')
+            text += " %4d" % recording.listenbrainz['listen_count']
         if self.print_bpm or bpm:
-            print(" %3d" % recording.acousticbrainz['bpm'], end='')
+            text += " %3d" % recording.acousticbrainz['bpm']
+        if self.print_popularity or popularity:
+            text += " %.3f" % recording.musicbrainz['popularity']
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
-                print(" never    ", end="")
+                text += " never    "
             else:
                 now = datetime.datetime.now()
                 td = now - recording.listenbrainz["latest_listened_at"]
-                print(" %3d days " % td.days, end="")
+                text += " %3d days " % td.days
         if self.print_moods or moods:
             # TODO: make this print more than agg, but given the current state of moods/coverage...
-            print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
+            text = " mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"])
         if self.print_genre or genre:
-            print(" %s" % ",".join(recording.musicbrainz.get("genres", [])), end='')
-            print(" %s" % ",".join(recording.musicbrainz.get("tags", [])), end='')
+            text = " %s" % ",".join(recording.musicbrainz.get("genres", []))
+            text = " %s" % ",".join(recording.musicbrainz.get("tags", []))
 
-        print()
-
+        logger.info(text)
 
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
@@ -116,4 +125,3 @@ class PrintRecordingList():
                 self._print_recording(rec)
 
         raise PipelineError("You must pass a Recording or list of Recordings or a Playlist to print.")
-

@@ -46,8 +46,8 @@ class PeriodicJamsPatch(troi.patch.Patch):
 
     JAM_TYPES = ("daily-jams", "weekly-jams", "weekly-exploration")
 
-    def __init__(self, args, debug=False):
-        super().__init__(args, debug)
+    def __init__(self, args):
+        super().__init__(args)
 
     @staticmethod
     def inputs():
@@ -104,8 +104,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name,
                                                                           "raw",
-                                                                          count=1000,
-                                                                          auth_token=inputs.get("token"))
+                                                                          count=1000)
 
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name,
                                                                                        days=2,

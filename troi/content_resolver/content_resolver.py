@@ -1,19 +1,12 @@
-import os
-import datetime
-import sys
-from uuid import UUID
+import logging
 
-import peewee
-
-from troi.content_resolver.model.database import db, setup_db
 from troi.content_resolver.model.recording import Recording, FileIdType
 from troi.content_resolver.unresolved_recording import UnresolvedRecordingTracker
 from troi.content_resolver.fuzzy_index import FuzzyIndex
 from lb_matching_tools.cleaner import MetadataCleaner
-from troi.content_resolver.playlist import read_jspf_playlist
 from troi.content_resolver.utils import bcolors
-from troi.playlist import PlaylistElement
-from troi import Playlist
+
+logger = logging.getLogger(__name__)
 
 
 class ContentResolver:
@@ -21,8 +14,9 @@ class ContentResolver:
     Scan a given path and enter/update the metadata in the search index
     '''
 
-    def __init__(self):
+    def __init__(self, quiet):
         self.fuzzy_index = None
+        self.quiet = quiet
 
     def get_artist_recording_metadata(self):
         """
@@ -183,15 +177,15 @@ class ContentResolver:
         # Build index based on recording.id
         rec_index = {r["id"]: r for r in local_recordings}
 
-        print("       %-40s %-40s %-40s" % ("RECORDING", "RELEASE", "ARTIST"))
+        logger.info("       %-40s %-40s %-40s" % ("RECORDING", "RELEASE", "ARTIST"))
         unresolved_recordings = []
         target_recordings = playlist.playlists[0].recordings
         resolved = 0
         failed = 0
         for i, artist_recording in enumerate(artist_recording_data):
             if i not in hit_index:
-                print(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
-                                                                                       artist_recording["artist_name"][:39]))
+                logger.info(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
+                                                                                           artist_recording["artist_name"][:39]))
                 unresolved_recordings.append(artist_recording["recording_mbid"])
                 failed += 1
                 continue
@@ -207,17 +201,20 @@ class ContentResolver:
             if local_recording["duration"] is not None:
                 target.duration = local_recording["duration"]
 
-            print(bcolors.OKGREEN + ("%-5s" % hit["method"]) + bcolors.ENDC +
-                  "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
-                                           artist_recording["artist_name"][:39]))
-            print("       %-40s %-40s %-40s" % (local_recording["recording_name"][:39],
-                                                local_recording["release_name"][:39],
-                                                local_recording["artist_name"][:39]))
+            if not self.quiet:
+                logger.info(bcolors.OKGREEN + ("%-5s" % hit["method"]) + bcolors.ENDC +
+                            "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
+                                                     artist_recording["artist_name"][:39]))
+                logger.info("       %-40s %-40s %-40s" % (local_recording["recording_name"][:39],
+                                                          local_recording["release_name"][:39],
+                                                          local_recording["artist_name"][:39]))
             resolved += 1
 
         if resolved == 0:
-            print("Sorry, but no tracks could be resolved, no playlist generated.")
+            logger.info("Sorry, but no tracks could be resolved, no playlist generated.")
             return []
 
-        print(f'\n{resolved} recordings resolved, {failed} not resolved.')
+        if not self.quiet:
+            logger.info(f'\n{resolved} recordings resolved, {failed} not resolved.')
+
         return playlist

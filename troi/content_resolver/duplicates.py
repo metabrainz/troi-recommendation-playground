@@ -1,18 +1,12 @@
+import logging
 import os
 import json
-from collections import defaultdict
-import datetime
 import hashlib
 import mutagen
-import sys
-
-import peewee
-import requests
 
 from troi.content_resolver.model.database import db
-from troi.content_resolver.model.recording import Recording, RecordingMetadata
-from troi.recording_search_service import RecordingSearchByTagService
-from troi.splitter import plist
+
+logger = logging.getLogger(__name__)
 
 
 class FindDuplicates:
@@ -73,16 +67,16 @@ class FindDuplicates:
             return ' ' * (4 * n) + str(s)
 
         def print_error(e):
-            print(indent(2, "error: %s" % e))
+            logger.info(indent(2, "error: %s" % e))
 
         def print_info(title, content):
-            print(indent(2, "%s: %s" % (title, content)))
+            logger.info(indent(2, "%s: %s" % (title, content)))
 
         for dup in self.get_duplicate_recordings(include_different_releases):
             recordings_count += 1
-            print("%d duplicates of '%s' by '%s'" % (dup[5], dup[0], dup[2]))
+            logger.info("%d duplicates of '%s' by '%s'" % (dup[5], dup[0], dup[2]))
             for file_id in dup[4]:
-                print(indent(1, file_id))
+                logger.info(indent(1, file_id))
                 if verbose:
                     error = False
                     try:
@@ -107,8 +101,7 @@ class FindDuplicates:
                             print_error(e)
 
                 total += 1
-            print()
+            logger.info("")
 
-        print()
-        print("%d recordings had a total of %d duplicates." %
-              (recordings_count, total))
+        logger.info("")
+        logger.info("%d recordings had a total of %d duplicates." % (recordings_count, total))

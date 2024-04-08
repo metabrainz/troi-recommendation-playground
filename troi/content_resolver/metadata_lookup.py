@@ -1,15 +1,15 @@
-import os
+import logging
 from collections import defaultdict, namedtuple
 import datetime
-import sys
 
-import peewee
 import requests
 from tqdm import tqdm
 
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.model.tag import RecordingTag
+
+logger = logging.getLogger(__name__)
 
 
 RecordingRow = namedtuple('RecordingRow', ('id', 'mbid', 'metadata_id'))
@@ -21,6 +21,9 @@ class MetadataLookup:
     '''
 
     BATCH_SIZE = 1000
+
+    def __init__(self, quiet):
+        self.quiet = quiet
 
     def lookup(self):
         """
@@ -38,10 +41,16 @@ class MetadataLookup:
             for row in cursor.fetchall()
         )
 
-        print("[ %d recordings to lookup ]" % len(recordings))
+        logger.info("[ %d recordings to lookup ]" % len(recordings))
 
         offset = 0
-        with tqdm(total=len(recordings)) as self.pbar:
+
+        if not self.quiet:
+            with tqdm(total=len(recordings)) as self.pbar:
+                while offset <= len(recordings):
+                    self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
+                    offset += self.BATCH_SIZE
+        else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                 offset += self.BATCH_SIZE
@@ -60,7 +69,7 @@ class MetadataLookup:
 
         r = requests.post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
         if r.status_code != 200:
-            print("Fail: %d %s" % (r.status_code, r.text))
+            logger.info("Fail: %d %s" % (r.status_code, r.text))
             return False
 
         recording_pop = {}
@@ -72,7 +81,8 @@ class MetadataLookup:
             recording_tags[mbid][row["source"]].append(row["tag"])
             tags.add(row["tag"])
 
-        self.pbar.update(len(recordings))
+        if not self.quiet:
+            self.pbar.update(len(recordings))
 
         with db.atomic():
 
