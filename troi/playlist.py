@@ -260,7 +260,7 @@ class PlaylistElement(Element):
             if len(playlist.recordings) == 0:
                 continue
 
-            info("submit %d tracks" % len(playlist.recordings))
+            logger.info("submit %d tracks" % len(playlist.recordings))
             if playlist.patch_slug is not None:
                 playlist.add_metadata({"algorithm_metadata": {"source_patch": playlist.patch_slug}})
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,

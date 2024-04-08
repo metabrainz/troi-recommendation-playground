@@ -25,14 +25,14 @@ class RecordingSearchByTagService(Service):
         """
 
         data = {
-            "condition": operator,
+            "operator": operator,
             "count": num_recordings,
-            "begin_percent": pop_begin,
-            "end_percent": pop_end,
+            "pop_begin": pop_begin,
+            "pop_end": pop_end,
             "tag": tags,
-            "min_tag_count": 1
+            "min_tag_count": 1,
         }
-        r = requests.get("https://api.listenbrainz.org/1/lb-radio/tags", params=data)
+        r = requests.get("https://beta-api.listenbrainz.org/1/lb-radio/tags", params=data)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
