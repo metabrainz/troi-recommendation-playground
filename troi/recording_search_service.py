@@ -75,9 +75,7 @@ class RecordingSearchByArtistService(Service):
                 "pop_begin": pop_begin,
                 "pop_end": pop_end
         }
-        # TODO: Update for production
-#        url = f"https://beta-api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
-        url = f"http://localhost:8100/1/lb-radio/artist/{artist_mbid}"
+        url = f"https://api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
 
         r = requests.get(url, params=params)
         if r.status_code != 200:
