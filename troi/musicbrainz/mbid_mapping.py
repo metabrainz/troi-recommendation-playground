@@ -1,7 +1,7 @@
 import requests
 import ujson
 
-from troi import Element, Artist, Recording, Release, PipelineError
+from troi import Element, Artist, ArtistCredit, Recording, Release, PipelineError
 
 
 class MBIDMappingLookupElement(Element):
@@ -57,7 +57,7 @@ class MBIDMappingLookupElement(Element):
             r.artist_credit = ArtistCredit(
                 artist_credit_id=row['artist_credit_id'],
                 name=row['artist_credit_name'],
-                artists=[ Artist(mbid=mbid) for mbid in artist.mbids ] 
+                artists=[ Artist(mbid=mbid) for mbid in row['artist_mbids'] ] 
             )
 
             r.release = Release(row['release_name'], mbid=row['release_mbid'])
