@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from troi import Artist, Release, Recording
+from troi import Artist, ArtistCredit, Release, Recording
 import troi.listenbrainz.stats
 
 artist_ret = {
@@ -66,9 +66,9 @@ class TestStats(unittest.TestCase):
         entities = u.read()
         stats_mock.assert_called_with("rob", 1, 1, "week")
         assert len(entities) == 1
-        assert isinstance(entities[0], Artist)
-        assert entities[0].mbids is None
+        assert isinstance(entities[0], ArtistCredit)
         assert entities[0].name == 'Pretty Lights'
+        assert len(entities[0].artists) == 0
 
     @patch('liblistenbrainz.ListenBrainz.get_user_releases')
     def test_user_release_stats(self, stats_mock):
@@ -79,7 +79,7 @@ class TestStats(unittest.TestCase):
         stats_mock.assert_called_with("rob", 1, 1, "all_time")
         assert len(entities) == 1
         assert isinstance(entities[0], Release)
-        assert entities[0].artist.name == 'Saltillo'
+        assert entities[0].artist_credit.name == 'Saltillo'
         assert entities[0].name == 'Ganglion'
 
     @patch('liblistenbrainz.ListenBrainz.get_user_recordings')
@@ -91,6 +91,6 @@ class TestStats(unittest.TestCase):
         stats_mock.assert_called_with("rob", 1, 1, "all_time")
         assert len(entities) == 1
         assert isinstance(entities[0], Recording)
-        assert entities[0].artist.name == 'Woolfy'
+        assert entities[0].artist_credit.name == 'Woolfy'
         assert entities[0].release.name == 'Stations'
         assert entities[0].name == 'Tangiers'
