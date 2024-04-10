@@ -4,7 +4,7 @@ from time import sleep
 import requests
 import ujson
 
-from troi import Element, Artist, PipelineError, Recording, Playlist, Release
+from troi import Element, Artist, ArtistCredit, PipelineError, Recording, Playlist, Release
 
 
 class RecordingLookupElement(Element):
@@ -41,19 +41,14 @@ class RecordingLookupElement(Element):
 
         recording_mbids = []
         for r in recordings:
-            if r.artist is None or r.artist.name is None or len(r.artist.mbids) == 0 or r.name is None:
-                recording_mbids.append(r.mbid)
-
-        # If we have all the data for all the recordings, no need to lookup anything and simply pass the data along
-        if len(data) == 0:
-            return inputs[0]
+            recording_mbids.append(r.mbid)
 
         inc = "artist release"
         if self.lookup_tags:
             inc += " tag"
 
         while True:
-            r = requests.get(self.SERVER_URL, params={"recording_mbids": recording_mbids, "inc": "artist release"})
+            r = requests.get(self.SERVER_URL, params={"recording_mbids": recording_mbids, "inc": inc})
             if r.status_code == 429:
                 sleep(2)
                 continue
@@ -72,17 +67,17 @@ class RecordingLookupElement(Element):
         for r in recordings:
             # Check if some tracks didn't resolve
             try:
-                metadata_recording = mbid_index[r.mbid]
+                metadata_recording = data[r.mbid]
             except KeyError:
                 if not self.skip_not_found:
                     output.append(r)
                 continue
 
-            # Parcel out the tags for artists
-            artist_genres = defaultdict(list)
-            artist_tags = defaultdict(list)
-            for genre in data[r.mbid]["tag"]["artist"]:
-                if genre["count"] >= self.count_threshold:
+            if self.lookup_tags:
+                # Parcel out the tags for artists
+                artist_genres = defaultdict(list)
+                artist_tags = defaultdict(list)
+                for genre in data[r.mbid]["tag"]["artist"]:
                     if "genre_mbid" in genre:
                         artist_genres[genre["artist_mbid"]].append(genre["tag"])
                     else:
@@ -90,45 +85,57 @@ class RecordingLookupElement(Element):
 
             # Now build the artists
             artists = []
-            for artist in metadata_recording["artists"]:
+            for artist in metadata_recording["artist"]["artists"]:
                 artists.append(Artist(mbid=artist["artist_mbid"], 
                                       name=artist["name"],
                                       join_phrase=artist["join_phrase"]))
 
-                # Finish this, read from dict above
-                r.artist.musicbrainz["genre"] = artist_genres[artist["artist_mbid"]]
-                r.artist.musicbrainz["tag"] = artist_tags[artist["artist_mbid"]]
 
             # Now that we have artists, we can build artist credits.
             r.artist_credit = ArtistCredit(name=metadata_recording["artist"]["name"],
                                            artists=artists,
-                                           artist_credit_id=row['artist_credit_id'])
+                                           artist_credit_id=metadata_recording["artist"]['artist_credit_id'])
+
+            if self.lookup_tags:
+                # Finish this, read from dict above
+                r.artist_credit.musicbrainz["genre"] = artist_genres[artist["artist_mbid"]]
+                r.artist_credit.musicbrainz["tag"] = artist_tags[artist["artist_mbid"]]
 
             # Now create the release data
-            r.release = Release(name=recording_metadata["release"]["name"],
-                                mbid=recording_metadata["release"]["mbid"],
-                                caa_id=recording_metadata["release"]["caa_id"],
-                                caa_release_mbid=recording_metadata["release"]["caa_release_mbid"],
-                                metabrainz={"release_group_id":recording_metadata["release"]["release_group_id"]})
+            r.release = Release(name=metadata_recording["release"]["name"],
+                                mbid=metadata_recording["release"]["mbid"],
+                                caa_id=metadata_recording["release"]["caa_id"],
+                                caa_release_mbid=metadata_recording["release"]["caa_release_mbid"],
+                                musicbrainz={"release_group_mbid":metadata_recording["release"]["release_group_mbid"]})
 
-            # Finally copy data for the recording itself
-            r.name = row['recording_name']
-            r.duration = row['length']
-            r.mbid = row['recording_mbid']
-            r.year = recording_metadata["release"]["year"]
-
-            # Process the recording tags
-            genres = []
-            tags = []
-            for genre in metadata_recording[r.mbid]["tag"]["recording"]:
-                if genre["count"] >= self.tag_threshold:
+            if self.lookup_tags:
+                # Process the release tags
+                genres = []
+                tags = []
+                for genre in data[r.mbid]["tag"]["release_group"]:
                     if "genre_mbid" in genre:
                         genres.append(genre["tag"])
                     else:
                         tags.append(genre["tag"])
 
-            r.musicbrainz["genre"] = genres
-            r.musicbrainz["tag"] = tags
+                r.release.musicbrainz = { "genre": genres, "tag": tags }
+
+            # Finally copy data for the recording itself
+            r.name = metadata_recording["recording"]['name']
+            r.duration = metadata_recording["recording"]['length']
+            r.year = metadata_recording["release"]["year"]
+
+            if self.lookup_tags:
+                # Process the recording tags
+                genres = []
+                tags = []
+                for genre in data[r.mbid]["tag"]["recording"]:
+                    if "genre_mbid" in genre:
+                        genres.append(genre["tag"])
+                    else:
+                        tags.append(genre["tag"])
+
+                r.musicbrainz = { "genre": genres, "tag": tags }
 
             output.append(r)
 
