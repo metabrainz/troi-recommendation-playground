@@ -99,7 +99,7 @@ class WeighAndBlendRecordingsElement(troi.Element):
 
                             recordings.append(rec)
                             dedup_set.add(rec.mbid)
-                            artist_counts[",".join(rec.artist.mbids)] += 1
+                            artist_counts[",".join([ a.mbid for a in rec.artist_credit.artists ])] += 1
                         break
 
             if len(recordings) >= self.max_num_recordings or len(recordings) == total_available:

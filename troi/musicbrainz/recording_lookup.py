@@ -14,7 +14,7 @@ class RecordingLookupElement(Element):
         :param skip_not_found: If skip_not_found is set to True (the default) then Recordings that cannot be found in MusicBrainz will not be returned from this Element.
     '''
 
-    SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
+    SERVER_URL = "https://test-api.listenbrainz.org/1/metadata/recording"
 
     def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None):
         Element.__init__(self)
@@ -48,7 +48,7 @@ class RecordingLookupElement(Element):
             inc += " tag"
 
         while True:
-            r = requests.get(self.SERVER_URL, params={"recording_mbids": recording_mbids, "inc": inc})
+            r = requests.post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc})
             if r.status_code == 429:
                 sleep(2)
                 continue
@@ -61,7 +61,7 @@ class RecordingLookupElement(Element):
         try:
             data = ujson.loads(r.text)
         except ValueError as err:
-            raise PipelineError("Cannot fetch recordings from ListenBrainz: " + str(err))
+            raise PipelineError("Cannot parse recordings: " + str(err))
 
         output = []
         for r in recordings:
@@ -104,8 +104,8 @@ class RecordingLookupElement(Element):
             # Now create the release data
             r.release = Release(name=metadata_recording["release"]["name"],
                                 mbid=metadata_recording["release"]["mbid"],
-                                caa_id=metadata_recording["release"]["caa_id"],
-                                caa_release_mbid=metadata_recording["release"]["caa_release_mbid"],
+                                caa_id=metadata_recording["release"].get("caa_id", None),
+                                caa_release_mbid=metadata_recording["release"].get("caa_release_mbid", None),
                                 musicbrainz={"release_group_mbid":metadata_recording["release"]["release_group_mbid"]})
 
             if self.lookup_tags:
@@ -122,8 +122,14 @@ class RecordingLookupElement(Element):
 
             # Finally copy data for the recording itself
             r.name = metadata_recording["recording"]['name']
-            r.duration = metadata_recording["recording"]['length']
-            r.year = metadata_recording["release"]["year"]
+            try:
+                r.duration = metadata_recording["recording"]['length']
+            except KeyError:
+                pass
+            try:
+                r.year = metadata_recording["release"]["year"]
+            except KeyError:
+                pass
 
             if self.lookup_tags:
                 # Process the recording tags
