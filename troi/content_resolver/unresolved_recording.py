@@ -142,12 +142,12 @@ class UnresolvedRecordingTracker:
     def print_releases(self, releases):
         """ Neatly print all the release/recordings returned from the get_releases function """
 
-        info("%-60s %-50s" % ("RELEASE", "ARTIST"))
+        logger.info("%-60s %-50s" % ("RELEASE", "ARTIST"))
         for release in releases:
-            info("%-60s %-50s" % (release["release_name"][:59], release["artist_name"][:49]))
+            logger.info("%-60s %-50s" % (release["release_name"][:59], release["artist_name"][:49]))
             for rec in release["recordings"]:
-                info("   %-57s %d lookups" % (rec["recording_name"][:56], rec["lookup_count"]))
-            info()
+                logger.info("   %-57s %d lookups" % (rec["recording_name"][:56], rec["lookup_count"]))
+            logger.info("")
 
     def cleanup(self):
         """

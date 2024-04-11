@@ -154,7 +154,7 @@ class ContentResolver:
             return playlist
 
         for rec in playlist.playlists[0].recordings:
-            artist_recording_data.append({"artist_name": rec.artist.name,
+            artist_recording_data.append({"artist_name": rec.artist_credit.name,
                                           "recording_name": rec.name,
                                           "recording_mbid": rec.mbid})
 
@@ -186,6 +186,7 @@ class ContentResolver:
             if i not in hit_index:
                 logger.info(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
                                                                                            artist_recording["artist_name"][:39]))
+                print(artist_recording["recording_mbid"])
                 unresolved_recordings.append(artist_recording["recording_mbid"])
                 failed += 1
                 continue
@@ -209,6 +210,9 @@ class ContentResolver:
                                                           local_recording["release_name"][:39],
                                                           local_recording["artist_name"][:39]))
             resolved += 1
+
+        ur = UnresolvedRecordingTracker()
+        ur.add(unresolved_recordings)
 
         if resolved == 0:
             logger.info("Sorry, but no tracks could be resolved, no playlist generated.")
