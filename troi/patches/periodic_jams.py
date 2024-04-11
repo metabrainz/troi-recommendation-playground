@@ -100,7 +100,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
         else:
             jam_types = jam_type.lower()
             if jam_type not in self.JAM_TYPES:
-                raise RuntimeError("Jam type must be one of %s" % ", ".join(jam_types))
+                raise RuntimeError("Jam type must be one of %s" % ", ".join(self.JAM_TYPES))
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name,
                                                                           "raw",
