@@ -303,7 +303,7 @@ return_json = {
 
 class TestRecordingLookup(unittest.TestCase):
 
-    @unittest.mock.patch('requests.get')
+    @unittest.mock.patch('requests.post')
     def test_read(self, req):
 
         mock = unittest.mock.MagicMock()
@@ -318,7 +318,7 @@ class TestRecordingLookup(unittest.TestCase):
         ]
         entities = e.read([inputs])
         req.assert_called_with(e.SERVER_URL,
-                               params={
+                               json={
                                    'recording_mbids':
                                    ['1234a7ae-2af2-4291-aa84-bd0bafe291a1', 'ec5b8aa9-7483-4791-a185-1f599a0cdc35'],
                                    'inc': 'artist release tag'
