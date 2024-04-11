@@ -101,12 +101,15 @@ class RecordingLookupElement(Element):
                 r.artist_credit.musicbrainz["genre"] = artist_genres[artist["artist_mbid"]]
                 r.artist_credit.musicbrainz["tag"] = artist_tags[artist["artist_mbid"]]
 
-            # Now create the release data
-            r.release = Release(name=metadata_recording["release"]["name"],
-                                mbid=metadata_recording["release"]["mbid"],
-                                caa_id=metadata_recording["release"].get("caa_id", None),
-                                caa_release_mbid=metadata_recording["release"].get("caa_release_mbid", None),
-                                musicbrainz={"release_group_mbid":metadata_recording["release"]["release_group_mbid"]})
+            if metadata_recording["release"]:
+                # Now create the release data
+                r.release = Release(name=metadata_recording["release"]["name"],
+                                    mbid=metadata_recording["release"]["mbid"],
+                                    caa_id=metadata_recording["release"].get("caa_id", None),
+                                    caa_release_mbid=metadata_recording["release"].get("caa_release_mbid", None),
+                                    musicbrainz={"release_group_mbid":metadata_recording["release"]["release_group_mbid"]})
+            else:
+                r.release = None
 
             if self.lookup_tags:
                 # Process the release tags
