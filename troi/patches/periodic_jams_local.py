@@ -46,6 +46,9 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
     def description():
         return "Generate a localized periodic playlist from the ListenBrainz recommended recordings."
 
+    def is_local(self):
+        return True
+
     def create(self, inputs):
         user_name = inputs['user_name']
 

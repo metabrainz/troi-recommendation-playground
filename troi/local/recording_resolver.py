@@ -45,6 +45,9 @@ class RecordingResolverElement(Element):
         resolved = self.resolve.resolve_recordings(lookup_data, self.match_threshold)
         recording_ids = tuple([result["recording_id"] for result in resolved])
 
+        if not recording_ids:
+            return []
+
         # Could also be done with, but for some reason it fails when using IN. <shrug>
         # Recording.select().where(Recording.id.in_(recording_ids))
 

@@ -1,5 +1,6 @@
 import os
 import datetime
+import logging
 from math import fabs
 from time import time
 import re
@@ -14,6 +15,7 @@ try:
 except ImportError:
     have_nmslib = False
 
+logger = logging.getLogger(__name__)
 
 def ngrams(string, n=3):
     """ Take a lookup string (noise removed, lower case, etc) and turn into a list of trigrams """
@@ -71,6 +73,7 @@ class FuzzyIndex:
             Return IDs for the matches in a list. Returns a list of dicts with keys of lookup_string, confidence and recording_id.
         """
         if not self.have_nmslib:
+            logger.warn("nmslib not installed and trying fuzzy search, but nothing will match. Install nmslib!")
             return []
 
         query_strings = []

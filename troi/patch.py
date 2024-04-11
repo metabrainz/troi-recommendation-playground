@@ -105,6 +105,13 @@ class Patch(ABC):
         """
         return self.services[slug]
 
+    def is_local(self):
+        """
+            If this function returns True, it means that the patch expects to use the local database, so Troi should
+            setup the local database before running this patch. Returns False unless overridden by a deriving patch.
+        """
+        return False
+
     def post_process(self):
         """
             This function is called once the pipeline has produced its playlist, just before the Playlist object is created.

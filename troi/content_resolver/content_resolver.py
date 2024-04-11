@@ -186,7 +186,6 @@ class ContentResolver:
             if i not in hit_index:
                 logger.info(bcolors.FAIL + "FAIL " + bcolors.ENDC + "  %-40s %-40s %-40s" % (artist_recording["recording_name"][:39], "",
                                                                                            artist_recording["artist_name"][:39]))
-                print(artist_recording["recording_mbid"])
                 unresolved_recordings.append(artist_recording["recording_mbid"])
                 failed += 1
                 continue
