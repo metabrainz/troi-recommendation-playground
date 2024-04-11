@@ -14,7 +14,7 @@ class RecordingLookupElement(Element):
         :param skip_not_found: If skip_not_found is set to True (the default) then Recordings that cannot be found in MusicBrainz will not be returned from this Element.
     '''
 
-    SERVER_URL = "https://test-api.listenbrainz.org/1/metadata/recording"
+    SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
 
     def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None):
         Element.__init__(self)

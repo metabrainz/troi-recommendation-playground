@@ -28,9 +28,6 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
 
         \b
         USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE Must be one of "daily-jams", "weekly-jams" or "weekly-exploration".
-        JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
-        can be on different dates). Required formatting for the date is 'YYYY-MM-DD'.
         """
         return [{
             "type": "argument",
