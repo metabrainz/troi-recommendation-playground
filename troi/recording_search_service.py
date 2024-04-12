@@ -84,25 +84,23 @@ class RecordingSearchByArtistService(Service):
         try:
             artists = r.json()
         except IndexError:
-            return []
+            return {}, []
 
+        artist_recordings = {}
+        msgs = []
         for artist_mbid in artists:
-            recordings = artists[artist_mbid]
-            updated = []
-            for rec in recordings:
-                updated.append(Recording(mbid=rec["recording_mbid"], musicbrainz={"total_listen_count": rec["total_listen_count"]}))
-            artists[artist_mbid] = updated
-
             recordings = plist()
-            for recording in r.json():
-                artists = [ Artist(mbid=mbid) for mbid in recording["artist_mbids"] ]
-                artist_credit = ArtistCredit(artists=artists, name=recording["artist_name"])
-                recordings.append(
-                    Recording(mbid=recording["recording_mbid"],
-                              name=recording["recording_name"],
-                              duration=recording["length"],
-                              artist_credit=artist_credit))
+            for recording in artists[artist_mbid]:
+                artist_credit = ArtistCredit(artists=[Artist(mbid=recording["similar_artist_mbid"])],
+                                             name=recording["similar_artist_name"])
+                recordings.append(Recording(mbid=recording["recording_mbid"],
+                                            artist_credit=artist_credit,
+                                            musicbrainz={"total_listen_count": recording["total_listen_count"]}))
 
-            artists_recordings[artist_mbid] = recordings.random_item(begin_percent, end_percent, num_recordings)
+            print(len(recordings), max_recordings_per_artist)
+            if len(recordings) < max_recordings_per_artist:
+                msgs.append("Artist %s has only few top recordings." % recordings[0].artist_credit.name)
 
-        return artists_recordings
+            artist_recordings[artist_mbid] = recordings.random_item(pop_begin, pop_end, max_recordings_per_artist)
+
+        return artist_recordings, msgs

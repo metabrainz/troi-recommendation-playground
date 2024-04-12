@@ -99,7 +99,7 @@ class LBRadioPatch(troi.patch.Patch):
             raise RuntimeError(err_msg)
 
         if fetched_name.lower() == artist_name.lower():
-            return mbid
+            return fetched_name, mbid
 
         raise RuntimeError(err_msg)
 
@@ -119,11 +119,12 @@ class LBRadioPatch(troi.patch.Patch):
                 "Argument mode must be one one easy, medium or hard.")
 
         # Lookup artist names embedded in the prompt
+        artist_names = {}
         for element in prompt_elements:
-            if element["entity"] == "artist" and isinstance(
-                    element["values"][0], str):
-                element["values"][0] = UUID(
-                    self.lookup_artist_name(element["values"][0]))
+            if element["entity"] == "artist" and isinstance( element["values"][0], str):
+                name, mbid = self.lookup_artist_name(element["values"][0])
+                element["values"][0] = mbid
+                artist_names[mbid] = name
 
         # Save descriptions to local storage
         self.local_storage["data_cache"] = {
@@ -162,6 +163,7 @@ class LBRadioPatch(troi.patch.Patch):
                 include_sim = False if "nosim" in element["opts"] else True
                 source = LBRadioArtistRecordingElement(
                     element["values"][0],
+                    artist_name=artist_names[element["values"][0]],
                     mode=mode,
                     include_similar_artists=include_sim)
 
