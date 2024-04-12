@@ -128,7 +128,7 @@ class Element(ABC):
         """
             Return a list of Artist, ArtistCredit, Release or Recording classes
             that define the type and number of input lists to this element.
-            e.g. [ Artistm ArtistCredit, Recording ] means that this element expects
+            e.g. [ Artist, ArtistCredit, Recording ] means that this element expects
             a list of artist credits and a list of recordings for inputs.
         """
         return None
@@ -255,7 +255,7 @@ class ArtistCredit(Entity):
         Entity.__init__(self, ranking=ranking, musicbrainz=musicbrainz,
                         listenbrainz=listenbrainz, acousticbrainz=acousticbrainz)
         self.name = name
-        self.artists = artists
+        self.artists = []
         self.artist_credit_id = artist_credit_id
         if artists:
             if not isinstance(artists, list) and not isinstance(artists, tuple):

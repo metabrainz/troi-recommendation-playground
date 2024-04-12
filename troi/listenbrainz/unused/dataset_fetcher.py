@@ -29,15 +29,6 @@ class DataSetFetcherElement(Element):
 
     def create_recording(self, row):
 
-
-        """SELECT r.gid::TEXT AS recording_mbid
-                                , r.name AS recording_name
-                                , ac.name AS artist_credit_name
-                                , array_agg(a.gid::TEXT) AS artist_mbids
-                                , date_year AS year
-
-
-
         r.artist = self.create_artist(row)
 
         if 'recording_name' in row:

@@ -78,7 +78,7 @@ class UniqueElement(troi.Element):
 
         entity_dict = {}
         for e in entities:
-            if isinstance(e, troi.Artist) and self.key == "artists":
+            if isinstance(e, troi.ArtistCredit) and self.key == "artists":
                 entity_dict[",".join(getattr(e, self.key))] = e
             else:
                 entity_dict[getattr(e, self.key)] = e

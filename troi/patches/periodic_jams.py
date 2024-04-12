@@ -98,7 +98,7 @@ class PeriodicJamsPatch(troi.patch.Patch):
         if jam_type is None:
             jam_type = self.JAM_TYPES[0]
         else:
-            jam_types = jam_type.lower()
+            jam_type = jam_type.lower()
             if jam_type not in self.JAM_TYPES:
                 raise RuntimeError("Jam type must be one of %s" % ", ".join(self.JAM_TYPES))
 
