@@ -26,7 +26,7 @@ class TestEntities(unittest.TestCase):
     def test_artist_credit(self):
 
         a = ArtistCredit()
-        assert a.artists is None
+        assert a.artists == []
         assert a.name is None
         assert a.artist_credit_id is None
         with self.assertRaises(TypeError):
