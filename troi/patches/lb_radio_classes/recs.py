@@ -78,6 +78,6 @@ class LBRadioRecommendationRecordingElement(troi.Element):
 
         self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s {listened}recommended songs")
 
-        # How do we prevent sequential tracks by the same artist?
+        # TODO: How do we prevent sequential tracks by the same artist?
 
         return recordings

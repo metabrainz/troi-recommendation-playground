@@ -1,7 +1,7 @@
 import requests
 import ujson
 
-from troi import Element, Artist, PipelineError, Recording
+from troi import Element, Recording
 
 
 class MBIDReaderElement(Element):

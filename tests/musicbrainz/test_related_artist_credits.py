@@ -32,8 +32,8 @@ class TestArtistCreditNameLookup(unittest.TestCase):
         req.return_value = mock
         e = troi.musicbrainz.related_artist_credits.RelatedArtistCreditsElement()
 
-        inputs = [ troi.Artist(artist_credit_id=65), 
-                   troi.Artist(artist_credit_id=963) ]
+        inputs = [ troi.ArtistCredit(artist_credit_id=65), 
+                   troi.ArtistCredit(artist_credit_id=963) ]
         entities = e.read([inputs])
         req.assert_called_with(e.SERVER_URL, params={'[artist_credit_id]': '65,963', 'threshold': 0})
 

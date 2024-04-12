@@ -28,9 +28,6 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
 
         \b
         USER_NAME is a MusicBrainz user name that has an account on ListenBrainz.
-        TYPE Must be one of "daily-jams", "weekly-jams" or "weekly-exploration".
-        JAM_DATE is the date for which the jam is created (this is needed to account for the fact different timezones
-        can be on different dates). Required formatting for the date is 'YYYY-MM-DD'.
         """
         return [{
             "type": "argument",
@@ -48,6 +45,9 @@ class PeriodicJamsLocalPatch(troi.patch.Patch):
     @staticmethod
     def description():
         return "Generate a localized periodic playlist from the ListenBrainz recommended recordings."
+
+    def is_local(self):
+        return True
 
     def create(self, inputs):
         user_name = inputs['user_name']

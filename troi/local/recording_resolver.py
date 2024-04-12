@@ -32,10 +32,10 @@ class RecordingResolverElement(Element):
         # Build the fuzzy index
         lookup_data = []
         for recording in inputs[0]:
-            if recording.artist is None or recording.artist.name is None or recording.name is None:
+            if recording.artist_credit is None or recording.artist_credit.name is None or recording.name is None:
                 raise RuntimeError("artist name and recording name are needed for RecordingResolverElement.")
 
-            lookup_data.append({"artist_name": recording.artist.name,
+            lookup_data.append({"artist_name": recording.artist_credit.name,
                                 "recording_name": recording.name,
                                 "recording_mbid": recording.mbid})
 
@@ -44,6 +44,9 @@ class RecordingResolverElement(Element):
         # Resolve the recordings
         resolved = self.resolve.resolve_recordings(lookup_data, self.match_threshold)
         recording_ids = tuple([result["recording_id"] for result in resolved])
+
+        if not recording_ids:
+            return []
 
         # Could also be done with, but for some reason it fails when using IN. <shrug>
         # Recording.select().where(Recording.id.in_(recording_ids))

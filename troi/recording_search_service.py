@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 import requests
 
-from troi import Recording, Artist
+from troi import Recording, Artist, ArtistCredit
 from troi.service import Service
 from troi.splitter import plist
 
@@ -76,12 +76,13 @@ class RecordingSearchByArtistService(Service):
 
             recordings = plist()
             for recording in r.json():
-                artist = Artist(mbids=recording["artist_mbids"], name=recording["artist_name"])
+                artists = [ Artist(mbid=mbid) for mbid in recording["artist_mbids"] ]
+                artist_credit = ArtistCredit(artists=artists, name=recording["artist_name"])
                 recordings.append(
                     Recording(mbid=recording["recording_mbid"],
                               name=recording["recording_name"],
                               duration=recording["length"],
-                              artist=artist))
+                              artist_credit=artist_credit))
 
             artists_recordings[artist_mbid] = recordings.random_item(begin_percent, end_percent, num_recordings)
 

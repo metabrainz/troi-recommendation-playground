@@ -103,6 +103,11 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
 
     # Create the actual patch, finally
     patch = patches[patchname](patch_args)
+    if patch.is_local():
+        logger.info(
+            "This is a local patch and should be invoked via the specific troi function, rather than the playlist function.")
+        return None
+
     ret = patch.generate_playlist()
 
     user_feedback = patch.user_feedback()
@@ -205,7 +210,7 @@ def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_j
     output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True,))
+@cli.command(context_settings=dict(ignore_unknown_options=True, ))
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def test(args):
     """Run unit tests"""

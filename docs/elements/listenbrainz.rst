@@ -3,15 +3,6 @@ ListenBrainz Elements
 
 The following elements fetch data from ListenBrainz:
 
-troi.listenbrainz.area_random_recordings
-----------------------------------------
-
-This Element is more a proof-of-concept for a fun discovery tool: Give me random recordings from a country during
-a specific time period. Fun for making wild exploration playlists!
-
-.. autoclass:: troi.listenbrainz.area_random_recordings.AreaRandomRecordingsElement
-
-
 troi.listenbrainz.dataset_fetcher.DataSetFetcherElement
 -------------------------------------------------------
 
