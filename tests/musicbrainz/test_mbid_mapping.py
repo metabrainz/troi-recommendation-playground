@@ -44,14 +44,14 @@ class TestMBIDMapping(unittest.TestCase):
 
         e = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement()
 
-        r = [ troi.Recording("trigger hippie", artist=troi.Artist("morcheeba")) ]
+        r = [ troi.Recording("trigger hippie", artist_credit=troi.ArtistCredit(name="morcheeba")) ]
         entities = e.read([r])
         req.assert_called_with(e.SERVER_URL, json=[{'[artist_credit_name]': 'morcheeba', '[recording_name]': 'trigger hippie'}])
 
         assert len(entities) == 1
-        assert entities[0].artist.artist_credit_id == 963
-        assert entities[0].artist.name == "Morcheeba"
-        assert entities[0].artist.mbids == ["067102ea-9519-4622-9077-57ca4164cfbb"]
+        assert entities[0].artist_credit.artist_credit_id == 963
+        assert entities[0].artist_credit.name == "Morcheeba"
+        assert entities[0].artist_credit.artists[0].mbid == "067102ea-9519-4622-9077-57ca4164cfbb"
         assert entities[0].release.mbid == "9db51cd6-38f6-3b42-8ad5-559963d68f35"
         assert entities[0].release.name == "Who Can You Trust?"
         assert entities[0].mbid == "97e69767-5d34-4c97-b36a-f3b2b1ef9dae"
@@ -66,6 +66,6 @@ class TestMBIDMapping(unittest.TestCase):
         req.return_value = mock
         e = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement(True)
 
-        r = [ troi.Recording("track not found", artist=troi.Artist("artist not found")) ]
+        r = [ troi.Recording("track not found", artist_credit=troi.ArtistCredit(name="artist not found")) ]
         entities = e.read([r])
         assert len(entities) == 0

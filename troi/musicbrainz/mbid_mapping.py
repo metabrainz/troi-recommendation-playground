@@ -1,7 +1,7 @@
 import requests
 import ujson
 
-from troi import Element, Artist, Recording, Release, PipelineError
+from troi import Element, Artist, ArtistCredit, Recording, Release, PipelineError
 
 
 class MBIDMappingLookupElement(Element):
@@ -30,8 +30,8 @@ class MBIDMappingLookupElement(Element):
 
         params = []
         for r in inputs[0]:
-            if r.artist is not None and r.name is not None:
-                params.append({"[artist_credit_name]": r.artist.name, "[recording_name]": r.name})
+            if r.artist_credit is not None and r.name is not None:
+                params.append({"[artist_credit_name]": r.artist_credit.name, "[recording_name]": r.name})
 
         if not params:
             return []
@@ -54,28 +54,13 @@ class MBIDMappingLookupElement(Element):
             r.mbid = row['recording_mbid']
             r.name = row['recording_name']
 
-            if r.artist is None:
-                r.artist = Artist(
-                    artist_credit_id=row['artist_credit_id'],
-                    name=row['artist_credit_name'],
-                    mbids=row['artist_mbids']
-                )
-            else:
-                if r.artist.artist_credit_id:
-                    r.artist.add_note("artist_credit_id %d overwritten by mbid_lookup" % (r.artist.artist_credit_id,))
-                if r.artist.mbids:
-                    r.artist.add_note("mbids %s overwritten by mbid_lookup" % (r.artist.mbids,))
-                r.artist.artist_credit_id = row['artist_credit_id']
-                r.artist.name = row['artist_credit_name']
-                r.artist.mbids = row['artist_mbids']
+            r.artist_credit = ArtistCredit(
+                artist_credit_id=row['artist_credit_id'],
+                name=row['artist_credit_name'],
+                artists=[ Artist(mbid=mbid) for mbid in row['artist_mbids'] ] 
+            )
 
-            if r.release:
-                if r.release.mbid:
-                    r.release.add_note("mbid %d overwritten by mbid_lookup" % (r.release.mbid,))
-                r.release.mbid = row['release_mbid']
-                r.release.name = row['release_name']
-            else:
-                r.release = Release(row['release_name'], mbid=row['release_mbid'])
+            r.release = Release(row['release_name'], mbid=row['release_mbid'])
 
             entities.append(r)
 

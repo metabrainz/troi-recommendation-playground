@@ -67,10 +67,17 @@ class MetadataLookup:
             mbid_to_recording[rec.mbid] = rec
             args.append({"[recording_mbid]": rec.mbid})
 
-        r = requests.post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
-        if r.status_code != 200:
-            logger.info("Fail: %d %s" % (r.status_code, r.text))
-            return False
+        while True:
+            r = requests.post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                logger.info("Fail: %d %s" % (r.status_code, r.text))
+                return False
+
+            break
 
         recording_pop = {}
         recording_tags = defaultdict(lambda: defaultdict(list))

@@ -12,7 +12,6 @@ from troi.utils import interleave
 #      release of LB Radio for lb-server:
 # - Review use of ranges.
 # - Review having to invert the tag ranges
-# - Remove artists caching and use new artist endpoint that moves all the work to the server
 
 class LBRadioTagRecordingElement(troi.Element):
 

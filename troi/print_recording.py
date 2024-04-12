@@ -54,17 +54,13 @@ class PrintRecordingList:
             The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
 
-        if recording.artist is None:
+        if recording.artist_credit is None:
             artist = "[missing]"
-        elif recording.artist.name is None:
-            if recording.artist.mbids is not None:
-                artist = "[[ artist_mbids:%s ]]" % ",".join(recording.artist.mbids)
-            elif recording.artist.artist_credit_id is not None:
-                artist = "[[ artist_credit_id:%d ]]" % (recording.artist.artist_credit_id)
-            else:
-                artist = "[[ unknown ]]"
-        else:
-            artist = recording.artist.name
+        elif recording.artist_credit.name:
+            artist = recording.artist_credit.name
+        else: 
+            artist = "[[ unknown ]]"
+
         if recording.name is None:
             rec_name = "[[ mbid:%s ]]" % recording.mbid
         else:
@@ -73,11 +69,11 @@ class PrintRecordingList:
 
         text = "%-60s %-50s %5s" % (rec_name[:59], artist[:49], rec_mbid)
 
-        if recording.artist is not None:
-            if recording.artist.mbids is not None:
-                text += " %-20s" % ",".join([ mbid[:5] for mbid in recording.artist.mbids ])
-            if recording.artist.artist_credit_id is not None:
-                text += " %8d" % recording.artist.artist_credit_id
+        if recording.artist_credit is not None:
+            if recording.artist_credit.artists is not None:
+                text += " %-20s" % ",".join([ a.mbid[:5] for a in recording.artist_credit.artists ])
+            if recording.artist_credit.artist_credit_id is not None:
+                text += " %8d" % recording.artist_credit.artist_credit_id
 
         if self.print_year and recording.year is not None:
             text += " %d" % recording.year

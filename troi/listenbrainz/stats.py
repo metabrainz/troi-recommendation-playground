@@ -1,6 +1,6 @@
 import logging
 
-from troi import Element, Artist, Release, Recording
+from troi import Element, Artist, ArtistCredit, Release, Recording
 import liblistenbrainz
 import liblistenbrainz.errors
 
@@ -28,14 +28,16 @@ class UserArtistsElement(Element):
         self.time_range = time_range
 
     def outputs(self):
-        return [Artist]
+        return [ArtistCredit]
 
     def read(self, inputs=[]):
 
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
+        artist_credits = []
         for a in artists['payload']['artists']:
-            artist_list.append(Artist(a['artist_name'], mbids=a['artist_mbids']))
+            artists = [Artist(mbid=mbid) for mbid in a['artist_mbids']]
+            artist_list.append(ArtistCredit(name=a['artist_name'], artists=artists))
 
         return artist_list
 
@@ -68,8 +70,11 @@ class UserReleasesElement(Element):
         release_list = []
         releases = self.client.get_user_releases(self.user_name, self.count, self.offset, self.time_range)
         for r in releases['payload']['releases']:
-            artist = Artist(r['artist_name'], mbids=r['artist_mbids'])
-            release_list.append(Release(r['release_name'], mbid=r['release_mbid'], artist=artist))
+            artists = [Artist(mbid=mbid) for mbid in r['artist_mbids']]
+            release_list.append(
+                Release(r['release_name'],
+                        mbid=r['release_mbid'],
+                        artist_credit=ArtistCredit(name=r['artist_name'], artists=artists)))
 
         return release_list
 
@@ -107,8 +112,10 @@ class UserRecordingElement(Element):
             return []
 
         for r in recordings['payload']['recordings']:
-            artist = Artist(r['artist_name'], mbids=r['artist_mbids'])
+            artists = [Artist(mbid=mbid) for mbid in r['artist_mbids']]
+            artist_credit = ArtistCredit(r['artist_name'], artists=artists)
             release = Release(r['release_name'], mbid=r['release_mbid'])
-            recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], artist=artist, release=release))
+            recording_list.append(Recording(r['track_name'], mbid=r['recording_mbid'], artist_credit=artist_credit,
+                                            release=release))
 
         return recording_list

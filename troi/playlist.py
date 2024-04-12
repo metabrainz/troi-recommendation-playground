@@ -475,7 +475,7 @@ class PlaylistMakerElement(Element):
             artists = defaultdict(int)
             for r in recordings:
                 keep = True
-                for mbid in r.artist.mbids:
+                for mbid in [ a.mbid for a in r.artist_credit.artists ]:
                     if artists[mbid] >= self.max_artist_occurrence:
                         keep = False
                         break

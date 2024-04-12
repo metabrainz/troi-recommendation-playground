@@ -154,7 +154,7 @@ class ContentResolver:
             return playlist
 
         for rec in playlist.playlists[0].recordings:
-            artist_recording_data.append({"artist_name": rec.artist.name,
+            artist_recording_data.append({"artist_name": rec.artist_credit.name,
                                           "recording_name": rec.name,
                                           "recording_mbid": rec.mbid})
 
@@ -209,6 +209,9 @@ class ContentResolver:
                                                           local_recording["release_name"][:39],
                                                           local_recording["artist_name"][:39]))
             resolved += 1
+
+        ur = UnresolvedRecordingTracker()
+        ur.add(unresolved_recordings)
 
         if resolved == 0:
             logger.info("Sorry, but no tracks could be resolved, no playlist generated.")
