@@ -97,8 +97,8 @@ class RecordingSearchByArtistService(Service):
                                             artist_credit=artist_credit,
                                             musicbrainz={"total_listen_count": recording["total_listen_count"]}))
 
-            print(len(recordings), max_recordings_per_artist)
-            if len(recordings) < max_recordings_per_artist:
+            # Below is a hack, since the endpoint seems to return one track too few
+            if len(recordings) < max_recordings_per_artist - 1:
                 msgs.append("Artist %s has only few top recordings." % recordings[0].artist_credit.name)
 
             artist_recordings[artist_mbid] = recordings.random_item(pop_begin, pop_end, max_recordings_per_artist)

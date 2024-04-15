@@ -1,3 +1,4 @@
+from time import sleep
 from random import randint, shuffle
 from uuid import UUID
 
@@ -75,8 +76,11 @@ class LBRadioPatch(troi.patch.Patch):
     def description():
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
-    def lookup_artist_name(self, artist_name):
+    def lookup_artist(self, artist_name):
         """ Fetch artist names for validation purposes """
+
+        if isinstance(artist_name, UUID):
+            return self.lookup_artist_from_mbid(artist_name)
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
 
@@ -103,6 +107,25 @@ class LBRadioPatch(troi.patch.Patch):
 
         raise RuntimeError(err_msg)
 
+    def lookup_artist_from_mbid(self, artist_mbid):
+        """ Fetch artist names for validation purposes """
+
+        while True:
+            r = requests.get(f"https://musicbrainz.org/ws/2/artist/%s&fmt=json" % str(artist_mbid))
+            if r.status_code == 404:
+                raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code}")
+
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError(f"Could not resolve artist name {artist_mbid}. Error {r.status_code}")
+
+            break
+
+        return r.json()["name"], artist_mbid
+
     def create(self, inputs):
         self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
@@ -121,8 +144,9 @@ class LBRadioPatch(troi.patch.Patch):
         # Lookup artist names embedded in the prompt
         artist_names = {}
         for element in prompt_elements:
-            if element["entity"] == "artist" and isinstance( element["values"][0], str):
-                name, mbid = self.lookup_artist_name(element["values"][0])
+            if element["entity"] == "artist":
+                name, mbid = self.lookup_artist(element["values"][0])
+                print(name, mbid)
                 element["values"][0] = mbid
                 artist_names[mbid] = name
 

@@ -24,9 +24,9 @@ class LBRadioArtistRecordingElement(troi.Element):
         self.mode = mode
         self.include_similar_artists = include_similar_artists
         if include_similar_artists:
-            self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST
-        else:
             self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST * 2
+        else:
+            self.max_top_recordings_per_artist = self.MAX_TOP_RECORDINGS_PER_ARTIST * 3
 
     def inputs(self):
         return []
@@ -47,6 +47,9 @@ class LBRadioArtistRecordingElement(troi.Element):
         # Collect the names of the similar artists
         similar_artist_names = []
         for mbid in artist_recordings:
+            if mbid == self.artist_mbid:
+                continue
+
             try:
                 similar_artist_names.append(artist_recordings[mbid][0].artist_credit.name)
             except IndexError:
@@ -58,11 +61,13 @@ class LBRadioArtistRecordingElement(troi.Element):
         else:
             msg = "Using seed artist %s" % self.artist_name
             if self.include_similar_artists:
-                mbids = list(artist_recordings)
-                del mbids[mbids.index(self.artist_mbid)]
-                msg += " and similar artists: " + ", ".join(similar_artist_names)
+                if similar_artist_names:
+                    msg += " and similar artists: " + ", ".join(similar_artist_names)
+                else:
+                    msg += " only, since this artist has no similar artists (yet)."
             else:
                 msg += " only"
+
             msgs.insert(0, msg)
 
         for msg in msgs:
