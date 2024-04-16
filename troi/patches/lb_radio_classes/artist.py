@@ -2,7 +2,7 @@ import requests
 
 import troi
 from troi import Recording, Artist
-from troi.splitter import plist
+from troi.plist import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
 from troi.recording_search_service import RecordingSearchByArtistService

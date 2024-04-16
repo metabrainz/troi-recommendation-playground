@@ -4,7 +4,7 @@ from random import randint
 import requests
 
 from troi import Recording
-from troi.splitter import plist
+from troi.plist import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.utils import interleave
 
@@ -46,13 +46,19 @@ class LBRadioTagRecordingElement(troi.Element):
             Fetch similar tags from LB
         """
 
-        r = requests.post(
-            "https://labs.api.listenbrainz.org/tag-similarity/json",
-            json=[{
-                "tag": tag
-            }])
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch similar tags. {r.text}")
+        while True:
+            r = requests.post( "https://labs.api.listenbrainz.org/tag-similarity/json", json=[{ "tag": tag }])
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code == 404:
+                return plist()
+
+            if r.status_code != 200:
+                raise RuntimeError(f"Cannot fetch similar tags. {r.text}")
+
+            break
 
         return plist(r.json())
 

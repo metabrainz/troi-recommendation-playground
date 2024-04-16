@@ -10,7 +10,7 @@ from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.utils import select_recordings_on_popularity
 from troi.recording_search_service import RecordingSearchByTagService
-from troi.splitter import plist
+from troi.plist import plist
 
 
 class LocalRecordingSearchByTagService(RecordingSearchByTagService):

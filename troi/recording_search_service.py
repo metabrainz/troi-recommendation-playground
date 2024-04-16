@@ -4,7 +4,7 @@ import requests
 
 from troi import Recording, Artist, ArtistCredit
 from troi.service import Service
-from troi.splitter import plist
+from troi.plist import plist
 
 # NOTES FOR LB API improvements:
 # Tags:
@@ -99,7 +99,7 @@ class RecordingSearchByArtistService(Service):
 
             # Below is a hack, since the endpoint seems to return one track too few
             if len(recordings) < max_recordings_per_artist - 1:
-                msgs.append("Artist %s has only few top recordings." % recordings[0].artist_credit.name)
+                msgs.append("Artist %s has only few top recordings in %s mode" % (recordings[0].artist_credit.name, mode))
 
             artist_recordings[artist_mbid] = recordings.random_item(pop_begin, pop_end, max_recordings_per_artist)
 

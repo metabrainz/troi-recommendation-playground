@@ -10,7 +10,7 @@ from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.utils import select_recordings_on_popularity
 from troi.recording_search_service import RecordingSearchByArtistService
-from troi.splitter import plist
+from troi.plist import plist
 
 OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles

@@ -1,7 +1,7 @@
 import logging
 import os
 
-from troi.splitter import plist
+from troi.plist import plist
 from troi import Recording as TroiRecording
 from troi.content_resolver.model.recording import FileIdType
 
