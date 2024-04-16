@@ -249,7 +249,7 @@ class LBRadioPatch(troi.patch.Patch):
             elements.append(hate_filter)
 
         # Finish the pipeline with the element that blends and weighs the streams
-        blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
+        blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100, max_artist_occurrence=3)
         blend.set_sources(elements)
 
         pl_maker = PlaylistMakerElement(

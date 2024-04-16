@@ -55,7 +55,7 @@ class LBRadioArtistRecordingElement(troi.Element):
             except IndexError:
                 pass
 
-        # start crafting user feedback messages
+        # craft user feedback messages
         if not artist_recordings:
             msgs.append(f"The seed artist %s has no similar artists, nor top recordings. Too niche?" % self.artist_name)
         else:

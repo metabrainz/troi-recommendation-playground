@@ -91,15 +91,14 @@ class WeighAndBlendRecordingsElement(troi.Element):
                             if rec.mbid in dedup_set:
                                 total_available -= 1
                                 continue
-
-                            if self.max_artist_occurrence is not None and artist_counts[",".join(
-                                    rec.artist.mbids)] == self.max_artist_occurrence:
+                            if self.max_artist_occurrence is not None and \
+                                    artist_counts[rec.artist_credit.artist_credit_id] == self.max_artist_occurrence:
                                 total_available -= 1
                                 continue
 
                             recordings.append(rec)
                             dedup_set.add(rec.mbid)
-                            artist_counts[",".join([ a.mbid for a in rec.artist_credit.artists ])] += 1
+                            artist_counts[rec.artist_credit.artist_credit_id] += 1
                         break
 
             if len(recordings) >= self.max_num_recordings or len(recordings) == total_available:
