@@ -11,18 +11,10 @@ from troi.utils import interleave
 # TODO improvements for post troi/liblistenbrainz/content-resolve packaging work, but before the next
 #      release of LB Radio for lb-server:
 # - Review use of ranges.
-# - Review having to invert the tag ranges
 
 class LBRadioTagRecordingElement(troi.Element):
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 4
-    MIN_RECORDINGS_EASY = NUM_RECORDINGS_TO_COLLECT
-    MIN_RECORDINGS_MEDIUM = 50
-    MIN_RECORDINGS_HARD = 25
-    EASY_MODE_RELEASE_GROUP_MIN_TAG_COUNT = 4
-    MEDIUM_MODE_ARTIST_MIN_TAG_COUNT = 4
-
-    TAG_THRESHOLD_MAPPING = {"easy": 3, "medium": 2, "hard": 1}
 
     def __init__(self,
                  tags,
@@ -62,15 +54,10 @@ class LBRadioTagRecordingElement(troi.Element):
 
         return plist(r.json())
 
-    def invert_for_tag_search(self, startstop):
-        return tuple(
-            (1.0 - (startstop[1] / 100.), 1.0 - (startstop[0] / 100.0)))
-
     def select_recordings_on_easy(self):
 
         msgs = []
-        start, stop = self.invert_for_tag_search(
-            self.local_storage["modes"]["easy"])
+        start, stop = self.local_storage["modes"]["easy"]
         tag_data = self.recording_search_by_tag.search(
             self.tags, self.operator, start, stop,
             self.NUM_RECORDINGS_TO_COLLECT)
@@ -85,8 +72,7 @@ class LBRadioTagRecordingElement(troi.Element):
     def select_recordings_on_medium(self):
 
         msgs = []
-        start, stop = self.invert_for_tag_search(
-            self.local_storage["modes"]["medium"])
+        start, stop = self.local_storage["modes"]["medium"]
         tag_data = self.recording_search_by_tag.search(
             self.tags, self.operator, start, stop,
             self.NUM_RECORDINGS_TO_COLLECT)
@@ -120,8 +106,7 @@ class LBRadioTagRecordingElement(troi.Element):
     def select_recordings_on_hard(self):
 
         msgs = []
-        start, stop = self.invert_for_tag_search(
-            self.local_storage["modes"]["hard"])
+        start, stop = self.local_storage["modes"]["hard"]
 
         tag_data = self.recording_search_by_tag.search(
             self.tags, self.operator, start, stop,
@@ -180,7 +165,6 @@ class LBRadioTagRecordingElement(troi.Element):
 
     def read(self, entities):
 
-        min_tag_count = self.TAG_THRESHOLD_MAPPING[self.mode]
         self.recording_search_by_tag = self.patch.get_service(
             "recording-search-by-tag")
 
