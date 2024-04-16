@@ -84,16 +84,19 @@ class LBRadioPatch(troi.patch.Patch):
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
 
-        r = requests.get(
-            f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json"
-        )
-        if r.status_code == 404:
-            raise RuntimeError(err_msg)
+        while True:
+            r = requests.get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
+            if r.status_code == 404:
+                raise RuntimeError(err_msg)
 
-        if r.status_code != 200:
-            raise RuntimeError(
-                f"Could not resolve artist name {artist_name}. Error {r.status_code}"
-            )
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError( f"Could not resolve artist name {artist_name}. Error {r.status_code} {r.text}")
+
+            break
 
         data = r.json()
         try:
@@ -111,16 +114,16 @@ class LBRadioPatch(troi.patch.Patch):
         """ Fetch artist names for validation purposes """
 
         while True:
-            r = requests.get(f"https://musicbrainz.org/ws/2/artist/%s&fmt=json" % str(artist_mbid))
+            r = requests.get(f"https://musicbrainz.org/ws/2/artist/%s?fmt=json" % str(artist_mbid))
             if r.status_code == 404:
-                raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code}")
+                raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code} {r.text}")
 
             if r.status_code == 429:
                 sleep(2)
                 continue
 
             if r.status_code != 200:
-                raise RuntimeError(f"Could not resolve artist name {artist_mbid}. Error {r.status_code}")
+                raise RuntimeError(f"Could not resolve artist name {artist_mbid}. Error {r.status_code} {r.text}")
 
             break
 
