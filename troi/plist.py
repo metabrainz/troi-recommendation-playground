@@ -73,8 +73,15 @@ class plist(list):
         stop_index = self._get_index(stop_percent)
 
         data = super().__getitem__(slice(start_index, stop_index))
-        items = [data[randint(0, len(data) - 1)] for i in range(min(count, len(data)))]
+        items = []
+        for i in range(len(data)):
+            index = randint(0, len(data) - 1)
+            items.append(data[index])
+            del data[index]
+            if len(items) == count or not data:
+                break
+
         if count > 1:
             return items
-
-        return items[0] if len(items) > 0 else []
+        else:
+            return items[0] if len(items) > 0 else []
