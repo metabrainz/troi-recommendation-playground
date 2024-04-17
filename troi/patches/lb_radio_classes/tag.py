@@ -54,7 +54,7 @@ class LBRadioTagRecordingElement(troi.Element):
     def select_recordings(self):
 
         msgs = []
-        start, stop = { "easy": (66, 100), "medium": (33, 66), "hard": (1, 33) }[self.mode]
+        start, stop = { "easy": (66, 95), "medium": (33, 66), "hard": (1, 33) }[self.mode]
         sim_start, sim_stop = { "easy": (0, 0), "medium": (50, 100), "hard": (10, 50) }[self.mode]
         num_similar_tags_to_include = { "easy": 0, "medium": 1, "hard": 2 }[self.mode] 
 
