@@ -6,11 +6,6 @@ from troi import Recording, Artist, ArtistCredit
 from troi.service import Service
 from troi.plist import plist
 
-# NOTES FOR LB API improvements:
-# Tags:
-#    - flatten tag data for simplicity
-#    - use series of tighter random spots to speed up or searches for popular tags
-
 
 class RecordingSearchByTagService(Service):
 
@@ -29,26 +24,13 @@ class RecordingSearchByTagService(Service):
             "count": num_recordings,
             "pop_begin": pop_begin,
             "pop_end": pop_end,
-            "tag": tags,
-            "min_tag_count": 1,
+            "tag": tags
         }
         r = requests.get("https://beta-api.listenbrainz.org/1/lb-radio/tags", params=data)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
-        recordings = []
-        for rec in self.flatten_tag_data(dict(r.json())):
-            recordings.append(Recording(mbid=rec["recording_mbid"]))
-
-        return plist(recordings)
-
-    def flatten_tag_data(self, tag_data):
-
-        flat_data = list(tag_data["recording"])
-        flat_data.extend(list(tag_data["release-group"]))
-        flat_data.extend(list(tag_data["artist"]))
-
-        return sorted(flat_data, key=lambda f: f["percent"], reverse=True)
+        return plist([ Recording(mbid=rec["recording_mbid"], musicbrainz={"popularity": rec["percent"]}) for rec in r.json() ])
 
 
 class RecordingSearchByArtistService(Service):
