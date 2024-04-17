@@ -26,7 +26,7 @@ class RecordingSearchByTagService(Service):
             "pop_end": pop_end,
             "tag": tags
         }
-        r = requests.get("https://beta-api.listenbrainz.org/1/lb-radio/tags", params=data)
+        r = requests.get("https://api.listenbrainz.org/1/lb-radio/tags", params=data)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
