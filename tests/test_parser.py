@@ -156,3 +156,11 @@ class TestParser(unittest.TestCase):
 
         r = pp.parse("recs:(rob zombie)")
         assert r[0] == {"entity": "recs", "values": ["rob zombie"], "weight": 1, "opts": []}
+
+    def test_country(self):
+        pp = PromptParser()
+        r = pp.parse("country:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        assert r[0] == {"entity": "country", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
+
+        r = pp.parse("country:mali")
+        assert r[0] == {"entity": "country", "values": ["mali"], "weight": 1, "opts": []}

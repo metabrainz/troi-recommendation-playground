@@ -20,6 +20,7 @@ from troi.patches.lb_radio_classes.playlist import LBRadioPlaylistRecordingEleme
 from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio_classes.stats import LBRadioStatsRecordingElement
 from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingElement
+from troi.patches.lb_radio_classes.country import LBRadioCountryRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS, Playlist
 from troi.utils import interleave
 
@@ -202,6 +203,11 @@ class LBRadioPatch(troi.patch.Patch):
                     mode=mode,
                     operator=operator,
                     include_similar_tags=include_sim)
+
+            if element["entity"] == "country":
+                source = LBRadioCountryRecordingElement(
+                    area_name=element["values"][0],
+                    mode=mode)
 
             if element["entity"] == "collection":
                 source = LBRadioCollectionRecordingElement(
