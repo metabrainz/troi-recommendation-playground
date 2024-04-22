@@ -64,9 +64,9 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
     for e in playlist.recordings[:track_count]:
         track = {}
         artist_mbids = []
-        if e.artist is not None:
-            artist_mbids = [str(mbid) for mbid in e.artist.mbids or []]
-            track["creator"] = e.artist.name if e.artist else ""
+        if e.artist_credit is not None:
+            artist_mbids = [str(artist.mbid) for artist in e.artist_credit.artists or []]
+            track["creator"] = e.artist_credit.name if e.artist_credit else ""
 
         track["title"] = e.name
         track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
@@ -260,7 +260,7 @@ class PlaylistElement(Element):
             if len(playlist.recordings) == 0:
                 continue
 
-            info("submit %d tracks" % len(playlist.recordings))
+            logger.info("submit %d tracks" % len(playlist.recordings))
             if playlist.patch_slug is not None:
                 playlist.add_metadata({"algorithm_metadata": {"source_patch": playlist.patch_slug}})
             r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,

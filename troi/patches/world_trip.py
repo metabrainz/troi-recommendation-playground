@@ -13,41 +13,17 @@ from troi import Element, Artist, ArtistCredit, Recording, Playlist, PipelineErr
 logger = logging.getLogger(__name__)
 
 
-def recording_from_row(row):
-    if row['recording_mbid'] is None:
-        return None
-
-    r = Recording(mbid=row['recording_mbid']) 
-    if 'artist_credit_name' in row:
-        r.artist = ArtistCredit(name=row['artist_credit_name'])
-
-    if 'recording_name' in row:
-        r.name = row['recording_name']
-
-    if 'year' in row:
-        r.year = row['year']
-
-    if 'listen_count' in row:
-        r.listenbrainz={"listen_count": row["listen_count"]}
-
-    return r
-
-
-class WorldTripElement(Element):
+class AreaPlaylistElement(Element):
     '''
-        Given a continent (africa, americas, asia, europe, oceania) and
-        a sort order latitude or longitude, pick random tracks from each country and
-        add tracks to a playlist sorted by latitude or longitude.
+        Given an area / country, generate a playlist for that country.
 
         Arguments:
-            continent: one of: (Africa, North America, South America, Asia, Europe, Oceania)
-            latitude: boolean. Sort by latiduded if True, otherwise sort by longitude
+            area_name: the name of the area to make a playlist for
     '''
 
-    def __init__(self, continent, latitude):
+    def __init__(self, area_name):
         super().__init__()
-        self.continent = continent
-        self.latitude = latitude
+        self.area_name = area_name
 
     @staticmethod
     def inputs():
@@ -57,101 +33,76 @@ class WorldTripElement(Element):
     def outputs():
         return [Recording]
 
-    def read(self, inputs):
+    def lookup_area(self, area_name):
 
-        countries = countryinfo.CountryInfo().all()
-
-        continents = defaultdict(list)
-        for country in countries.values():
-            if 'region' not in country:
+        while True:
+            r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
+            if r.status_code == 503:
+                sleep(1)
                 continue
 
-            continents[country['region'].lower()].append({'name': country['name'],
-                                                  'code': country['ISO']['alpha2'], 
-                                                  'latlng': country['latlng'] })
+            if r.status_code != 200:
+                raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
 
-        if self.continent not in continents:
-            names = continents.keys()
-            raise RuntimeError(f"Cannot find continent {self.continent}. Must be one of {names}")
+            return r.json()['areas'][0]['id']
 
-        logger.info("Fetch tracks from countries:")
-        if self.latitude:
-            continent = sorted(continents[self.continent], key=lambda c: c['latlng'][0], reverse=True)
-        else:
-            continent = sorted(continents[self.continent], key=lambda c: c['latlng'][1])
+    def recording_from_row(self, row):
+        if row['recording_mbid'] is None:
+            return None
 
-        print(continent)
+        r = Recording(mbid=row['recording_mbid']) 
+        if 'artist_credit_name' in row:
+            r.artist = ArtistCredit(name=row['artist_credit_name'])
 
-        area_mbids = []
-        for i, country in enumerate(continent):
-            while True:
-                r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % country['name'])
-                if r.status_code == 503:
-                    break   # remove me!
-                    sleep(5)
-                    continue
+        if 'recording_name' in row:
+            r.name = row['recording_name']
 
-                if r.status_code != 200:
-                    raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
+        if 'year' in row:
+            r.year = row['year']
 
-                area_mbid = r.json()['areas'][0]['id']
-                area_mbids.append(area_mbid)
-                country["area_mbid"] = area_mbid
-                break
+        if 'listen_count' in row:
+            r.listenbrainz={"listen_count": row["listen_count"]}
 
-        args = [ { "[area_mbid]": mbid } for mbid in area_mbids ]
+        return r
+
+
+    def read(self, inputs):
+
+        area_mbid = self.lookup_area(self.area_name)
+        args = [ { "[area_mbid]": area_mbid } ]
         r = requests.post(DEVELOPMENT_SERVER_URL + "/popular-recordings-by-country/json", json=args)
         if r.status_code != 200:
             raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" % (r.status_code, r.text))
 
-        country_recordings = defaultdict(plist)
-        for row in r.json():
-            country_recordings[row["area_mbid"]].append(recording_from_row(row))
-
         recordings = []
-        for i in range(3):
-            for country in continent:
-                try:
-                    recordings.extend(country_recordings[country["area_mbid"]].random_item(count=2))
-                    logger.error("Found tracks for %s" % (country["name"]))
-                except KeyError:
-                    logger.error("Found no tracks for %s" % country["name"])
-                except IndexError:
-                    logger.error("Found too few tracks for %s" % country["name"])
-
-        print(recordings)
+        for row in r.json():
+            recordings.append(self.recording_from_row(row))
 
         return recordings
 
 
-class WorldTripPatch(troi.patch.Patch):
+class AreaPlaylistPatch(troi.patch.Patch):
     """
         See below for description
     """
 
-    NAME = "Three trips across %s with ListenBrainz (%s)"
-    DESC = """<p>
-                This playlist contains randomly selected tracks from the last few years released in 
-                the countries of %s, arranged from %s. Once the playlist reaches the southernmost
-                country, the list repeats twice more, for a total of three trips across the continent.
-              </p>
-           """
+    NAME = "Welcome to %s!"
+    DESC = "This playlist contains randomly selected top tracks released by artists who are from %s"
 
     def __init__(self, args):
+        self.area_name = args["area_name"]
         troi.patch.Patch.__init__(self, args)
 
     @staticmethod
     def inputs():
         """
-        Generate a playlist that picks tracks for each country in a continent.
+        Generate a playlist that picks tracks for an area / country.
 
         \b
-        CONTINENT: A name of a continent, all lower case.
-        SORT: Must be longitude or latitude
+        AREA_NAME: A name of a country.
         """
         return [
-            {"type": "argument", "args": ["continent"]},
-            {"type": "argument", "args": ["sort"]}
+            {"type": "argument", "args": ["area_name"]}
         ]
 
     @staticmethod
@@ -160,31 +111,23 @@ class WorldTripPatch(troi.patch.Patch):
 
     @staticmethod
     def slug():
-        return "world-trip"
+        return "area-playlist"
 
     @staticmethod
     def description():
-        return "Generate a playlist for a given continent"
+        return "Generate a playlist for a given area (country)."
 
     def create(self, inputs):
 
-        if inputs["sort"] not in ("longitude", "latitude"):
-            raise PipelineError("Argument sort must be either 'longitude' or 'latitude'.")
+        area_name = self.area_name
+        area_name = self.area_name[0:1].upper() + self.area_name[1:]
 
-        if inputs["sort"] == "longitude":
-            latitude = False
-            lat_string = "North -> South"
-        elif inputs["sort"] == "latitude":
-            latitude = True
-            lat_string = "West -> East"
-        else:
-            raise RuntimeError("sort must be longitude or latitude")
-
-        trip = WorldTripElement(inputs['continent'], latitude)
+        trip = AreaPlaylistElement(area_name)
         recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
         recs_lookup.set_sources(trip)
-        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (inputs["continent"], lat_string),
-                                                      self.DESC % (quote(inputs["continent"]), lat_string))
+        pl_maker = troi.playlist.PlaylistMakerElement(self.NAME % (area_name),
+                                                      self.DESC % (quote(area_name)),
+                                                      shuffle=True)
         pl_maker.set_sources(recs_lookup)
 
         return pl_maker
