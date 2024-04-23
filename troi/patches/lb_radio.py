@@ -205,9 +205,14 @@ class LBRadioPatch(troi.patch.Patch):
                     include_similar_tags=include_sim)
 
             if element["entity"] == "country":
-                source = LBRadioCountryRecordingElement(
-                    area_name=element["values"][0],
-                    mode=mode)
+                if isinstance(element["values"][0], UUID):
+                    source = LBRadioCountryRecordingElement(
+                        mode, 
+                        area_mbid=element["values"][0])
+                else:
+                    source = LBRadioCountryRecordingElement(
+                        mode, 
+                        area_name=element["values"][0])
 
             if element["entity"] == "collection":
                 source = LBRadioCollectionRecordingElement(

@@ -66,14 +66,16 @@ class PromptParser:
         """Parse, process and sanity check data for an element"""
 
         if values is None:
-            try:
-                values = [UUID(text)]
-            except ValueError:
-                if name == "tag":
-                    values = text.split(",")
-                    values = [v.strip() for v in values]
-                else:
+            if name in ("artist", "country", "collection", "playlist"):
+                try:
+                    values = [UUID(text)]
+                except ValueError:
                     values = [text]
+            elif name == "tag":
+                values = text.split(",")
+                values = [v.strip() for v in values]
+            else:
+                values = [text]
         elif weight is None:
             if not text:
                 weight = 1

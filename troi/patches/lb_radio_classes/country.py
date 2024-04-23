@@ -19,9 +19,10 @@ class LBRadioCountryRecordingElement(Element):
             area_name: the name of the area to make a playlist for
     '''
 
-    def __init__(self, area_name, mode):
+    def __init__(self, mode, area_name=None, area_mbid=None):
         super().__init__()
         self.area_name = area_name
+        self.area_mbid = str(area_mbid)
         self.mode = mode
 
     @staticmethod
@@ -32,7 +33,7 @@ class LBRadioCountryRecordingElement(Element):
     def outputs():
         return [Recording]
 
-    def lookup_area(self, area_name):
+    def lookup_area_by_name(self, area_name):
 
         while True:
             r = requests.get("https://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
@@ -48,6 +49,19 @@ class LBRadioCountryRecordingElement(Element):
                 return area["id"]
             else:
                 return None
+
+    def lookup_area_by_mbid(self, area_mbid):
+
+        while True:
+            r = requests.get("https://musicbrainz.org/ws/2/area/%s?fmt=json" % area_mbid)
+            if r.status_code == 503:
+                sleep(1)
+                continue
+
+            if r.status_code != 200:
+                raise PipelineError("Cannot fetch country code from MusicBrainz. Error: %s" % r.text)
+
+            return r.json()["name"]
 
     def recording_from_row(self, row):
         if row['recording_mbid'] is None:
@@ -71,11 +85,22 @@ class LBRadioCountryRecordingElement(Element):
     def read(self, inputs):
 
         start, stop = {"easy": (66, 100), "medium": (33, 66), "hard": (0, 33)}[self.mode]
-        area_mbid = self.lookup_area(self.area_name)
-        if area_mbid is None:
-            raise PipelineError("Cannot find country '%s'" % self.area_name)
 
-        args = [{"[area_mbid]": area_mbid}]
+        if self.area_name is None and self.area_mbid is None:
+            raise PipelineError("An area name or area mbid must be specified.")
+
+        if self.area_name:
+            self.area_mbid = self.lookup_area_by_name(self.area_name)
+            if self.area_mbid is None:
+                raise PipelineError("Cannot find country '%s'" % self.area_name)
+        else:
+            self.area_name = self.lookup_area_by_mbid(self.area_mbid)
+            if self.area_name is None:
+                raise PipelineError("Cannot lookup country from mbid '%s'" % self.area_mbid)
+
+        print(self.area_name, self.area_mbid)
+
+        args = [{"[area_mbid]": self.area_mbid}]
         r = requests.post(DEVELOPMENT_SERVER_URL + "/popular-recordings-by-country/json", json=args)
         if r.status_code != 200:
             raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" %

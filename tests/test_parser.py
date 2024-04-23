@@ -52,6 +52,9 @@ class TestParser(unittest.TestCase):
         r = pp.parse("tag:(モーニング娘。)")
         assert r[0] == {"entity": "tag", "values": ["モーニング娘。"], "weight": 1, "opts": []}
 
+        r = pp.parse("tag:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
+        assert r[0] == {"entity": "tag", "values": ["57baa3c6-ee43-4db3-9e6a-50bbc9792ee4"], "weight": 1, "opts": []}
+
     def test_tag_errors(self):
         pp = PromptParser()
         self.assertRaises(ParseError, pp.parse, "t:(abstract rock blues):bork")
