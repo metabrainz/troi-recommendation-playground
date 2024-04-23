@@ -199,7 +199,7 @@ class LBRadioPatch(troi.patch.Patch):
                 include_sim = False if "nosim" in element["opts"] else True
                 operator = "or" if "or" in element["opts"] else "and"
                 source = LBRadioTagRecordingElement(
-                    element["values"],
+                    [ t.lower() for t in element["values"]],
                     mode=mode,
                     operator=operator,
                     include_similar_tags=include_sim)

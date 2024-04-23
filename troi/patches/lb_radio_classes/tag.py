@@ -59,9 +59,10 @@ class LBRadioTagRecordingElement(troi.Element):
         num_similar_tags_to_include = { "easy": 0, "medium": 1, "hard": 2 }[self.mode] 
 
         tag_streams = []
-        print("main search: %d - %d" % (start, stop))
         tag_streams.append(self.recording_search_by_tag.search(self.tags, self.operator, start, stop,
                                                                self.NUM_RECORDINGS_TO_COLLECT))
+        if not tag_streams[0]:
+            return [], ["Could not find any recordings for tag search '%s', ignoring." % (",".join(self.tags)) ] 
 
         if len(self.tags) == 1 and self.include_similar_tags:
             similar_tags = self.fetch_similar_tags(self.tags[0])

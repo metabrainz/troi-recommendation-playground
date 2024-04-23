@@ -35,7 +35,7 @@ class LBRadioCountryRecordingElement(Element):
     def lookup_area(self, area_name):
 
         while True:
-            r = requests.get("http://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
+            r = requests.get("https://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
             if r.status_code == 503:
                 sleep(1)
                 continue
@@ -43,7 +43,11 @@ class LBRadioCountryRecordingElement(Element):
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
 
-            return r.json()['areas'][0]['id']
+            area = r.json()['areas'][0]
+            if area["type"] == "Country":
+                return area["id"]
+            else:
+                return None
 
     def recording_from_row(self, row):
         if row['recording_mbid'] is None:
@@ -68,6 +72,9 @@ class LBRadioCountryRecordingElement(Element):
 
         start, stop = {"easy": (66, 100), "medium": (33, 66), "hard": (0, 33)}[self.mode]
         area_mbid = self.lookup_area(self.area_name)
+        if area_mbid is None:
+            raise PipelineError("Cannot find country '%s'" % self.area_name)
+
         args = [{"[area_mbid]": area_mbid}]
         r = requests.post(DEVELOPMENT_SERVER_URL + "/popular-recordings-by-country/json", json=args)
         if r.status_code != 200:
