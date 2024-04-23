@@ -44,7 +44,11 @@ class LBRadioCountryRecordingElement(Element):
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
 
-            area = r.json()['areas'][0]
+            try:
+                area = r.json()['areas'][0]
+            except IndexError:
+                return None
+
             if area["type"] == "Country":
                 return area["id"]
             else:
@@ -61,7 +65,12 @@ class LBRadioCountryRecordingElement(Element):
             if r.status_code != 200:
                 raise PipelineError("Cannot fetch country code from MusicBrainz. Error: %s" % r.text)
 
-            return r.json()["name"]
+            area = r.json()
+            if area["type"] != "Country":
+                raise PipelineError("The specified area_mbid (%s) refers to a %s, but only countries are supported." %
+                                    (area_mbid, area["type"]))
+
+            return area["name"]
 
     def recording_from_row(self, row):
         if row['recording_mbid'] is None:
