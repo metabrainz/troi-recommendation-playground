@@ -1,12 +1,11 @@
 import troi
-from random import randint
+from random import randint, shuffle
 
 import requests
 
 from troi import Recording
 from troi.plist import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
-from troi.utils import interleave
 
 
 class LBRadioTagRecordingElement(troi.Element):
@@ -58,10 +57,9 @@ class LBRadioTagRecordingElement(troi.Element):
         sim_start, sim_stop = { "easy": (0, 0), "medium": (50, 100), "hard": (10, 50) }[self.mode]
         num_similar_tags_to_include = { "easy": 0, "medium": 1, "hard": 2 }[self.mode] 
 
-        tag_streams = []
-        tag_streams.append(self.recording_search_by_tag.search(self.tags, self.operator, start, stop,
-                                                               self.NUM_RECORDINGS_TO_COLLECT))
-        if not tag_streams[0]:
+        recordings = self.recording_search_by_tag.search(self.tags, self.operator, start, stop,
+                                                         self.NUM_RECORDINGS_TO_COLLECT)
+        if not recordings:
             return [], ["Could not find any recordings for tag search '%s', ignoring." % (",".join(self.tags)) ] 
 
         if len(self.tags) == 1 and self.include_similar_tags:
@@ -87,7 +85,7 @@ class LBRadioTagRecordingElement(troi.Element):
                     if len(sim_tag_data) > self.NUM_RECORDINGS_TO_COLLECT:
                         sim_tag_data = sim_tag_data.random_item( start, stop, self.NUM_RECORDINGS_TO_COLLECT)
 
-                    tag_streams.append(sim_tag_data)
+                    recordings.extend(sim_tag_data)
 
                 if num_similar_tags_to_include > 1:
                     msgs = [
@@ -100,7 +98,10 @@ class LBRadioTagRecordingElement(troi.Element):
             else:
                 msgs = [f"""tag: using only seed tag '{self.tags[0]}'."""]
 
-        return interleave(tag_streams), msgs
+
+        recordings = list(recordings)
+        shuffle(recordings)
+        return recordings, msgs
 
 
     def read(self, entities):
