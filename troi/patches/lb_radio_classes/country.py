@@ -107,8 +107,6 @@ class LBRadioCountryRecordingElement(Element):
             if self.area_name is None:
                 raise PipelineError("Cannot lookup country from mbid '%s'" % self.area_mbid)
 
-        print(self.area_name, self.area_mbid)
-
         args = [{"[area_mbid]": self.area_mbid}]
         r = requests.post(DEVELOPMENT_SERVER_URL + "/popular-recordings-by-country/json", json=args)
         if r.status_code != 200:

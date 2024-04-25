@@ -145,6 +145,10 @@ class PromptParser:
                     text = ""
                     continue
 
+                # Check to make sure that some values are in ()
+                if name in ("artist", "country", "collection", "playlist") and i == 0 and not block[i] == "(":
+                    raise ParseError("Element value must be enclosed in (). Try: %s:(name)" % (name))
+
                 if block[i] == ' ' and parens == 0:
                     break
 
