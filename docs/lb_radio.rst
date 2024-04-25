@@ -165,13 +165,13 @@ If LB-radio does not find your artist, you can specify an artist using an Artist
 
 ::
 
-  artist:8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11
+  artist:(8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11)
 
 LB-radio also supports MusicBrainz collections as sources:
 
 ::
 
-  collection:8be1a919-a386-45f3-8cc2-0d9249b02aa4
+  collection:(8be1a919-a386-45f3-8cc2-0d9249b02aa4)
 
 Will select random recordings from a MusicBrainz recording collection -- the modes wont have any affect on collections, since
 collections have no inherent ranking that could be used to select recordings according to mode. :(
@@ -179,7 +179,7 @@ collections have no inherent ranking that could be used to select recordings acc
 
 ::
 
-  playlist:8be1a919-a386-45f3-8cc2-0d9249b02aa4
+  playlist:(8be1a919-a386-45f3-8cc2-0d9249b02aa4)
 
 Will select random recordings from a ListenBrainz playlist -- the modes wont have any affect on collections, since
 plylists have no inherent ranking that could be used to select recordings according to mode. :(
