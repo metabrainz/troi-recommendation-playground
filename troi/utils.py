@@ -52,7 +52,8 @@ def discover_patches_from_dir(module_path, patch_dir, add_dot=False):
             for member in inspect.getmembers(patch):
                 if inspect.isclass(member[1]):
                     if issubclass(member[1], troi.patch.Patch):
-                        patch_dict[member[1].slug()] = member[1]
+                        if member[1].slug() is not None:
+                            patch_dict[member[1].slug()] = member[1]
 
     if add_dot:
         sys.path.pop(-1)
