@@ -166,21 +166,18 @@ class Patch(ABC):
 
             logger.info("done.")
         except troi.PipelineError as err:
-            logging.error("Failed to generate playlist: %s" % err)
-            return None
+            raise RuntimeError("Playlist generation failed: %s" % err)
 
         upload = self.patch_args["upload"]
         token = self.patch_args["token"]
         spotify = self.patch_args["spotify"]
         if upload and not token and not spotify:
-            logger.info("In order to upload a playlist, you must provide an auth token. Use option --token.")
-            return None
+            raise RuntimeError("In order to upload a playlist, you must provide an auth token. Use option --token.")
 
         min_recordings = self.patch_args["min_recordings"]
         if min_recordings is not None and \
                 (len(playlist.playlists) == 0 or len(playlist.playlists[0].recordings) < min_recordings):
-            logger.info("Playlist does not have at least %d recordings, stopping." % min_recordings)
-            return None
+            raise RuntimeError("Playlist does not have at least %d recordings" % min_recordings)
 
         save = self.patch_args["save"]
         if result is not None and spotify and upload:
