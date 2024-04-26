@@ -2,7 +2,7 @@ from uuid import UUID
 import re
 
 TIME_RANGES = ["week", "month", "quarter", "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"]
-ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs"]
+ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs", "country"]
 
 ELEMENT_OPTIONS = {
     "artist": ["nosim", "easy", "medium", "hard"],
@@ -10,7 +10,8 @@ ELEMENT_OPTIONS = {
     "collection": ["easy", "medium", "hard"],
     "playlist": ["easy", "medium", "hard"],
     "stats": TIME_RANGES,
-    "recs": ["easy", "medium", "hard", "listened", "unlistened"]
+    "recs": ["easy", "medium", "hard", "listened", "unlistened"],
+    "country": ["easy", "medium", "hard"]
 }
 
 OPTIONS = set()
@@ -65,14 +66,16 @@ class PromptParser:
         """Parse, process and sanity check data for an element"""
 
         if values is None:
-            try:
-                values = [UUID(text)]
-            except ValueError:
-                if name == "tag":
-                    values = text.split(",")
-                    values = [v.strip() for v in values]
-                else:
+            if name in ("artist", "country", "collection", "playlist"):
+                try:
+                    values = [UUID(text)]
+                except ValueError:
                     values = [text]
+            elif name == "tag":
+                values = text.split(",")
+                values = [v.strip() for v in values]
+            else:
+                values = [text]
         elif weight is None:
             if not text:
                 weight = 1
@@ -141,6 +144,10 @@ class PromptParser:
                     values, weight, opts = self.set_block_values(name, values, weight, opts, text, block)
                     text = ""
                     continue
+
+                # Check to make sure that some values are in ()
+                if name in ("artist", "country", "collection", "playlist") and i == 0 and not block[i] == "(":
+                    raise ParseError("Element value must be enclosed in ( ). Try: %s:(name)" % (name))
 
                 if block[i] == ' ' and parens == 0:
                     break

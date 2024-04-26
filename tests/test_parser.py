@@ -8,19 +8,21 @@ class TestParser(unittest.TestCase):
 
     def test_basic_entities(self):
         pp = PromptParser()
-        r = pp.parse("artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        r = pp.parse("artist:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
         assert r[0] == {"entity": "artist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
-        r = pp.parse("artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        r = pp.parse("artist:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
         assert r[0] == {"entity": "artist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
         self.assertRaises(ParseError, pp.parse, "wrong:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        self.assertRaises(ParseError, pp.parse, "artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
 
         r = pp.parse("artist:(the knife)")
         assert r[0] == {"entity": "artist", "values": ["the knife"], "weight": 1, "opts": []}
 
         self.assertRaises(ParseError, pp.parse, "artist:u2:nosim")
         self.assertRaises(ParseError, pp.parse, "artists:u2:nosim")
+        self.assertRaises(ParseError, pp.parse, "country:andorra")
 
     def test_tags(self):
         pp = PromptParser()
@@ -52,6 +54,9 @@ class TestParser(unittest.TestCase):
         r = pp.parse("tag:(モーニング娘。)")
         assert r[0] == {"entity": "tag", "values": ["モーニング娘。"], "weight": 1, "opts": []}
 
+        r = pp.parse("tag:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
+        assert r[0] == {"entity": "tag", "values": ["57baa3c6-ee43-4db3-9e6a-50bbc9792ee4"], "weight": 1, "opts": []}
+
     def test_tag_errors(self):
         pp = PromptParser()
         self.assertRaises(ParseError, pp.parse, "t:(abstract rock blues):bork")
@@ -73,14 +78,14 @@ class TestParser(unittest.TestCase):
 
     def test_compound(self):
         pp = PromptParser()
-        r = pp.parse('artist:05319f96-e409-4199-b94f-3cabe7cc188a:2 tag:(downtempo):1 tag:(trip hop, abstract):2')
+        r = pp.parse('artist:(05319f96-e409-4199-b94f-3cabe7cc188a):2 tag:(downtempo):1 tag:(trip hop, abstract):2')
         assert r[0] == {"entity": "artist", "values": [UUID("05319f96-e409-4199-b94f-3cabe7cc188a")], "weight": 2, "opts": []}
         assert r[1] == {"entity": "tag", "values": ["downtempo"], "weight": 1, "opts": []}
         assert r[2] == {"entity": "tag", "values": ["trip hop", "abstract"], "weight": 2, "opts": []}
 
     def test_weights(self):
         pp = PromptParser()
-        r = pp.parse("artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 artist:f54ba4c6-12dd-4358-9136-c64ad89420c5:2")
+        r = pp.parse("artist:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4):1 artist:(f54ba4c6-12dd-4358-9136-c64ad89420c5):2")
         assert r[0] == {"entity": "artist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
         assert r[1] == {"entity": "artist", "values": [UUID("f54ba4c6-12dd-4358-9136-c64ad89420c5")], "weight": 2, "opts": []}
 
@@ -88,10 +93,10 @@ class TestParser(unittest.TestCase):
                           "artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 artist:f54ba4c6-12dd-4358-9136-c64ad89420c5:fussy")
         self.assertRaises(ParseError, pp.parse, "artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4:1 artist:f54ba4c6-12dd-4358-9136-c64ad89420c5:.5")
 
-        r = pp.parse("artist:portishead::easy")
+        r = pp.parse("artist:(portishead)::easy")
         assert r[0] == {"entity": "artist", "values": ["portishead"], "weight": 1, "opts": ["easy"]}
 
-        r = pp.parse("artist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4::easy")
+        r = pp.parse("artist:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)::easy")
         assert r[0] == {"entity": "artist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": ["easy"]}
 
     def test_opts(self):
@@ -112,13 +117,13 @@ class TestParser(unittest.TestCase):
 
     def test_collection_playlist(self):
         pp = PromptParser()
-        r = pp.parse("collection:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        r = pp.parse("collection:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
         assert r[0] == {"entity": "collection", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
-        r = pp.parse("playlist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        r = pp.parse("playlist:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
         assert r[0] == {"entity": "playlist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
-        r = pp.parse("playlist:57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")
+        r = pp.parse("playlist:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
         assert r[0] == {"entity": "playlist", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
 
     def test_stats(self):
@@ -156,3 +161,11 @@ class TestParser(unittest.TestCase):
 
         r = pp.parse("recs:(rob zombie)")
         assert r[0] == {"entity": "recs", "values": ["rob zombie"], "weight": 1, "opts": []}
+
+    def test_country(self):
+        pp = PromptParser()
+        r = pp.parse("country:(57baa3c6-ee43-4db3-9e6a-50bbc9792ee4)")
+        assert r[0] == {"entity": "country", "values": [UUID("57baa3c6-ee43-4db3-9e6a-50bbc9792ee4")], "weight": 1, "opts": []}
+
+        r = pp.parse("country:(mali)")
+        assert r[0] == {"entity": "country", "values": ["mali"], "weight": 1, "opts": []}

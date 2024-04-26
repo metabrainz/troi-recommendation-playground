@@ -1,7 +1,7 @@
 import logging
 import os
 
-from troi.splitter import plist
+from troi.plist import plist
 from troi import Recording as TroiRecording
 from troi.content_resolver.model.recording import FileIdType
 
@@ -24,10 +24,10 @@ def ask_yes_no_question(prompt):
             logging.info("eh? try again.")
 
 
-def select_recordings_on_popularity(recordings, begin_percent, end_percent, num_recordings):
+def select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordings):
     """
        Given dicts of recording data, select up to num_recordings recordings randomly
-       from the recordings that ideally lie in popularity between begin_percent and end_percent.
+       from the recordings that ideally lie in popularity between pop_begin and pop_end.
 
        If too little data is found in the percent range, select recordings that are the closest
        to the disired range.
@@ -37,8 +37,8 @@ def select_recordings_on_popularity(recordings, begin_percent, end_percent, num_
     over_recordings = []
     under_recordings = []
     for rec in recordings:
-        if rec["popularity"] >= begin_percent:
-            if rec["popularity"] < end_percent:
+        if rec["popularity"] >= pop_begin:
+            if rec["popularity"] < pop_end:
                 matching_recordings.append(rec)
             else:
                 over_recordings.append(rec)
@@ -52,12 +52,12 @@ def select_recordings_on_popularity(recordings, begin_percent, end_percent, num_
         # Keep adding the best matches until we (hopefully) get our desired number of recordings
         while len(matching_recordings) < num_recordings:
             if under_recordings:
-                under_diff = begin_percent - under_recordings[-1]["popularity"]
+                under_diff = pop_begin - under_recordings[-1]["popularity"]
             else:
                 under_diff = None
 
             if over_recordings:
-                over_diff = over_recordings[-1]["popularity"] - end_percent
+                over_diff = over_recordings[-1]["popularity"] - pop_end
             else:
                 over_diff = None
 

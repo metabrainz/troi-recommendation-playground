@@ -1,3 +1,4 @@
+from time import sleep
 from random import randint, shuffle
 from uuid import UUID
 
@@ -19,6 +20,7 @@ from troi.patches.lb_radio_classes.playlist import LBRadioPlaylistRecordingEleme
 from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio_classes.stats import LBRadioStatsRecordingElement
 from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingElement
+from troi.patches.lb_radio_classes.country import LBRadioCountryRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS, Playlist
 from troi.utils import interleave
 
@@ -75,21 +77,27 @@ class LBRadioPatch(troi.patch.Patch):
     def description():
         return "Given an LB radio prompt, generate a playlist for that prompt."
 
-    def lookup_artist_name(self, artist_name):
+    def lookup_artist(self, artist_name):
         """ Fetch artist names for validation purposes """
+
+        if isinstance(artist_name, UUID):
+            return self.lookup_artist_from_mbid(artist_name)
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
 
-        r = requests.get(
-            f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json"
-        )
-        if r.status_code == 404:
-            raise RuntimeError(err_msg)
+        while True:
+            r = requests.get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
+            if r.status_code == 404:
+                raise RuntimeError(err_msg)
 
-        if r.status_code != 200:
-            raise RuntimeError(
-                f"Could not resolve artist name {artist_name}. Error {r.status_code}"
-            )
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError( f"Could not resolve artist name {artist_name}. Error {r.status_code} {r.text}")
+
+            break
 
         data = r.json()
         try:
@@ -99,9 +107,28 @@ class LBRadioPatch(troi.patch.Patch):
             raise RuntimeError(err_msg)
 
         if fetched_name.lower() == artist_name.lower():
-            return mbid
+            return fetched_name, mbid
 
         raise RuntimeError(err_msg)
+
+    def lookup_artist_from_mbid(self, artist_mbid):
+        """ Fetch artist names for validation purposes """
+
+        while True:
+            r = requests.get(f"https://musicbrainz.org/ws/2/artist/%s?fmt=json" % str(artist_mbid))
+            if r.status_code == 404:
+                raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code} {r.text}")
+
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError(f"Could not resolve artist name {artist_mbid}. Error {r.status_code} {r.text}")
+
+            break
+
+        return r.json()["name"], artist_mbid
 
     def create(self, inputs):
         self.prompt = inputs["prompt"]
@@ -119,11 +146,13 @@ class LBRadioPatch(troi.patch.Patch):
                 "Argument mode must be one one easy, medium or hard.")
 
         # Lookup artist names embedded in the prompt
+        artist_names = {}
         for element in prompt_elements:
-            if element["entity"] == "artist" and isinstance(
-                    element["values"][0], str):
-                element["values"][0] = UUID(
-                    self.lookup_artist_name(element["values"][0]))
+            if element["entity"] == "artist":
+                name, mbid = self.lookup_artist(element["values"][0])
+                print(name, mbid)
+                element["values"][0] = mbid
+                artist_names[mbid] = name
 
         # Save descriptions to local storage
         self.local_storage["data_cache"] = {
@@ -162,6 +191,7 @@ class LBRadioPatch(troi.patch.Patch):
                 include_sim = False if "nosim" in element["opts"] else True
                 source = LBRadioArtistRecordingElement(
                     element["values"][0],
+                    artist_name=artist_names[element["values"][0]],
                     mode=mode,
                     include_similar_artists=include_sim)
 
@@ -169,10 +199,20 @@ class LBRadioPatch(troi.patch.Patch):
                 include_sim = False if "nosim" in element["opts"] else True
                 operator = "or" if "or" in element["opts"] else "and"
                 source = LBRadioTagRecordingElement(
-                    element["values"],
+                    [ t.lower() for t in element["values"]],
                     mode=mode,
                     operator=operator,
                     include_similar_tags=include_sim)
+
+            if element["entity"] == "country":
+                if isinstance(element["values"][0], UUID):
+                    source = LBRadioCountryRecordingElement(
+                        mode, 
+                        area_mbid=element["values"][0])
+                else:
+                    source = LBRadioCountryRecordingElement(
+                        mode, 
+                        area_name=element["values"][0])
 
             if element["entity"] == "collection":
                 source = LBRadioCollectionRecordingElement(
@@ -220,7 +260,7 @@ class LBRadioPatch(troi.patch.Patch):
             elements.append(hate_filter)
 
         # Finish the pipeline with the element that blends and weighs the streams
-        blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100)
+        blend = WeighAndBlendRecordingsElement(weights, max_num_recordings=100, max_artist_occurrence=3)
         blend.set_sources(elements)
 
         pl_maker = PlaylistMakerElement(

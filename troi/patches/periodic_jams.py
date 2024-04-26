@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from troi.patch import Patch
 import troi.filters
 import troi.listenbrainz.feedback
 import troi.listenbrainz.listens
@@ -34,7 +35,7 @@ WEEKLY_EXPLORATION_DESCRIPTION = """<p>The ListenBrainz Weekly Exploration aims 
 """
 
 
-class PeriodicJamsPatch(troi.patch.Patch):
+class PeriodicJamsPatch(Patch):
     """
        Create either daily-jams, weekly-jams or weekly-exploration with this patch.
 

@@ -108,7 +108,11 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
             "This is a local patch and should be invoked via the specific troi function, rather than the playlist function.")
         return None
 
-    ret = patch.generate_playlist()
+    try:
+        ret = patch.generate_playlist()
+    except RuntimeError as err:
+        logger.error(err)
+        ret = 0
 
     user_feedback = patch.user_feedback()
     if len(user_feedback) > 0:

@@ -10,7 +10,7 @@ from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.utils import select_recordings_on_popularity
 from troi.recording_search_service import RecordingSearchByTagService
-from troi.splitter import plist
+from troi.plist import plist
 
 
 class LocalRecordingSearchByTagService(RecordingSearchByTagService):
@@ -21,20 +21,20 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
     def __init__(self):
         RecordingSearchByTagService.__init__(self)
 
-    def search(self, tags, operator, begin_percent, end_percent, num_recordings):
+    def search(self, tags, operator, pop_begin, pop_end, num_recordings):
         """
         Perform a tag search. Parameters:
 
         tags - a list of string tags to search for
         operator - a string specifying "or" or "and"
-        begin_percent - if many recordings match the above parameters, return only
+        pop_begin - if many recordings match the above parameters, return only
                         recordings that have a minimum popularity percent score
-                        of begin_percent.
-        end_percent - if many recordings match the above parameters, return only
+                        of pop_begin.
+        pop_end - if many recordings match the above parameters, return only
                       recordings that have a maximum popularity percent score
-                      of end_percent.
+                      of pop_end.
 
-        If only few recordings match, the begin_percent and end_percent are
+        If only few recordings match, the pop_begin and pop_end are
         ignored.
         """
 
@@ -51,7 +51,7 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
         for rec in cursor.fetchall():
             recordings.append({"recording_mbid": rec[0], "popularity": rec[1], "file_id": rec[2], "file_id_type": rec[3]})
 
-        return select_recordings_on_popularity(recordings, begin_percent, end_percent, num_recordings)
+        return select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordings)
 
     def or_search(self, tags, min_popularity=None, max_popularity=None):
         """
