@@ -3,7 +3,6 @@ import json
 from troi import Playlist
 from troi.patch import Patch
 from troi.playlist import PlaylistFromJSPFElement
-import troi.musicbrainz.recording_lookup
 
 
 class TransferPlaylistPatch(Patch):

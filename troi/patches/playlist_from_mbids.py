@@ -2,15 +2,16 @@ import troi
 from troi import Recording
 from troi.musicbrainz.mbid_reader import MBIDReaderElement
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
+from troi.patch import Patch
 from troi.playlist import PlaylistMakerElement
 
 
-class PlaylistFromMBIDsPatch(troi.patch.Patch):
+class PlaylistFromMBIDsPatch(Patch):
     """
     """
 
     def __init__(self, args):
-        troi.patch.Patch.__init__(self, args)
+        super().__init__(args)
 
     @staticmethod
     def inputs():
