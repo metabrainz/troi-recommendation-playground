@@ -5,6 +5,7 @@ import troi.filters
 import troi.sorts
 import troi.musicbrainz.recording_lookup
 import troi.musicbrainz.mbid_mapping
+from troi.patch import Patch
 
 
 class RecsPlaylistMakerElement(Element):
@@ -53,13 +54,13 @@ class RecsPlaylistMakerElement(Element):
                     user_name=self.user_name)]
 
 
-class RecommendationsToPlaylistPatch(troi.patch.Patch):
+class RecommendationsToPlaylistPatch(Patch):
     """
         See below for description
     """
 
     def __init__(self, args):
-        troi.patch.Patch.__init__(self, args)
+        super().__init__(args)
 
     @staticmethod
     def inputs():

@@ -1,11 +1,11 @@
 import troi.external.gpt
 import troi.musicbrainz.mbid_mapping
-import troi.patch
 from troi import Playlist
+from troi.patch import Patch
 from troi.playlist import PlaylistMakerElement
 
 
-class AiJamsPatch(troi.patch.Patch):
+class AiJamsPatch(Patch):
     """ Generate a playlist using AI from the given prompt. """
 
     @staticmethod
