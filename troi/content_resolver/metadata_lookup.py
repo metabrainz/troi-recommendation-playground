@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict, namedtuple
 import datetime
+from time import sleep
 
 import requests
 from tqdm import tqdm
@@ -65,7 +66,7 @@ class MetadataLookup:
         mbid_to_recording = {}
         for rec in recordings:
             mbid_to_recording[rec.mbid] = rec
-            args.append({"[recording_mbid]": rec.mbid})
+            args.append({"recording_mbid": rec.mbid})
 
         while True:
             r = requests.post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)

@@ -31,7 +31,7 @@ class MBIDMappingLookupElement(Element):
         params = []
         for r in inputs[0]:
             if r.artist_credit is not None and r.name is not None:
-                params.append({"[artist_credit_name]": r.artist_credit.name, "[recording_name]": r.name})
+                params.append({"artist_credit_name": r.artist_credit.name, "recording_name": r.name})
 
         if not params:
             return []

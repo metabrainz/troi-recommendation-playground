@@ -1,3 +1,5 @@
+from time import sleep
+
 import troi
 from random import randint, shuffle
 
@@ -35,7 +37,7 @@ class LBRadioTagRecordingElement(troi.Element):
         """
 
         while True:
-            r = requests.post( "https://labs.api.listenbrainz.org/tag-similarity/json", json=[{ "tag": tag }])
+            r = requests.post("https://labs.api.listenbrainz.org/tag-similarity/json", json=[{"tag": tag}])
             if r.status_code == 429:
                 sleep(2)
                 continue
