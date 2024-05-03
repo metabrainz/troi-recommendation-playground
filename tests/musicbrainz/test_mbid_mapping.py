@@ -46,7 +46,7 @@ class TestMBIDMapping(unittest.TestCase):
 
         r = [ troi.Recording("trigger hippie", artist_credit=troi.ArtistCredit(name="morcheeba")) ]
         entities = e.read([r])
-        req.assert_called_with(e.SERVER_URL, json=[{'[artist_credit_name]': 'morcheeba', '[recording_name]': 'trigger hippie'}])
+        req.assert_called_with(e.SERVER_URL, json=[{'artist_credit_name': 'morcheeba', 'recording_name': 'trigger hippie'}])
 
         assert len(entities) == 1
         assert entities[0].artist_credit.artist_credit_id == 963
