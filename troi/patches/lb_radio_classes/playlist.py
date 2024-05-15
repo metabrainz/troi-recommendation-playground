@@ -30,7 +30,7 @@ class LBRadioPlaylistRecordingElement(troi.Element):
     def read(self, entities):
 
         # Fetch the playlist
-        r = requests.get(f"https://test-api.listenbrainz.org/1/playlist/{self.mbid}")
+        r = requests.get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
         if r.status_code == 404:
             raise RuntimeError(f"Cannot find playlist {self.mbid}.")
         if r.status_code != 200:
