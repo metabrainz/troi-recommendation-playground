@@ -6,7 +6,7 @@ import json
 import requests
 import spotipy
 
-from troi import Recording, Playlist, PipelineError, Element, Artist, Release
+from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.spotify_lookup import submit_to_spotify
@@ -119,12 +119,11 @@ def _deserialize_from_jspf(data) -> Playlist:
 
         recording = Recording(name=track["title"], mbid=mbid)
         if track.get("creator"):
-            artist = Artist(name=track["creator"])
             extension = track["extension"][PLAYLIST_TRACK_EXTENSION_URI]
             if extension.get("artist_identifiers"):
                 artist_mbids = [url.split("/")[-1] for url in extension.get("artist_identifiers")]
-                artist.mbids = artist_mbids
-            recording.artist = artist
+                artists = [ Artist(mbid) for mbid in artist_mbids ]
+            recording.artist_credit = ArtistCredit(name=track["creator"], artists=artists)
 
         if track.get("album"):
             recording.release = Release(name=track["album"])
