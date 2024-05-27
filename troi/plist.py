@@ -69,6 +69,9 @@ class plist(list):
         if len(self) == 0:
             return []
 
+        if len(self) == 1:
+            return super().__getitem__(0)
+
         start_index = self._get_index(start_percent)
         stop_index = self._get_index(stop_percent)
 

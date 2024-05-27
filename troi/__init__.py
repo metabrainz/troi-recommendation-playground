@@ -236,7 +236,7 @@ class Artist(Entity):
         self.join_phrase = join_phrase
 
     def __str__(self):
-        return "<Artist('%s', [%s], %s)>" % (self.name, self.mbid, self.artist_id)
+        return "<Artist('%s', %s, %s)>" % (self.name, self.mbid, self.artist_id)
 
 
 class ArtistCredit(Entity):
