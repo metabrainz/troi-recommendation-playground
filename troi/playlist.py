@@ -63,7 +63,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
             track["creator"] = e.artist_credit.name if e.artist_credit else ""
 
         track["title"] = e.name
-        track["identifier"] = "https://musicbrainz.org/recording/" + str(e.mbid)
+        track["identifier"] = ["https://musicbrainz.org/recording/" + str(e.mbid)]
 
         loc = e.musicbrainz.get("filename", None)
         if loc is not None:
@@ -108,20 +108,23 @@ def _deserialize_from_jspf(data) -> Playlist:
     recordings = []
 
     for track in data["track"]:
-        identifier = track["identifier"]
+        identifiers = track["identifier"]
+        if isinstance(identifiers, str):
+            identifiers = [identifiers]
 
-        if identifier.startswith("https://musicbrainz.org/recording/") or \
-                identifier.startswith("http://musicbrainz.org/recording/"):
-            mbid = identifier.split("/")[-1]
-        else:
-            mbid = None
+        mbid = None
+        for identifier in identifiers:
+            if identifier.startswith("https://musicbrainz.org/recording/") or \
+                    identifier.startswith("http://musicbrainz.org/recording/"):
+                mbid = identifier.split("/")[-1]
+                break
 
         recording = Recording(name=track["title"], mbid=mbid)
         if track.get("creator"):
             extension = track["extension"][PLAYLIST_TRACK_EXTENSION_URI]
             if extension.get("artist_identifiers"):
                 artist_mbids = [url.split("/")[-1] for url in extension.get("artist_identifiers")]
-                artists = [Artist(mbid) for mbid in artist_mbids]
+                artists = [Artist(mbid=mbid) for mbid in artist_mbids]
             else:
                 artists = None
             recording.artist_credit = ArtistCredit(name=track["creator"], artists=artists)
