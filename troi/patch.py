@@ -3,6 +3,7 @@ import logging
 import troi
 from abc import ABC, abstractmethod
 
+from troi.playlist import PlaylistElement
 from troi.logging_utils import set_log_level
 from troi.recording_search_service import RecordingSearchByTagService, RecordingSearchByArtistService
 
@@ -144,14 +145,11 @@ class Patch(ABC):
         * desc: Override the algorithms that generate a playlist description and use this description instead.
         * min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete. If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it. Default: Off, a playlist with at least one track will be considere complete.
         * spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public, private or collaborative. it can also optionally have the existing urls to update playlists instead of creating new ones.
-
-        :param args: the arguments to pass to the patch, may contain one of more of the following keys:
-
         """
 
         try:
             set_log_level(self.patch_args.get("quiet", False))
-            playlist = troi.playlist.PlaylistElement()
+            playlist = PlaylistElement()
             playlist.set_sources(self.pipeline)
             logger.info("Troi playlist generation starting...")
             result = playlist.generate(self.quiet)

@@ -16,7 +16,7 @@ def lookup_spotify_ids(recordings):
     and add those to the recordings. """
     response = requests.post(
         SPOTIFY_IDS_LOOKUP_URL,
-        json=[{"[recording_mbid]": recording.mbid} for recording in recordings]
+        json=[{"recording_mbid": recording.mbid} for recording in recordings]
     )
     response.raise_for_status()
     spotify_data = response.json()
