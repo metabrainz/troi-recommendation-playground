@@ -40,7 +40,7 @@ class LBRadioPlaylistRecordingElement(troi.Element):
         self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")
 
         # Fetch the recordings, then shuffle
-        mbid_list = [r["identifier"][0][34:] for r in r.json()["playlist"]["track"]]
+        mbid_list = [r["identifier"][34:] for r in r.json()["playlist"]["track"]]
         shuffle(mbid_list)
 
         # Select and convert the first n MBIDs into Recordings
