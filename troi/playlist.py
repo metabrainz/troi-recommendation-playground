@@ -6,7 +6,7 @@ import json
 import requests
 import spotipy
 
-from troi import Recording, Playlist, PipelineError, Element, Artist, Release
+from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.spotify_lookup import submit_to_spotify
@@ -24,11 +24,6 @@ PLAYLIST_URI_PREFIX = "https://listenbrainz.org/playlist/"
 PLAYLIST_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#playlist"
 PLAYLIST_TRACK_EXTENSION_URI = "https://musicbrainz.org/doc/jspf#track"
 SUBSONIC_URI_PREFIX = "https://subsonic.org/entity/song/"
-
-# TODO: When resolving a playlist, insert "location" into existing playlist, don't create a new one
-#       And recording lookup needs to be replace with metadata lookup. retire the labs API endpoint!
-#       Artist.mbids is totatlly stupid (see ^^). We need [artists] with "join_phrase" in musicbrainz hash.
-#       All this for the next PR.
 
 
 def _serialize_to_jspf(playlist, created_for=None, track_count=None):
@@ -51,8 +46,7 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
         data["annotation"] = playlist.description
 
     if created_for:
-        # TODO: This element is in the wrong location!
-        data["created_for"] = created_for
+        data["extension"][PLAYLIST_EXTENSION_URI]["created_for"] = created_for
 
     if playlist.additional_metadata:
         data["extension"][PLAYLIST_EXTENSION_URI]["additional_metadata"] = playlist.additional_metadata
@@ -114,14 +108,23 @@ def _deserialize_from_jspf(data) -> Playlist:
     recordings = []
 
     for track in data["track"]:
-        recording = Recording(name=track["title"], mbid=track["identifier"].split("/")[-1])
+        identifier = track["identifier"]
+
+        if identifier.startswith("https://musicbrainz.org/recording/") or \
+                identifier.startswith("http://musicbrainz.org/recording/"):
+            mbid = identifier.split("/")[-1]
+        else:
+            mbid = None
+
+        recording = Recording(name=track["title"], mbid=mbid)
         if track.get("creator"):
-            artist = Artist(name=track["creator"])
             extension = track["extension"][PLAYLIST_TRACK_EXTENSION_URI]
             if extension.get("artist_identifiers"):
                 artist_mbids = [url.split("/")[-1] for url in extension.get("artist_identifiers")]
-                artist.mbids = artist_mbids
-            recording.artist = artist
+                artists = [Artist(mbid) for mbid in artist_mbids]
+            else:
+                artists = None
+            recording.artist_credit = ArtistCredit(name=track["creator"], artists=artists)
 
         if track.get("album"):
             recording.release = Release(name=track["album"])
@@ -427,7 +430,7 @@ class PlaylistMakerElement(Element):
         :param desc: The description of the playlist
         :param patch-slug: The patch slug (URL-safe short name) of the patch that created the playlist. Optional.
         :param max_num_recordings: The maximum number of recordings to have in the playlist. Extras are discarded. Optional argument, and the default is to keep all recordings
-        :param max_artist_occurence: The number of times and artist is allowed to appear in the playlist. Any recordings that exceed this count ared discarded. Optional, default is to keep all recordings.
+        :param max_artist_occurrence: The number of times and artist is allowed to appear in the playlist. Any recordings that exceed this count ared discarded. Optional, default is to keep all recordings.
         :param shuffle: If True, the playlist will be shuffled before being truncated. Optional. Default: False
         :param is_april_first: If True, do something very sneaky. Default: False.
     '''
