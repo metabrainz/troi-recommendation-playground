@@ -71,7 +71,7 @@ class PrintRecordingList:
 
         if recording.artist_credit is not None:
             if recording.artist_credit.artists is not None:
-                text += " %-20s" % ",".join([ a.mbid[:5] for a in recording.artist_credit.artists ])
+                text += " %-20s" % ",".join([a.mbid[:5] for a in recording.artist_credit.artists])
             if recording.artist_credit.artist_credit_id is not None:
                 text += " %8d" % recording.artist_credit.artist_credit_id
 

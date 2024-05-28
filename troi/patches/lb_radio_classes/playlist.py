@@ -1,8 +1,7 @@
 import troi
-from random import randint, shuffle
+from random import shuffle
 
 import requests
-from urllib.parse import quote
 
 from troi import Recording
 from troi import TARGET_NUMBER_OF_RECORDINGS
@@ -40,7 +39,21 @@ class LBRadioPlaylistRecordingElement(troi.Element):
         self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")
 
         # Fetch the recordings, then shuffle
-        mbid_list = [r["identifier"][34:] for r in r.json()["playlist"]["track"]]
+        mbid_list = []
+        for recording in r.json()["playlist"]["track"]:
+            identifiers = recording["identifier"]
+            if isinstance(identifiers, str):
+                identifiers = [identifiers]
+
+            mbid = None
+            for identifier in identifiers:
+                if identifier.startswith("https://musicbrainz.org/recording/") or \
+                        identifier.startswith("http://musicbrainz.org/recording/"):
+                    mbid = identifier.split("/")[-1]
+                    break
+
+            mbid_list.append(mbid)
+
         shuffle(mbid_list)
 
         # Select and convert the first n MBIDs into Recordings
