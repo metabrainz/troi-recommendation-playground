@@ -158,10 +158,10 @@ class TestSpotifySubmission(unittest.TestCase):
 
         # track 2 in playlist doesn't have a mbid and is skipped from request to lookup track ids
         self.assertEqual(history[0].json(), [
-            {"[recording_mbid]": "87dfa566-21c3-45ed-bc42-1d345b8563fa"},
-            {"[recording_mbid]": "ec0da94e-fbfe-4eb0-968e-024d4c32d1d0"},
-            {"[recording_mbid]": "93726547-f8c0-4efd-8e16-d2dee76500f6"},
-            {"[recording_mbid]": "395bd5a1-79cc-4e04-8869-ca9eabc78d09"}
+            {"recording_mbid": "87dfa566-21c3-45ed-bc42-1d345b8563fa"},
+            {"recording_mbid": "ec0da94e-fbfe-4eb0-968e-024d4c32d1d0"},
+            {"recording_mbid": "93726547-f8c0-4efd-8e16-d2dee76500f6"},
+            {"recording_mbid": "395bd5a1-79cc-4e04-8869-ca9eabc78d09"}
         ])
 
         self.assertEqual(history[1].json(), {
