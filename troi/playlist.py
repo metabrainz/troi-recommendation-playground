@@ -9,7 +9,7 @@ import spotipy
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
-from troi.tools.spotify_lookup import submit_to_spotify
+from troi.tools.spotify_lookup import submit_to_spotify, music_service_tracks_to_mbid
 
 logger = logging.getLogger(__name__)
 
@@ -522,7 +522,42 @@ class PlaylistMakerElement(Element):
 
         return [playlist]
 
+#TODO: migrate to other file 
+class RecordingsFromMusicServiceElement(Element):
+    """ Create a troi.Playlist entity from track and artist names."""
 
+    def __init__(self, ms_token=None, playlist_id=None, token=None):
+        # """
+        #     The caller must pass either playlist_mbid or the jspf itself, but not both.
+        #     Args:
+        #         playlist_mbid: mbid of the ListenBrainz playlist to be used for creating the playlist element
+        #         jspf: The actual JSPF for the playlist.
+        #         token: the listenbrainz auth token to fetch the playlist, only needed for private playlists
+        # """
+        super().__init__()
+        self.ms_token = ms_token
+        self.token = token
+        self.playlist_id = playlist_id
+
+        # if self.jspf is not None and self.playlist_mbid is not None:
+        #     raise RuntimeError("Pass either jspf or playlist_mbid to PlaylistFromJSPFElement, not both.")
+
+    @staticmethod
+    def outputs():
+        return [ Recording ]
+
+    def read(self, inputs):
+        recordings = []
+
+        mbid_mapped_tracks = music_service_tracks_to_mbid(self.ms_token, self.playlist_id)
+        if mbid_mapped_tracks:
+            for track in mbid_mapped_tracks:
+                if track is not None and "recording_mbid" in track:
+                    recordings.append(Recording(mbid=track["recording_mbid"]))
+    
+        return recordings
+
+    
 class PlaylistFromJSPFElement(Element):
     """ Create a troi.Playlist entity from a ListenBrainz JSPF playlist or LB playlist."""
 

@@ -9,6 +9,7 @@ from spotipy import SpotifyException
 logger = logging.getLogger(__name__)
 
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
+MBID_LOOKUP_URL = "https://api.listenbrainz.org/1/metadata/lookup/"
 
 
 def lookup_spotify_ids(recordings):
@@ -170,3 +171,54 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
     playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
 
     return playlist_url, playlist_id
+
+
+def get_tracks_from_playlist(spotify_token, playlist_id):
+    """ Get the tracks from Spotify playlist.
+    """
+    sp = spotipy.Spotify(auth=spotify_token, requests_timeout=10, retries=10)
+    playlist_info = sp.playlist(playlist_id)
+    playlists = sp.playlist_items(playlist_id, limit=100)
+    name = playlist_info["name"]
+    description = playlist_info["description"]
+    
+    return playlists, name, description
+
+def _convert_tracks_to_json(tracks_from_playlist):
+    tracks= []
+    for track in tracks_from_playlist["items"]:
+        artists = track['track'].get('artists', [])
+        artist_names = []
+        for a in artists:
+            name = a.get('name')
+            if name is not None:
+                artist_names.append(name)
+        artist_name = ', '.join(artist_names)
+        tracks.append({
+            "track_name": track['track']['name'],
+            "artist_name": artist_name,
+        })
+    return tracks
+
+def music_service_tracks_to_mbid(token, playlist_id):
+    """ Convert Spotify playlist tracks to a list of MBID tracks.
+    """
+    tracks_from_playlist, title, description = get_tracks_from_playlist(token, playlist_id)
+    tracks = _convert_tracks_to_json(tracks_from_playlist)
+    
+     # select track_name and artist_name for each track
+    mbid_mapped_tracks = [mbid_mapping_spotify(track["track_name"], track["artist_name"]) for track in tracks]
+    return mbid_mapped_tracks
+    
+    
+def mbid_mapping_spotify(track_name, artist_name):
+    params = {
+        "artist_name": artist_name,
+        "recording_name": track_name,
+    }
+    response = requests.get(MBID_LOOKUP_URL, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        print("Error occurred:", response.status_code)
