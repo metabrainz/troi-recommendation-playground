@@ -208,7 +208,7 @@ def music_service_tracks_to_mbid(token, playlist_id):
     
      # select track_name and artist_name for each track
     mbid_mapped_tracks = [mbid_mapping_spotify(track["track_name"], track["artist_name"]) for track in tracks]
-    return mbid_mapped_tracks
+    return mbid_mapped_tracks, title, description
     
     
 def mbid_mapping_spotify(track_name, artist_name):

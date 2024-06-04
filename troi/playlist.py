@@ -548,13 +548,13 @@ class RecordingsFromMusicServiceElement(Element):
     def read(self, inputs):
         recordings = []
 
-        mbid_mapped_tracks = music_service_tracks_to_mbid(self.token, self.playlist_id)
+        mbid_mapped_tracks, title, description = music_service_tracks_to_mbid(self.token, self.playlist_id)
         if mbid_mapped_tracks:
             for track in mbid_mapped_tracks:
                 if track is not None and "recording_mbid" in track:
                     recordings.append(Recording(mbid=track["recording_mbid"]))
     
-        return recordings
+        return recordings, title, description
 
     
 class PlaylistFromJSPFElement(Element):

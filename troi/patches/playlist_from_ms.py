@@ -39,12 +39,12 @@ class ImportPlaylistPatch(Patch):
         ms_token = inputs["ms_token"]
         playlist_id = inputs["playlist_id"]
 
-        source = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id)
+        source, name, desc = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id)
         
         rec_lookup = RecordingLookupElement()
         rec_lookup.set_sources(source)
 
-        pl_maker = PlaylistMakerElement("Playlist made from MBIDs", "", patch_slug=self.slug())
+        pl_maker = PlaylistMakerElement(name, desc, patch_slug=self.slug())
         pl_maker.set_sources(rec_lookup)
 
         return pl_maker
