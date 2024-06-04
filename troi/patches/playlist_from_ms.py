@@ -4,6 +4,7 @@ from troi import Playlist
 from troi.patch import Patch
 from troi.playlist import RecordingsFromMusicServiceElement, PlaylistMakerElement
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
+from troi.tools.spotify_lookup import get_tracks_from_playlist
 
 
 class ImportPlaylistPatch(Patch):
@@ -38,8 +39,10 @@ class ImportPlaylistPatch(Patch):
 
         ms_token = inputs["ms_token"]
         playlist_id = inputs["playlist_id"]
+        
+        _, name, desc = get_tracks_from_playlist(ms_token, playlist_id)
 
-        source, name, desc = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id)
+        source = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id)
         
         rec_lookup = RecordingLookupElement()
         rec_lookup.set_sources(source)
