@@ -14,11 +14,11 @@ class ImportPlaylistPatch(Patch):
         A patch that retrieves an existing playlist from Spotify for use in Troi.
 
         \b
-        TOKEN is the music service token from which the playlist is retrieved. For now, only Spotify tokens are accepted. 
+        MS_TOKEN is the music service token from which the playlist is retrieved. For now, only Spotify tokens are accepted. 
         PLAYLIST_ID is the playlist id to retrieve the tracks from it.
         """
         return [
-            {"type": "argument", "args": ["token"], "kwargs": {"required": False}},
+            {"type": "argument", "args": ["ms_token"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["playlist_id"], "kwargs": {"required": False}},
         ]
 
@@ -36,11 +36,10 @@ class ImportPlaylistPatch(Patch):
 
     def create(self, inputs):
 
-        token = inputs["token"]
+        ms_token = inputs["ms_token"]
         playlist_id = inputs["playlist_id"]
 
-        token = inputs.get("lb_token")
-        source = RecordingsFromMusicServiceElement(token=token, playlist_id=playlist_id)
+        source = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id)
         
         rec_lookup = RecordingLookupElement()
         rec_lookup.set_sources(source)
