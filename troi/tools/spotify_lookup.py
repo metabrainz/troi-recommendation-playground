@@ -203,7 +203,7 @@ def _convert_tracks_to_json(tracks_from_playlist):
 def music_service_tracks_to_mbid(token, playlist_id):
     """ Convert Spotify playlist tracks to a list of MBID tracks.
     """
-    tracks_from_playlist = get_tracks_from_playlist(token, playlist_id)
+    tracks_from_playlist, name, desc = get_tracks_from_playlist(token, playlist_id)
     tracks = _convert_tracks_to_json(tracks_from_playlist)
     
      # select track_name and artist_name for each track
