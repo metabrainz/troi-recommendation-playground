@@ -174,7 +174,7 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
 
 
 def get_tracks_from_playlist(spotify_token, playlist_id):
-    """ Get the tracks from Spotify playlist.
+    """ Get tracks from the Spotify playlist.
     """
     sp = spotipy.Spotify(auth=spotify_token, requests_timeout=10, retries=10)
     playlist_info = sp.playlist(playlist_id)
@@ -205,13 +205,15 @@ def music_service_tracks_to_mbid(token, playlist_id):
     """
     tracks_from_playlist, name, desc = get_tracks_from_playlist(token, playlist_id)
     tracks = _convert_tracks_to_json(tracks_from_playlist)
-    
+
      # select track_name and artist_name for each track
     mbid_mapped_tracks = [mbid_mapping_spotify(track["track_name"], track["artist_name"]) for track in tracks]
     return mbid_mapped_tracks
-    
-    
+
+
 def mbid_mapping_spotify(track_name, artist_name):
+    """ Given a track_name and artist_name, try to find MBID for these tracks from mbid lookup.
+    """
     params = {
         "artist_name": artist_name,
         "recording_name": track_name,

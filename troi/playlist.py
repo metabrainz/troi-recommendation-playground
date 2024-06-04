@@ -522,24 +522,20 @@ class PlaylistMakerElement(Element):
 
         return [playlist]
 
-#TODO: migrate to other file 
+
 class RecordingsFromMusicServiceElement(Element):
     """ Create a troi.Playlist entity from track and artist names."""
 
     def __init__(self, token=None, playlist_id=None):
-        # """
-        #     The caller must pass either playlist_mbid or the jspf itself, but not both.
-        #     Args:
-        #         playlist_mbid: mbid of the ListenBrainz playlist to be used for creating the playlist element
-        #         jspf: The actual JSPF for the playlist.
-        #         token: the listenbrainz auth token to fetch the playlist, only needed for private playlists
-        # """
+        """
+            Args:
+                playlist_id: id of the Spotify playlist to be used for creating the playlist element
+                token: the Spotify token to fetch the playlist tracks
+        """
         super().__init__()
         self.token = token
         self.playlist_id = playlist_id
 
-        # if self.jspf is not None and self.playlist_mbid is not None:
-        #     raise RuntimeError("Pass either jspf or playlist_mbid to PlaylistFromJSPFElement, not both.")
 
     @staticmethod
     def outputs():
@@ -553,7 +549,7 @@ class RecordingsFromMusicServiceElement(Element):
             for track in mbid_mapped_tracks:
                 if track is not None and "recording_mbid" in track:
                     recordings.append(Recording(mbid=track["recording_mbid"]))
-    
+
         return recordings
 
     
