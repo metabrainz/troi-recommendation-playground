@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 MBID_LOOKUP_URL = "https://api.listenbrainz.org/1/metadata/lookup/"
-
+MAX_LOOKUPS_PER_POST = 50
 
 def lookup_spotify_ids(recordings):
     """ Given a list of Recording elements, try to find spotify track ids from labs api spotify lookup using mbids
@@ -195,7 +195,7 @@ def _convert_tracks_to_json(tracks_from_playlist):
                 artist_names.append(name)
         artist_name = ', '.join(artist_names)
         tracks.append({
-            "track_name": track['track']['name'],
+            "recording_name": track['track']['name'],
             "artist_name": artist_name,
         })
     return tracks
@@ -206,21 +206,24 @@ def music_service_tracks_to_mbid(token, playlist_id):
     tracks_from_playlist, name, desc = get_tracks_from_playlist(token, playlist_id)
     tracks = _convert_tracks_to_json(tracks_from_playlist)
 
-     # select track_name and artist_name for each track
-    mbid_mapped_tracks = [mbid_mapping_spotify(track["track_name"], track["artist_name"]) for track in tracks]
-    return mbid_mapped_tracks
+    track_lists = list(chunked(tracks, MAX_LOOKUPS_PER_POST))
+    print(track_lists)
 
+    return mbid_mapping_spotify(track_lists)
 
-def mbid_mapping_spotify(track_name, artist_name):
+def mbid_mapping_spotify(track_lists):
     """ Given a track_name and artist_name, try to find MBID for these tracks from mbid lookup.
     """
-    params = {
-        "artist_name": artist_name,
-        "recording_name": track_name,
-    }
-    response = requests.get(MBID_LOOKUP_URL, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        return data
-    else:
-        print("Error occurred:", response.status_code)
+    track_mbids = []
+    for tracks in track_lists:
+        params = {
+            "recordings": tracks
+        }
+        response = requests.post(MBID_LOOKUP_URL, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if data is not None and "recording_mbid" in data:
+                track_mbids.append(data["recording_mbid"])
+        else:
+            print("Error occurred:", response.status_code)
+    return track_mbids
