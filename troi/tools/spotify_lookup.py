@@ -207,8 +207,6 @@ def music_service_tracks_to_mbid(token, playlist_id):
     tracks = _convert_tracks_to_json(tracks_from_playlist)
 
     track_lists = list(chunked(tracks, MAX_LOOKUPS_PER_POST))
-    print(track_lists)
-
     return mbid_mapping_spotify(track_lists)
 
 def mbid_mapping_spotify(track_lists):
@@ -219,11 +217,12 @@ def mbid_mapping_spotify(track_lists):
         params = {
             "recordings": tracks
         }
-        response = requests.post(MBID_LOOKUP_URL, params=params)
+        response = requests.post(MBID_LOOKUP_URL, json=params)
         if response.status_code == 200:
             data = response.json()
-            if data is not None and "recording_mbid" in data:
-                track_mbids.append(data["recording_mbid"])
+            for d in data:
+                if d is not None and "recording_mbid" in d:
+                    track_mbids.append(d["recording_mbid"])
         else:
             print("Error occurred:", response.status_code)
     return track_mbids

@@ -546,9 +546,8 @@ class RecordingsFromMusicServiceElement(Element):
 
         mbid_mapped_tracks = music_service_tracks_to_mbid(self.token, self.playlist_id)
         if mbid_mapped_tracks:
-            for track in mbid_mapped_tracks:
-                if track is not None and "recording_mbid" in track:
-                    recordings.append(Recording(mbid=track["recording_mbid"]))
+            for mbid in mbid_mapped_tracks:
+                recordings.append(Recording(mbid=mbid))
 
         return recordings
 
