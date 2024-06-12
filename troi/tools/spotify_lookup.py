@@ -8,6 +8,7 @@ from spotipy import SpotifyException
 
 logger = logging.getLogger(__name__)
 
+APPLE_MUSIC_URL = f"https://api.music.apple.com/"
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 MBID_LOOKUP_URL = "https://api.listenbrainz.org/1/metadata/lookup/"
 MAX_LOOKUPS_PER_POST = 50
@@ -173,37 +174,67 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
     return playlist_url, playlist_id
 
 
-def get_tracks_from_playlist(spotify_token, playlist_id):
+def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
     """ Get tracks from the Spotify playlist.
     """
     sp = spotipy.Spotify(auth=spotify_token, requests_timeout=10, retries=10)
     playlist_info = sp.playlist(playlist_id)
-    playlists = sp.playlist_items(playlist_id, limit=100)
+    tracks = sp.playlist_items(playlist_id, limit=100)
     name = playlist_info["name"]
     description = playlist_info["description"]
     
-    return playlists, name, description
+    return tracks, name, description
 
-def _convert_tracks_to_json(tracks_from_playlist):
+def _convert_tracks_to_json(tracks_from_playlist, music_service):
     tracks= []
-    for track in tracks_from_playlist["items"]:
-        artists = track['track'].get('artists', [])
-        artist_names = []
-        for a in artists:
-            name = a.get('name')
-            if name is not None:
-                artist_names.append(name)
-        artist_name = ', '.join(artist_names)
-        tracks.append({
-            "recording_name": track['track']['name'],
-            "artist_name": artist_name,
-        })
+    if music_service == "spotify":
+        for track in tracks_from_playlist["items"]:
+            artists = track['track'].get('artists', [])
+            artist_names = []
+            for a in artists:
+                name = a.get('name')
+                if name is not None:
+                    artist_names.append(name)
+            artist_name = ', '.join(artist_names)
+            tracks.append({
+                "recording_name": track['track']['name'],
+                "artist_name": artist_name,
+            })
+    elif music_service == "apple_music":
+        for track in tracks_from_playlist:
+            tracks.append({
+                "recording_name": track['attributes']['name'],
+                "artist_name": track['attributes']['artistName'],
+            })
     return tracks
 
-def music_service_tracks_to_mbid(token, playlist_id):
+def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
+    """ Get tracks from the Apple Music playlist.
+    """
+    headers = {
+        "Authorization": f"Bearer {developer_token}",
+        "Music-User-Token": user_token
+    }
+    response = requests.get(APPLE_MUSIC_URL+f"v1/me/library/playlists/{playlist_id}?include=tracks", headers=headers)
+    if response.status_code == 200:
+        response = response.json()
+        tracks = response["data"][0]["relationships"]["tracks"]["data"]
+        name = response["data"][0]["attributes"]["name"]
+        description = response["data"][0]["attributes"]["description"]["standard"]
+    else:
+        response.raise_for_status()
+    return tracks, name, description
+
+
+def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_token=None):
     """ Convert Spotify playlist tracks to a list of MBID tracks.
     """
-    tracks_from_playlist, name, desc = get_tracks_from_playlist(token, playlist_id)
+    if music_service == "spotify":
+        tracks_from_playlist, name, desc = get_tracks_from_spotify_playlist(token, playlist_id)
+    elif music_service == "apple_music":
+        tracks_from_playlist, name, desc = get_tracks_from_apple_playlist(token, apple_user_token, playlist_id)
+    else:
+        raise ValueError("Unknown music service")
     tracks = _convert_tracks_to_json(tracks_from_playlist)
 
     track_lists = list(chunked(tracks, MAX_LOOKUPS_PER_POST))
