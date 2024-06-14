@@ -235,7 +235,7 @@ def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_t
         tracks_from_playlist, name, desc = get_tracks_from_apple_playlist(token, apple_user_token, playlist_id)
     else:
         raise ValueError("Unknown music service")
-    tracks = _convert_tracks_to_json(tracks_from_playlist)
+    tracks = _convert_tracks_to_json(tracks_from_playlist, music_service)
 
     track_lists = list(chunked(tracks, MAX_LOOKUPS_PER_POST))
     return mbid_mapping_spotify(track_lists)
