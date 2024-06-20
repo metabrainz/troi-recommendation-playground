@@ -4,7 +4,8 @@ from troi import Playlist
 from troi.patch import Patch
 from troi.playlist import RecordingsFromMusicServiceElement, PlaylistMakerElement
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
-from troi.tools.spotify_lookup import get_tracks_from_spotify_playlist, get_tracks_from_apple_playlist
+from troi.tools.apple_lookup import get_tracks_from_apple_playlist
+from troi.tools.spotify_lookup import get_tracks_from_spotify_playlist
 
 
 class ImportPlaylistPatch(Patch):
@@ -54,9 +55,9 @@ class ImportPlaylistPatch(Patch):
         
         # this one only used to get track name and desc
         if music_service == "spotify":
-            _, name, desc = get_tracks_from_spotify_playlist(ms_token, playlist_id)
+            tracks, name, desc = get_tracks_from_spotify_playlist(ms_token, playlist_id)
         elif music_service == "apple_music":
-            _, name, desc = get_tracks_from_apple_playlist(ms_token, apple_user_token, playlist_id)
+            tracks, name, desc = get_tracks_from_apple_playlist(ms_token, apple_user_token, playlist_id)
 
         source = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id, music_service=music_service, apple_user_token=apple_user_token)
         

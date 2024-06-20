@@ -9,7 +9,8 @@ import spotipy
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
-from troi.tools.spotify_lookup import submit_to_spotify, music_service_tracks_to_mbid
+from troi.tools.common_lookup import music_service_tracks_to_mbid
+from troi.tools.spotify_lookup import submit_to_spotify
 
 logger = logging.getLogger(__name__)
 

@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 APPLE_MUSIC_URL = f"https://api.music.apple.com/"
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
-MBID_LOOKUP_URL = "https://api.listenbrainz.org/1/metadata/lookup/"
-MAX_LOOKUPS_PER_POST = 50
+
 
 def lookup_spotify_ids(recordings):
     """ Given a list of Recording elements, try to find spotify track ids from labs api spotify lookup using mbids
@@ -185,75 +184,19 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
     
     return tracks, name, description
 
-def _convert_tracks_to_json(tracks_from_playlist, music_service):
-    tracks= []
-    if music_service == "spotify":
-        for track in tracks_from_playlist["items"]:
-            artists = track['track'].get('artists', [])
-            artist_names = []
-            for a in artists:
-                name = a.get('name')
-                if name is not None:
-                    artist_names.append(name)
-            artist_name = ', '.join(artist_names)
-            tracks.append({
-                "recording_name": track['track']['name'],
-                "artist_name": artist_name,
-            })
-    elif music_service == "apple_music":
-        for track in tracks_from_playlist:
-            tracks.append({
-                "recording_name": track['attributes']['name'],
-                "artist_name": track['attributes']['artistName'],
-            })
+
+def convert_spotify_tracks_to_json(spotify_tracks):
+    tracks = []
+    for track in spotify_tracks["items"]:
+        artists = track["track"].get("artists", [])
+        artist_names = []
+        for a in artists:
+            name = a.get("name")
+            if name is not None:
+                artist_names.append(name)
+        artist_name = ", ".join(artist_names)
+        tracks.append({
+            "recording_name": track["track"]["name"],
+            "artist_name": artist_name,
+        })
     return tracks
-
-def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
-    """ Get tracks from the Apple Music playlist.
-    """
-    headers = {
-        "Authorization": f"Bearer {developer_token}",
-        "Music-User-Token": user_token
-    }
-    response = requests.get(APPLE_MUSIC_URL+f"v1/me/library/playlists/{playlist_id}?include=tracks", headers=headers)
-    if response.status_code == 200:
-        response = response.json()
-        tracks = response["data"][0]["relationships"]["tracks"]["data"]
-        name = response["data"][0]["attributes"]["name"]
-        description = response["data"][0]["attributes"]["description"]["standard"]
-    else:
-        response.raise_for_status()
-    return tracks, name, description
-
-
-def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_token=None):
-    """ Convert Spotify playlist tracks to a list of MBID tracks.
-    """
-    if music_service == "spotify":
-        tracks_from_playlist, name, desc = get_tracks_from_spotify_playlist(token, playlist_id)
-    elif music_service == "apple_music":
-        tracks_from_playlist, name, desc = get_tracks_from_apple_playlist(token, apple_user_token, playlist_id)
-    else:
-        raise ValueError("Unknown music service")
-    tracks = _convert_tracks_to_json(tracks_from_playlist, music_service)
-
-    track_lists = list(chunked(tracks, MAX_LOOKUPS_PER_POST))
-    return mbid_mapping_spotify(track_lists)
-
-def mbid_mapping_spotify(track_lists):
-    """ Given a track_name and artist_name, try to find MBID for these tracks from mbid lookup.
-    """
-    track_mbids = []
-    for tracks in track_lists:
-        params = {
-            "recordings": tracks
-        }
-        response = requests.post(MBID_LOOKUP_URL, json=params)
-        if response.status_code == 200:
-            data = response.json()
-            for d in data:
-                if d is not None and "recording_mbid" in d:
-                    track_mbids.append(d["recording_mbid"])
-        else:
-            print("Error occurred:", response.status_code)
-    return track_mbids
