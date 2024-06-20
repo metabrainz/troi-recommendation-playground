@@ -9,6 +9,7 @@ import spotipy
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
+from troi.tools.common_lookup import music_service_tracks_to_mbid
 from troi.tools.spotify_lookup import submit_to_spotify
 
 logger = logging.getLogger(__name__)
@@ -523,6 +524,39 @@ class PlaylistMakerElement(Element):
         return [playlist]
 
 
+class RecordingsFromMusicServiceElement(Element):
+    """ Create a troi.Playlist entity from track and artist names."""
+
+    def __init__(self, token=None, playlist_id=None, music_service=None, apple_user_token=None):
+        """
+            Args:
+                playlist_id: id of the Spotify playlist to be used for creating the playlist element
+                token: the Spotify token to fetch the playlist tracks
+                music_service: the name of the music service to be used for fetching the playlist data
+                apple_music_token (optional): the user token for Apple Music API 
+        """
+        super().__init__()
+        self.token = token
+        self.playlist_id = playlist_id
+        self.music_service = music_service
+        self.apple_user_token = apple_user_token
+
+
+    @staticmethod
+    def outputs():
+        return [ Recording ]
+
+    def read(self, inputs):
+        recordings = []
+
+        mbid_mapped_tracks = music_service_tracks_to_mbid(self.token, self.playlist_id, self.music_service, self.apple_user_token)
+        if mbid_mapped_tracks:
+            for mbid in mbid_mapped_tracks:
+                recordings.append(Recording(mbid=mbid))
+
+        return recordings
+
+    
 class PlaylistFromJSPFElement(Element):
     """ Create a troi.Playlist entity from a ListenBrainz JSPF playlist or LB playlist."""
 

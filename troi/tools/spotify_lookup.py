@@ -8,6 +8,7 @@ from spotipy import SpotifyException
 
 logger = logging.getLogger(__name__)
 
+APPLE_MUSIC_URL = f"https://api.music.apple.com/"
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
 
 
@@ -170,3 +171,32 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
     playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
 
     return playlist_url, playlist_id
+
+
+def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
+    """ Get tracks from the Spotify playlist.
+    """
+    sp = spotipy.Spotify(auth=spotify_token, requests_timeout=10, retries=10)
+    playlist_info = sp.playlist(playlist_id)
+    tracks = sp.playlist_items(playlist_id, limit=100)
+    name = playlist_info["name"]
+    description = playlist_info["description"]
+    
+    return tracks, name, description
+
+
+def convert_spotify_tracks_to_json(spotify_tracks):
+    tracks = []
+    for track in spotify_tracks["items"]:
+        artists = track["track"].get("artists", [])
+        artist_names = []
+        for a in artists:
+            name = a.get("name")
+            if name is not None:
+                artist_names.append(name)
+        artist_name = ", ".join(artist_names)
+        tracks.append({
+            "recording_name": track["track"]["name"],
+            "artist_name": artist_name,
+        })
+    return tracks
