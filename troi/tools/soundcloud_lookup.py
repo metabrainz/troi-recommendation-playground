@@ -1,10 +1,10 @@
 import requests
 
-APPLE_MUSIC_URL = f"https://api.music.apple.com/"
+SOUNDCLOUD_URL = f"https://api.soundcloud.com/"
 
-def convert_apple_tracks_to_json(apple_tracks):
+def convert_soundcloud_tracks_to_json(soundcloud_tracks):
     tracks= []
-    for track in apple_tracks:
+    for track in soundcloud_tracks:
         tracks.append({
             "recording_name": track['attributes']['name'],
             "artist_name": track['attributes']['artistName'],
@@ -12,22 +12,21 @@ def convert_apple_tracks_to_json(apple_tracks):
     return tracks
 
 
-def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
+def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     """ Get tracks from the Apple Music playlist.
     """
     headers = {
         "Authorization": f"Bearer {developer_token}",
-        "Music-User-Token": user_token
     }
-    response = requests.get(APPLE_MUSIC_URL+f"v1/me/library/playlists/{playlist_id}?include=tracks", headers=headers)
+    response = requests.get(SOUNDCLOUD_URL+f"/playlists/{playlist_id}", headers=headers)
     if response.status_code == 200:
         response = response.json()
-        tracks = response["data"][0]["relationships"]["tracks"]["data"]
-        name = response["data"][0]["attributes"]["name"]
-        description = response["data"][0]["attributes"].get("description", {}).get("standard", "")
+        tracks = response["tracks"]
+        name = response["title"]
+        description = response["description"]
     else:
         response.raise_for_status()
-  
+
     mapped_tracks= []
     for track in tracks:
         mapped_tracks.append({
@@ -35,3 +34,6 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
             "artist_name": track['attributes']['artistName'],
         })
     return mapped_tracks, name, description
+
+
+# get_tracks_from_soundcloud_playlist("2-294758-355389761-ipvsDC07nvDHUa", 384588551)

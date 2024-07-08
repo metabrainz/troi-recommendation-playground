@@ -182,6 +182,7 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
     name = playlist_info["name"]
     description = playlist_info["description"]
     
+    tracks = convert_spotify_tracks_to_json(tracks)
     return tracks, name, description
 
 
