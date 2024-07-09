@@ -20,6 +20,7 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     }
     response = requests.get(SOUNDCLOUD_URL+f"/playlists/{playlist_id}", headers=headers)
     if response.status_code == 200:
+        print("got in")
         response = response.json()
         tracks = response["tracks"]
         name = response["title"]
@@ -33,6 +34,8 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
             "recording_name": track['attributes']['name'],
             "artist_name": track['attributes']['artistName'],
         })
+    
+    print(mapped_tracks)
     return mapped_tracks, name, description
 
 
