@@ -31,8 +31,8 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     mapped_tracks= []
     for track in tracks:
         mapped_tracks.append({
-            "recording_name": track['attributes']['name'],
-            "artist_name": track['attributes']['artistName'],
+            "recording_name": track['title'],
+            "artist_name": track['user']['username'],
         })
     
     print(mapped_tracks)
