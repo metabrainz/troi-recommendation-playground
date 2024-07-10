@@ -20,9 +20,9 @@ class TransferPlaylistPatch(Patch):
         to LB again which is many times not desirable.
         """
         return [
-            {"type": "argument", "args": ["mbid"], "kwargs": {"required": False}},
+            {"type": "argument", "args": ["mbid"], "kwargs": {"required": False, "help-text": "the playlist mbid to save."}},
             {"type": "argument", "args": ["jspf"], "kwargs": {"required": False}},
-            {"type": "argument", "args": ["read_only_token"], "kwargs": {"required": False}}
+            {"type": "argument", "args": ["read_only_token"], "kwargs": {"required": False, "help-text": "The listenbrainz auth token to retrieve the playlist if its private."}}
         ]
 
     @staticmethod

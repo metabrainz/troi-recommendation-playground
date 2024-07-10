@@ -13,7 +13,7 @@ class ImportPlaylistPatch(Patch):
     @staticmethod
     def inputs():
         """
-        A patch that retrieves an existing playlist from Spotify for use in Troi.
+        A patch that retrieves an existing playlist from Spotify/Apple Music/SoundCloud for use in Troi.
 
         \b
         MS_TOKEN is the music service token from which the playlist is retrieved. For now, only Spotify tokens are accepted. 
@@ -22,10 +22,15 @@ class ImportPlaylistPatch(Patch):
         APPLE_USER_TOKEN is the apple user token. Optional, if music services is not Apple Music
         """
         return [
-            {"type": "argument", "args": ["ms_token"], "kwargs": {"required": False}},
-            {"type": "argument", "args": ["playlist_id"], "kwargs": {"required": False}},
-            {"type": "argument", "args": ["music_service"], "kwargs": {"required": False}},
-            {"type": "argument", "args": ["apple_user_token"], "kwargs": {"required": False}},
+            {"type": "argument", "args": ["ms_token"], "kwargs": {"required": False, "help-text": "The music service token from which the playlist is retrieved. For now, only Spotify tokens are accepted." }},
+            {"type": "argument", "args": ["playlist_id"], "kwargs": {"required": False, "help-text": "The playlist id to retrieve the tracks from it"}},
+            {"type": "argument", "args": ["music_service"], 
+                "kwargs": {
+                    "required": False, 
+                    "help-text": "The music service from which the playlist is retrieved : Spotify/Apple Music/SoundCloud",
+                    "choices": ["Spotify", "Apple Music", "SoundCloud"]
+                    }},
+            {"type": "argument", "args": ["apple_user_token"], "kwargs": {"required": False, "help-text": "The apple user token. Optional, if music services is not Apple Music"}},
         ]
 
     @staticmethod

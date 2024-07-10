@@ -63,18 +63,23 @@ class PeriodicJamsPatch(Patch):
         """
         return [{
             "type": "argument",
-            "args": ["user_name"]
+            "args": ["user_name"], "kwargs": {"help-text": "A MusicBrainz user name that has an account on ListenBrainz."}
+            
         }, {
             "type": "argument",
             "args": ["type"],
             "kwargs": {
-                "required": False
+                "required": False,
+                "choices": ["daily-jams", "weekly-jams", "weekly-exploration"],
+                "help-text": "Must be one of daily-jams, weekly-jams or weekly-exploration"
             }
         }, {
             "type": "argument",
             "args": ["jam_date"],
             "kwargs": {
-                "required": False
+                "required": False,
+                "help-text": "The date for which the jam is created (this is needed to account for the fact different timezones \
+                    can be on different dates). Required formatting for the date is 'YYYY-MM-DD'"
             }
         }]
 

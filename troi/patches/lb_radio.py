@@ -54,14 +54,17 @@ class LBRadioPatch(troi.patch.Patch):
             "args": ["mode"],
             "kwargs": {
                 "required": True,
-                "nargs": 1
+                "nargs": 1,
+                "help-text": "Which mode to generate playlists in. Must be one of easy, mediumedium, hard",
+                "choices": ["easy", "mediumedium", "hard"],
             }
         }, {
             "type": "argument",
             "args": ["prompt"],
             "kwargs": {
                 "required": True,
-                "nargs": 1
+                "nargs": 1,
+                "help-text": "The LB radio prompt. See troi/parse_prompt.py for details.",
             }
         }]
 
