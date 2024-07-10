@@ -17,7 +17,7 @@ def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_t
     """ Convert Spotify playlist tracks to a list of MBID tracks.
     """
     if music_service == "spotify":
-        tracks_from_playlist, name, desc = get_tracks_from_spotify_playlist(token, playlist_id)
+        tracks, name, desc = get_tracks_from_spotify_playlist(token, playlist_id)
     elif music_service == "apple_music":
         tracks, name, desc = get_tracks_from_apple_playlist(token, apple_user_token, playlist_id)
     elif music_service == "soundcloud":

@@ -2,16 +2,6 @@ import requests
 
 APPLE_MUSIC_URL = f"https://api.music.apple.com/"
 
-def convert_apple_tracks_to_json(apple_tracks):
-    tracks= []
-    for track in apple_tracks:
-        tracks.append({
-            "recording_name": track['attributes']['name'],
-            "artist_name": track['attributes']['artistName'],
-        })
-    return tracks
-
-
 def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
     """ Get tracks from the Apple Music playlist.
     """
@@ -28,10 +18,12 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
     else:
         response.raise_for_status()
   
-    mapped_tracks= []
-    for track in tracks:
-        mapped_tracks.append({
+    mapped_tracks = [
+        {
             "recording_name": track['attributes']['name'],
-            "artist_name": track['attributes']['artistName'],
-        })
+            "artist_name": track['attributes']['artistName']
+        }
+        for track in tracks
+    ]
+
     return mapped_tracks, name, description
