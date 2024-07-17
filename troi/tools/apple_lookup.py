@@ -25,7 +25,7 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
         response = response.json()
         tracks = response["data"][0]["relationships"]["tracks"]["data"]
         name = response["data"][0]["attributes"]["name"]
-        description = response["data"][0]["attributes"]["description"]["standard"]
+        description = response["data"][0]["attributes"].get("description", {}).get("standard", "")
     else:
         response.raise_for_status()
     return tracks, name, description
