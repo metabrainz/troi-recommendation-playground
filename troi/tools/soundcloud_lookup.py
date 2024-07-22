@@ -1,4 +1,3 @@
-import requests
 from .utils import create_http_session
 
 SOUNDCLOUD_URL = f"https://api.soundcloud.com/"
@@ -9,9 +8,9 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     http = create_http_session()
 
     headers = {
-        "Authorization": f"Bearer {developer_token}",
+        "Authorization": f"OAuth {developer_token}",
     }
-    response = http.get(SOUNDCLOUD_URL+f"/playlists/{playlist_id}", headers=headers)
+    response = http.get(f"{SOUNDCLOUD_URL}/playlists/{playlist_id}", headers=headers)
     response.raise_for_status()
 
     response = response.json()

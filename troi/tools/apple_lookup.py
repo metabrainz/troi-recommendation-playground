@@ -1,4 +1,3 @@
-import requests
 from .utils import create_http_session
 
 APPLE_MUSIC_URL = f"https://api.music.apple.com/"

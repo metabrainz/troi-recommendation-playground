@@ -17,10 +17,4 @@ def create_http_session():
     http = requests.Session()
     http.mount("https://", adapter)
     http.mount("http://", adapter)
-
-    def _assert_status_hook(response, *args, **kwargs):
-        response.raise_for_status()
-
-    http.hooks["response"] = [_assert_status_hook]
-
     return http
