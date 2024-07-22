@@ -2,12 +2,13 @@ import requests
 from ratelimit import limits, sleep_and_retry
 
 SOUNDCLOUD_URL = f"https://api.soundcloud.com/"
-CALLS=5
-RATE_LIMIT=1
 
+# Rate limit for API requests: maximum 5 requests per 1 second
+MAX_REQUESTS=5
+TIME_PERIOD=1
 
 @sleep_and_retry
-@limits(calls=CALLS, period=RATE_LIMIT)
+@limits(calls=MAX_REQUESTS, period=TIME_PERIOD)
 def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     """ Get tracks from the Apple Music playlist.
     """
