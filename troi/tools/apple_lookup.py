@@ -1,7 +1,13 @@
 import requests
+from ratelimit import limits, sleep_and_retry
 
 APPLE_MUSIC_URL = f"https://api.music.apple.com/"
+CALLS=5
+RATE_LIMIT=1
 
+
+@sleep_and_retry
+@limits(calls=CALLS, period=RATE_LIMIT)
 def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
     """ Get tracks from the Apple Music playlist.
     """
