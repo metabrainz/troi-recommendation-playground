@@ -40,7 +40,7 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
         r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
                           json=[{
                               'artist_mbids':
-                              artist_mbids,
+                              [ artist_mbid ],
                               'algorithm':
                               "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
                           }])
