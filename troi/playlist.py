@@ -147,8 +147,8 @@ def _deserialize_from_jspf(data) -> Playlist:
             pass
 
         recording.musicbrainz = musicbrainz
-        print("recordings:")
-        print(recordings)
+        print("recordings musicbrainz:")
+        print(recording.musicbrainz)
         recordings.append(recording)
 
     try:
