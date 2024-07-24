@@ -122,7 +122,7 @@ def _deserialize_from_jspf(data) -> Playlist:
 
         recording = Recording(name=track["title"], mbid=mbid)
         print("recording before:")
-        print(recording)
+        print(recording, recording.spotify_id)
         if track.get("creator"):
             extension = track["extension"][PLAYLIST_TRACK_EXTENSION_URI]
             if extension.get("artist_identifiers"):
