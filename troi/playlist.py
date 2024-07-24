@@ -121,6 +121,8 @@ def _deserialize_from_jspf(data) -> Playlist:
                 break
 
         recording = Recording(name=track["title"], mbid=mbid)
+        print("recording before:")
+        print(recording)
         if track.get("creator"):
             extension = track["extension"][PLAYLIST_TRACK_EXTENSION_URI]
             if extension.get("artist_identifiers"):
@@ -145,7 +147,8 @@ def _deserialize_from_jspf(data) -> Playlist:
             pass
 
         recording.musicbrainz = musicbrainz
-
+        print("recordings:")
+        print(recordings)
         recordings.append(recording)
 
     try:
