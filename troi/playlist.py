@@ -308,7 +308,8 @@ class PlaylistElement(Element):
         """
         sp = spotipy.Spotify(auth=token)
         submitted = []
-
+        print("playlists")
+        print(self.playlists)
         for idx, playlist in enumerate(self.playlists):
             if len(playlist.recordings) == 0:
                 continue
@@ -324,6 +325,7 @@ class PlaylistElement(Element):
 
 
 class PlaylistRedundancyReducerElement(Element):
+    
     '''
         This element takes a larger playlist and whittles it down to a smaller playlist by
         removing some tracks in order to reduce the number of times a single artist appears

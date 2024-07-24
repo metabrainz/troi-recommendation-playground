@@ -154,6 +154,8 @@ class Patch(ABC):
             logger.info("Troi playlist generation starting...")
             result = playlist.generate(self.quiet)
 
+            print("new created playlistelement")
+            print(playlist)
             name = self.patch_args["name"]
             if name:
                 playlist.playlists[0].name = name
