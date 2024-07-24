@@ -156,6 +156,8 @@ def _deserialize_from_jspf(data) -> Playlist:
                         description=data.get("annotation"),
                         mbid=ident,
                         recordings=recordings)
+    print("playlist:")
+    print(playlist)
     return playlist
 
 
