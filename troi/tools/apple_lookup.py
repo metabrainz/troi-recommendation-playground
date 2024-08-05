@@ -2,7 +2,6 @@ import logging
 import requests
 
 from .utils import AppleMusicAPI, AppleMusicException
-from .utils import create_http_session
 from more_itertools import chunked
 
 logger = logging.getLogger(__name__)
