@@ -15,8 +15,7 @@ BATCH_SIZE_RECS = 100  # the number of recommendations fetched in 1 go
 MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
 WEEKLY_JAMS_DESCRIPTION = """<p>The ListenBrainz Weekly Jams playlist features songs that you have listened to before, 
-    arranged into a comfortable playlist that doesn't require active listening on your part. 
-    Relax (or party) to familiar favorites.</p>
+    arranged into a comfortable playlist that doesn't require active listening on your part.</p>
 
     <p>Generated on Monday morning, in accordance with your timezone settings.</p>
 """
