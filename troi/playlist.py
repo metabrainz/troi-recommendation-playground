@@ -5,12 +5,14 @@ import json
 
 import requests
 import spotipy
+from tools.utils import AppleMusicAPI
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.common_lookup import music_service_tracks_to_mbid
 from troi.tools.spotify_lookup import submit_to_spotify
+from troi.tools.apple_lookup import submit_to_apple_music
 
 logger = logging.getLogger(__name__)
 
@@ -319,6 +321,26 @@ class PlaylistElement(Element):
                 existing_url = existing_urls[idx]
 
             playlist_url, playlist_id = submit_to_spotify(sp, playlist, user_id, is_public, is_collaborative, existing_url)
+            submitted.append((playlist_url, playlist_id))
+
+        return submitted
+
+    def submit_to_apple_music(self,
+                          user_token: str,
+                          developer_token: str):
+        """ Given apple music user token, developer token, upload the playlists generated in the current element to Apple Music and return the
+        urls of submitted playlists.
+
+        """
+        apple = AppleMusicAPI(developer_token, user_token)
+        submitted = []
+        print("playlists")
+        print(self.playlists)
+        for idx, playlist in enumerate(self.playlists):
+            if len(playlist.recordings) == 0:
+                continue
+
+            playlist_url, playlist_id = submit_to_apple_music(apple, playlist)
             submitted.append((playlist_url, playlist_id))
 
         return submitted
