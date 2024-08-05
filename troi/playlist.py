@@ -5,12 +5,14 @@ import json
 
 import requests
 import spotipy
+from troi.tools.utils import AppleMusicAPI
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
 from troi.tools.common_lookup import music_service_tracks_to_mbid
 from troi.tools.spotify_lookup import submit_to_spotify
+from troi.tools.apple_lookup import submit_to_apple_music
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +147,8 @@ def _deserialize_from_jspf(data) -> Playlist:
             pass
 
         recording.musicbrainz = musicbrainz
-
+        print("recordings musicbrainz:")
+        print(recording.spotify_id)
         recordings.append(recording)
 
     try:
@@ -156,6 +159,8 @@ def _deserialize_from_jspf(data) -> Playlist:
                         description=data.get("annotation"),
                         mbid=ident,
                         recordings=recordings)
+    print("playlist:")
+    print(playlist)
     return playlist
 
 
@@ -305,7 +310,8 @@ class PlaylistElement(Element):
         """
         sp = spotipy.Spotify(auth=token)
         submitted = []
-
+        print("playlists")
+        print(self.playlists)
         for idx, playlist in enumerate(self.playlists):
             if len(playlist.recordings) == 0:
                 continue
@@ -319,8 +325,29 @@ class PlaylistElement(Element):
 
         return submitted
 
+    def submit_to_apple_music(self,
+                          user_token: str,
+                          developer_token: str):
+        """ Given apple music user token, developer token, upload the playlists generated in the current element to Apple Music and return the
+        urls of submitted playlists.
+
+        """
+        apple = AppleMusicAPI(developer_token, user_token)
+        submitted = []
+        print("playlists")
+        print(self.playlists)
+        for idx, playlist in enumerate(self.playlists):
+            if len(playlist.recordings) == 0:
+                continue
+
+            playlist_url, playlist_id = submit_to_apple_music(apple, playlist)
+            submitted.append((playlist_url, playlist_id))
+
+        return submitted
+
 
 class PlaylistRedundancyReducerElement(Element):
+    
     '''
         This element takes a larger playlist and whittles it down to a smaller playlist by
         removing some tracks in order to reduce the number of times a single artist appears
