@@ -57,7 +57,7 @@ def submit_to_apple_music(apple: AppleMusicAPI ,playlist):
     filtered_recordings = [recording for recording in playlist.recordings if recording.mbid]
 
     _, mbid_apple_music_index, apple_music_mbid_index = lookup_apple_music_ids(filtered_recordings)
-    apple_music_track_ids = [recording.spotify_id for recording in filtered_recordings if recording.apple_music_id]
+    apple_music_track_ids = [recording.apple_music_id for recording in filtered_recordings if recording.apple_music_id]
     if len(apple_music_track_ids) == 0:
         return None, None
 
