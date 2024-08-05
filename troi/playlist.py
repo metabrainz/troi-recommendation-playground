@@ -5,7 +5,7 @@ import json
 
 import requests
 import spotipy
-from tools.utils import AppleMusicAPI
+from troi.tools.utils import AppleMusicAPI
 
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
