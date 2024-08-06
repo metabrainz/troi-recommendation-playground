@@ -181,11 +181,11 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
     name = playlist_info["name"]
     description = playlist_info["description"]
     
-    tracks = convert_spotify_tracks_to_json(tracks)
+    tracks = _convert_spotify_tracks_to_json(tracks)
     return tracks, name, description
 
 
-def convert_spotify_tracks_to_json(spotify_tracks):
+def _convert_spotify_tracks_to_json(spotify_tracks):
     tracks = []
     for track in spotify_tracks["items"]:
         artists = track["track"].get("artists", [])
