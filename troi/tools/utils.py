@@ -62,6 +62,22 @@ class AppleMusicAPI:
         response = self.session.get(url, headers=self.headers)
         return response.json()
 
+def create_http_session():
+    """ Create an HTTP session with retry strategy for handling rate limits and server errors.
+    """
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[429, 500, 502, 503, 504], 
+        allowed_methods=["HEAD", "GET", "OPTIONS"], 
+        backoff_factor=1
+    )
+
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
+
 class SoundCloudException(Exception):
     def __init__(self, code, msg):
         self.code = code
