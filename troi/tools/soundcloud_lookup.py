@@ -103,7 +103,7 @@ def fixup_soundcloud_playlist(soundcloud: SoundcloudAPI, playlist_id: str, mbid_
     alternative soundcloud track ids from index/reverse_index if available. If alternative is not available or alternatives
     also are unplayable, remove the track entirely from the playlist. Finally, update the playlist if needed.
     """
-    playable, unplayable = _check_unplayable_tracks(sp, playlist_id)
+    playable, unplayable = _check_unplayable_tracks(soundcloud, playlist_id)
     if not unplayable:
         return
 
@@ -157,14 +157,12 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
 
     If existing urls are specified then is_public and is_collaborative arguments are ignored.
     """
-    print("second submit_to_soundcloud")
     filtered_recordings = [r for r in playlist.recordings if r.mbid]
-    print("filtered_recordings:")
-    print(filtered_recordings)
-    _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
+
+    # _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
     soundcloud_track_ids = [r.soundcloud_id for r in filtered_recordings if r.soundcloud_id]
-    # if len(soundcloud_track_ids) == 0:
-    #     return None, None
+    if len(soundcloud_track_ids) == 0:
+        return None, None
 
     logger.info("submit %d tracks" % len(soundcloud_track_ids))
 
@@ -187,7 +185,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
             public=is_public,
             description=playlist.description
         )
-        print("created playlist")
+
         playlist_id = soundcloud_playlist["id"]
         playlist_url = soundcloud_playlist["permalink"]
     else:
@@ -199,7 +197,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
     for chunk in chunked(soundcloud_track_ids, 100):
         soundcloud.add_playlist_tracks(playlist_id, chunk)
 
-    fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
+    # fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
 
     playlist.add_metadata({"external_urls": {"soundcloud": playlist_url}})
 
