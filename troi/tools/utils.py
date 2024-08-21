@@ -93,7 +93,7 @@ class SoundcloudAPI:
         }
         self.session = self._create_http_session()
 
-    def _create_http_session():
+    def _create_http_session(self):
         """ Create an HTTP session with retry strategy for handling rate limits and server errors.
         """
         retry_strategy = Retry(
