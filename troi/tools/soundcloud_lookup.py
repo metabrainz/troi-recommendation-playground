@@ -166,7 +166,8 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
         return None, None
 
     logger.info("submit %d tracks" % len(soundcloud_track_ids))
-
+    print("soundcloud_track_ids:")
+    print(soundcloud_track_ids)
     playlist_id, playlist_url = None, None
     if existing_url:
         # update existing playlist
@@ -186,6 +187,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
             public=is_public,
             description=playlist.description
         )
+        print("created playlist")
         playlist_id = soundcloud_playlist["id"]
         playlist_url = soundcloud_playlist["permalink"]
     else:
@@ -199,6 +201,6 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
 
     # fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
 
-    playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
+    playlist.add_metadata({"external_urls": {"soundcloud": playlist_url}})
 
     return playlist_url, playlist_id
