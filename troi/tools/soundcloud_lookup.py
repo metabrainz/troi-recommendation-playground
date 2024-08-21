@@ -159,7 +159,8 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
     """
     print("second submit_to_soundcloud")
     filtered_recordings = [r for r in playlist.recordings if r.mbid]
-
+    print("filtered_recordings:")
+    print(filtered_recordings)
     # _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
     soundcloud_track_ids = [r.soundcloud_id for r in filtered_recordings if r.soundcloud_id]
     if len(soundcloud_track_ids) == 0:
