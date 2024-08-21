@@ -152,14 +152,14 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
 
 
 def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: str, is_public: bool = True,
-                      is_collaborative: bool = False, existing_url: str = None):
+                    existing_url: str = None):
     """ Submit or update an existing spotify playlist.
 
     If existing urls are specified then is_public and is_collaborative arguments are ignored.
     """
     filtered_recordings = [r for r in playlist.recordings if r.mbid]
 
-    _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
+    # _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
     soundcloud_track_ids = [r.soundcloud_id for r in filtered_recordings if r.soundcloud_id]
     if len(soundcloud_track_ids) == 0:
         return None, None
@@ -196,7 +196,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
     for chunk in chunked(soundcloud_track_ids, 100):
         soundcloud.add_playlist_tracks(playlist_id, chunk)
 
-    fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
+    # fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
 
     playlist.add_metadata({"external_urls": {"spotify": playlist_url}})
 

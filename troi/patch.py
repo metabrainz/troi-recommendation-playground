@@ -172,7 +172,8 @@ class Patch(ABC):
         token = self.patch_args["token"]
         spotify = self.patch_args["spotify"]
         apple_music = self.patch_args["apple_music"]
-        if upload and not token and not spotify and not apple_music:
+        soundcloud = self.patch_args["soundcloud"]
+        if upload and not token and not spotify and not apple_music and not soundcloud:
             raise RuntimeError("In order to upload a playlist, you must provide an auth token. Use option --token.")
 
         min_recordings = self.patch_args["min_recordings"]
@@ -185,6 +186,11 @@ class Patch(ABC):
             for url, _ in playlist.submit_to_spotify(spotify["user_id"], spotify["token"], spotify["is_public"],
                                                      spotify["is_collaborative"], spotify.get("existing_urls", [])):
                 logger.info("Submitted playlist to spotify: %s" % url)
+
+        if result is not None and soundcloud and upload:
+            for url, _ in playlist.submit_to_soundcloud(soundcloud["user_id"], soundcloud["token"], soundcloud["is_public"],
+                                                     soundcloud["is_collaborative"], soundcloud.get("existing_urls", [])):
+                logger.info("Submitted playlist to soundcloud: %s" % url)
 
         if result is not None and apple_music and upload:
             for url, _ in playlist.submit_to_apple_music(apple_music["music_user_token"], apple_music["developer_token"], apple_music["is_public"], apple_music.get("existing_urls", [])):

@@ -13,6 +13,8 @@ from troi.print_recording import PrintRecordingList
 from troi.tools.common_lookup import music_service_tracks_to_mbid
 from troi.tools.spotify_lookup import submit_to_spotify
 from troi.tools.apple_lookup import submit_to_apple_music
+from troi.tools.soundcloud_lookup import submit_to_soundcloud
+from troi.tools.utils import SoundcloudAPI
 
 logger = logging.getLogger(__name__)
 
@@ -333,7 +335,7 @@ class PlaylistElement(Element):
         for idx, playlist in enumerate(self.playlists):
             if len(playlist.recordings) == 0:
                 continue
-            
+
             existing_url = None
             if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
                 existing_url = existing_urls[idx]
@@ -343,9 +345,34 @@ class PlaylistElement(Element):
 
         return submitted
 
+    def submit_to_soundcloud(self,
+                          user_id: str,
+                          access_token: str,
+                          is_public: bool = True,
+                          existing_urls: str = None):
+        """ Given soundcloud user id, soundcloud auth token, upload the playlists generated in the current element to Soundcloud and return the
+        urls of submitted playlists.
+
+        """
+        sd = SoundcloudAPI(access_token=access_token)
+        submitted = []
+
+        for idx, playlist in enumerate(self.playlists):
+            if len(playlist.recordings) == 0:
+                continue
+
+            existing_url = None
+            if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
+                existing_url = existing_urls[idx]
+
+            playlist_url, playlist_id = submit_to_soundcloud(sd, playlist, user_id, is_public, existing_url)
+            submitted.append((playlist_url, playlist_id))
+
+        return submitted
+
 
 class PlaylistRedundancyReducerElement(Element):
-    
+
     '''
         This element takes a larger playlist and whittles it down to a smaller playlist by
         removing some tracks in order to reduce the number of times a single artist appears
