@@ -189,7 +189,7 @@ class Patch(ABC):
 
         if result is not None and soundcloud and upload:
             for url, _ in playlist.submit_to_soundcloud(soundcloud["user_id"], soundcloud["token"], soundcloud["is_public"],
-                                                     soundcloud["is_collaborative"], soundcloud.get("existing_urls", [])):
+                                                soundcloud.get("existing_urls", [])):
                 logger.info("Submitted playlist to soundcloud: %s" % url)
 
         if result is not None and apple_music and upload:
