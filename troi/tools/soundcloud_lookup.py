@@ -161,14 +161,13 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
     filtered_recordings = [r for r in playlist.recordings if r.mbid]
     print("filtered_recordings:")
     print(filtered_recordings)
-    # _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
+    _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
     soundcloud_track_ids = [r.soundcloud_id for r in filtered_recordings if r.soundcloud_id]
-    if len(soundcloud_track_ids) == 0:
-        return None, None
+    # if len(soundcloud_track_ids) == 0:
+    #     return None, None
 
     logger.info("submit %d tracks" % len(soundcloud_track_ids))
-    print("soundcloud_track_ids:")
-    print(soundcloud_track_ids)
+
     playlist_id, playlist_url = None, None
     if existing_url:
         # update existing playlist
@@ -200,7 +199,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
     for chunk in chunked(soundcloud_track_ids, 100):
         soundcloud.add_playlist_tracks(playlist_id, chunk)
 
-    # fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
+    fixup_soundcloud_playlist(soundcloud, playlist_id, mbid_soundcloud_index, soundcloud_mbid_index)
 
     playlist.add_metadata({"external_urls": {"soundcloud": playlist_url}})
 
