@@ -74,12 +74,12 @@ def _get_alternative_track_ids(unplayable, mbid_soundcloud_id_idx, soundcloud_id
     return soundcloud_ids, index
 
 
-def _get_fixed_up_tracks(soundcloud: SoundcloudAPI, spotify_ids, index):
+def _get_fixed_up_tracks(soundcloud: SoundcloudAPI, soundcloud_ids, index):
     """ Lookup the all alternative soundcloud track ids, filter playable ones and if multiple track ids
         for same item match, prefer the one occurring earlier. If no alternative is playable, ignore the
         item altogether.
     """
-    new_tracks = soundcloud.get_tracks(spotify_ids, market="from_token")
+    new_tracks = soundcloud.get_tracks(soundcloud_ids, market="from_token")
 
     new_tracks_ids = set()
     for item in new_tracks:
@@ -157,6 +157,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
 
     If existing urls are specified then is_public and is_collaborative arguments are ignored.
     """
+    print("second submit_to_soundcloud")
     filtered_recordings = [r for r in playlist.recordings if r.mbid]
 
     # _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)

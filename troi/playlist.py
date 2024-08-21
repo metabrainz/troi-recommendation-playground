@@ -354,6 +354,7 @@ class PlaylistElement(Element):
         urls of submitted playlists.
 
         """
+        print("inside submit_to_soundcloud")
         sd = SoundcloudAPI(access_token=access_token)
         submitted = []
 
