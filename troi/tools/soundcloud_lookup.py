@@ -161,8 +161,8 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
 
     # _, mbid_soundcloud_index, soundcloud_mbid_index = lookup_soundcloud_ids(filtered_recordings)
     soundcloud_track_ids = [r.soundcloud_id for r in filtered_recordings if r.soundcloud_id]
-    if len(soundcloud_track_ids) == 0:
-        return None, None
+    # if len(soundcloud_track_ids) == 0:
+    #     return None, None
 
     logger.info("submit %d tracks" % len(soundcloud_track_ids))
 
@@ -185,7 +185,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
             sharing=is_public,
             description=playlist.description
         )
-
+        print("playlist generated")
         playlist_id = soundcloud_playlist["id"]
         playlist_url = soundcloud_playlist["permalink"]
     else:
