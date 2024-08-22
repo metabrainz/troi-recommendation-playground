@@ -181,8 +181,8 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
     if not playlist_id:
         # create new playlist
         soundcloud_playlist = soundcloud.create_playlist(
-            name=playlist.name,
-            public=is_public,
+            title=playlist.name,
+            sharing=is_public,
             description=playlist.description
         )
 
