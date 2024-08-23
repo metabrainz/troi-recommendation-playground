@@ -346,10 +346,10 @@ class PlaylistElement(Element):
         return submitted
 
     def submit_to_soundcloud(self,
-                          user_id: str,
-                          access_token: str,
-                          is_public: bool = True,
-                          existing_urls: str = None):
+                             user_id: str,
+                             access_token: str,
+                             is_public: bool = True,
+                             existing_urls: str = None):
         """ Given soundcloud user id, soundcloud auth token, upload the playlists generated in the current element to Soundcloud and return the
         urls of submitted playlists.
 

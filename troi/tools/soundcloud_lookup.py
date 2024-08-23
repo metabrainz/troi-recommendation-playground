@@ -32,15 +32,15 @@ def lookup_soundcloud_ids(recordings):
 
 def _check_unplayable_tracks(soundcloud: SoundcloudAPI, playlist_id: str):
     """ Retrieve tracks for given spotify playlist and split into lists of playable and unplayable tracks """
-    response = soundcloud.get_playlist_tracks(playlist_id)
-    tracks = [item.get("tracks", []) for item in response]
+    tracks = soundcloud.get_playlist_tracks(playlist_id)
     track_details = [
-            {
-                "id": track["id"],
-                "title": track["title"],
-                "streamable": track.get("streamable", True)
-            }
-    for track in tracks]
+        {
+            "id": track["id"],
+            "title": track["title"],
+            "streamable": track.get("streamable", True)
+        }
+        for track in tracks
+    ]
 
     playable = []
     unplayable = []
