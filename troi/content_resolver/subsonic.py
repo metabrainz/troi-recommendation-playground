@@ -136,8 +136,9 @@ class SubsonicDatabase(Database):
                     "release_mbid": album_mbid,
                     "recording_mbid": song["musicBrainzId"],
                     "duration": song["duration"] * 1000,
-                    "track_num": song["track"],
-                    "disc_num": song["discNumber"],
+                    # Neither track number nor disc number are guaranteed for subsonic
+                    "track_num": song.get("track", 1),
+                    "disc_num": song.get("discNumber", 1),
                     "subsonic_id": song["id"],
                     "mtime": datetime.datetime.now()
                     })

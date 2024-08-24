@@ -39,18 +39,15 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
 
         r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
                           json=[{
-                              'artist_mbid':
-                              artist_mbid,
+                              'artist_mbids':
+                              [artist_mbid],
                               'algorithm':
                               "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
                           }])
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
 
-        try:
-            artists = r.json()[3]["data"]
-        except IndexError:
-            return []
+        artists = r.json()
 
         # Knock down super hyped artists
         for artist in artists:
@@ -90,8 +87,9 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
                  ORDER BY artist_mbid
                         , popularity"""
 
+        artist_mbids = [artist["artist_mbid"] for artist in similar_artists]
         placeholders = ",".join(("?", ) * len(similar_artists))
-        cursor = db.execute_sql(query % placeholders, params=tuple(similar_artists))
+        cursor = db.execute_sql(query % placeholders, params=artist_mbids)
 
         artists = defaultdict(list)
         for rec in cursor.fetchall():
@@ -104,6 +102,6 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
             })
 
         for artist in artists:
-            artists[artist] = select_recordings_on_popularity(artists[artist], pop_begin, pop_end, num_recordings)
+            artists[artist] = select_recordings_on_popularity(artists[artist], pop_begin, pop_end, max_recordings_per_artist)
 
-        return artists
+        return artists, []
