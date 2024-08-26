@@ -365,7 +365,7 @@ class PlaylistElement(Element):
             if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
                 existing_url = existing_urls[idx]
 
-            playlist_url, playlist_id = submit_to_soundcloud(sd, playlist, user_id, is_public, existing_url)
+            playlist_url, playlist_id = submit_to_soundcloud(sd, playlist, is_public, existing_url)
             submitted.append((playlist_url, playlist_id))
 
         return submitted

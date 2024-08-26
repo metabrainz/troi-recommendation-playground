@@ -31,13 +31,13 @@ def lookup_soundcloud_ids(recordings):
 
 
 def _check_unplayable_tracks(soundcloud: SoundcloudAPI, playlist_id: str):
-    """ Retrieve tracks for given spotify playlist and split into lists of playable and unplayable tracks """
-    tracks = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100)
+    """ Retrieve tracks for given soundcloud playlist and split into lists of playable and unplayable tracks """
+    tracks = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100, access=['playable, preview ,blocked'])
     track_details = [
         {
             "id": track["id"],
             "title": track["title"],
-            "streamable": track.get("streamable", True)
+            "access": track["access"]
         }
         for track in tracks
     ]
@@ -45,7 +45,7 @@ def _check_unplayable_tracks(soundcloud: SoundcloudAPI, playlist_id: str):
     playable = []
     unplayable = []
     for idx, item in enumerate(track_details):
-        if item["streamable"]:
+        if item["access"] == "playable":
             playable.append((idx, item["id"]))
         else:
             unplayable.append((idx, item["id"]))
@@ -60,9 +60,8 @@ def _get_alternative_track_ids(unplayable, mbid_soundcloud_id_idx, soundcloud_id
     """
     index = defaultdict(list)
     soundcloud_ids = []
-    
     for idx, soundcloud_id in unplayable:
-        mbid = soundcloud_id_mbid_idx[soundcloud_id]
+        mbid = soundcloud_id_mbid_idx[str(soundcloud_id)]
         other_soundcloud_ids = mbid_soundcloud_id_idx[mbid]
 
         for new_idx, new_soundcloud_id in enumerate(other_soundcloud_ids):
@@ -79,11 +78,11 @@ def _get_fixed_up_tracks(soundcloud: SoundcloudAPI, soundcloud_ids, index):
         for same item match, prefer the one occurring earlier. If no alternative is playable, ignore the
         item altogether.
     """
-    new_tracks = soundcloud.get_track_details(soundcloud_ids, linked_partitioning=True, limit=100)
+    new_tracks = soundcloud.get_track_details(soundcloud_ids)
 
     new_tracks_ids = set()
     for item in new_tracks:
-        if item["streamable"]:
+        if item["access"] == "playable":
             new_tracks_ids.add(item["id"])
 
     fixed_up_items = []
@@ -92,7 +91,6 @@ def _get_fixed_up_tracks(soundcloud: SoundcloudAPI, soundcloud_ids, index):
             if soundcloud_id in new_tracks_ids:
                 fixed_up_items.append((idx, soundcloud_id))
                 break
-
     return fixed_up_items
 
 
@@ -118,13 +116,12 @@ def fixup_soundcloud_playlist(soundcloud: SoundcloudAPI, playlist_id: str, mbid_
 
     # sort all items by index value to ensure the order of tracks of original playlist is preserved
     all_items.sort(key=lambda x: x[0])
-    # update all track ids the spotify playlist
+    # update all track ids the soundcloud playlist
     finalized_ids = [x[1] for x in all_items]
 
     # clear existing playlist
-    tracks = map(lambda id: dict(id=id), [0])
-    soundcloud.update_playlist(playlist_id, tracks)
-    # soundcloud.playlist_replace_items(playlist_id, [])
+    soundcloud.update_playlist_details(playlist_id, track_ids=[])
+
     # chunking requests to avoid hitting rate limits
     for chunk in chunked(finalized_ids, 100):
         soundcloud.add_playlist_tracks(playlist_id, chunk)
@@ -134,7 +131,7 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     """ Get tracks from the Soundcloud playlist.
     """
     soundcloud = SoundcloudAPI(developer_token)
-    data = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100)
+    data = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100, access=['playable, preview ,blocked'])
 
     tracks = data["tracks"]
     name = data["title"]
@@ -151,9 +148,9 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     return mapped_tracks, name, description
 
 
-def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: str, is_public: bool = True,
+def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, is_public: bool = True,
                     existing_url: str = None):
-    """ Submit or update an existing spotify playlist.
+    """ Submit or update an existing soundcloud playlist.
 
     If existing urls are specified then is_public and is_collaborative arguments are ignored.
     """
@@ -174,7 +171,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
         try:
             soundcloud.update_playlist_details(playlist_id=playlist_id, title=playlist.name, description=playlist.description)
         except SoundCloudException as err:
-            # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
+            # one possibility is that the user has deleted the soundcloud from playlist, so try creating a new one
             logger.info("provided playlist url has been unfollowed/deleted by the user, creating a new one")
             playlist_id, playlist_url = None, None
 
@@ -192,7 +189,6 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, spotify_user_id: s
         tracks = map(lambda id: dict(id=id), [0])
         soundcloud.update_playlist(playlist_id, tracks)
 
-    # spotify API allows a max of 100 tracks in 1 request
     for chunk in chunked(soundcloud_track_ids, 100):
         soundcloud.add_playlist_tracks(playlist_id, chunk)
 

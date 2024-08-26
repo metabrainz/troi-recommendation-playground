@@ -1,9 +1,11 @@
 import requests
 import json
+import logging
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
 
+logger = logging.getLogger(__name__)
 SOUNDCLOUD_URL = f"https://api.soundcloud.com/"
 APPLE_MUSIC_URL = f"https://api.music.apple.com/v1"
 
@@ -96,20 +98,23 @@ class SoundcloudAPI:
             try:
                 response.raise_for_status()
             except HTTPError as http_err:
-                print(f"HTTP error occurred: {http_err}")
+                logger.error(f"HTTP error occurred: {http_err}")
                 raise
 
         http.hooks["response"] = [raise_for_status_hook]
         return http
 
-    def create_playlist(self, title, sharing="public" ,track_ids=None, description=None):
+    def create_playlist(self, title, sharing="public" , track_ids=None, description=None):
         url = f"{SOUNDCLOUD_URL}/playlists"
         data = {
             "playlist": {
                 "title": title,
-                "sharing": sharing
+                "sharing": sharing,
             }
         }
+        if track_ids:
+            data["playlist"]["tracks"] = [{"id": track_id} for track_id in track_ids]
+
         if description:
             data["playlist"]["description"] = description
         response = self.session.post(url, headers=self.headers, data=json.dumps(data))
@@ -125,7 +130,7 @@ class SoundcloudAPI:
         response = self.session.put(url, headers=self.headers, data=json.dumps(data))
         return response.json()
 
-    def update_playlist_details(self, playlist_id, title=None, description=None):
+    def update_playlist_details(self, playlist_id, title=None, description=None, track_ids=None):
         url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}"
         data = {
             "playlist": {}
@@ -134,39 +139,20 @@ class SoundcloudAPI:
             data["playlist"]["title"] = title
         if description:
             data["playlist"]["description"] = description
+        if track_ids:
+            data["playlist"]["tracks"] = [{"id": track_id} for track_id in track_ids]
 
-        response = self.session.put(url, headers=self.headers, data=json.dumps(data))
+        response = self.session.put(url, headers=self.headers, data=json.dumps(list(data)))
         return response.json()
 
-    def get_track_details(self, track_ids, **kwargs):
+    def get_track_details(self, track_ids):
         track_details = []
 
         for track_id in track_ids:
             url = f"{SOUNDCLOUD_URL}/tracks/{track_id}"
-            response = self.session.get(url, headers=self.headers, params=kwargs)
-
-            if response.status_code != 200:
-                track_details.append({
-                    "id": track_id,
-                    "title": None,
-                    "playable": False
-                })
-                continue
-
+            response = self.session.get(url, headers=self.headers)
             data = response.json()
-            while data.get("collection"):
-                track_data = data["collection"][0]
-                track_details.append({
-                    "id": track_data["id"],
-                    "title": track_data["title"],
-                    "playable": track_data.get("streamable", True)
-                })
-
-                next_href = data.get("next_href")
-                if not next_href:
-                    break
-
-                data = self.session.get(next_href, headers=self.headers).json()
+            track_details.append(data)
 
         return track_details
 
@@ -176,29 +162,12 @@ class SoundcloudAPI:
 
         while url:
             response = self.session.get(url, headers=self.headers, params=kwargs)
-            response.raise_for_status()
             data = response.json()
             tracks.extend(data.get("collection", []))
             url = data.get("next_href")
 
-        print(tracks)
         return tracks
 
-    def get_unplayable_tracks(self, playlist_id, **kwargs):
-        unplayable_tracks = []
-        url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}/tracks"
-
-        while url:
-            response = self.session.get(url, headers=self.headers, params=kwargs)
-            response.raise_for_status()
-            data = response.json()
-
-            for track in data.get("collection", []):
-                if not track.get("streamable", True):
-                    unplayable_tracks.append(track)
-
-            url = data.get("next_href")
-        return unplayable_tracks
 
 def create_http_session():
     """ Create an HTTP session with retry strategy for handling rate limits and server errors.
