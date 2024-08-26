@@ -1,6 +1,5 @@
 import requests
 import json
-import logging
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -62,22 +61,6 @@ class AppleMusicAPI:
         response = self.session.get(url, headers=self.headers)
         return response.json()
 
-def create_http_session():
-    """ Create an HTTP session with retry strategy for handling rate limits and server errors.
-    """
-    retry_strategy = Retry(
-        total=3,
-        status_forcelist=[429, 500, 502, 503, 504], 
-        allowed_methods=["HEAD", "GET", "OPTIONS"], 
-        backoff_factor=1
-    )
-
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    http = requests.Session()
-    http.mount("https://", adapter)
-    http.mount("http://", adapter)
-    return http
-
 class SoundCloudException(Exception):
     def __init__(self, code, msg):
         self.code = code
@@ -133,7 +116,7 @@ class SoundcloudAPI:
         return response.json()
 
     def update_playlist_details(self, playlist_id, title=None, description=None):
-        url = f"{self.base_url}/playlists/{playlist_id}"
+        url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}"
         data = {
             "playlist": {}
         }
@@ -145,41 +128,66 @@ class SoundcloudAPI:
         response = self.session.put(url, headers=self.headers, data=json.dumps(data))
         return response.json()
 
-    def get_tracks(self, track_ids):
+    def get_track_details(self, track_ids, **kwargs):
         track_details = []
+
         for track_id in track_ids:
             url = f"{SOUNDCLOUD_URL}/tracks/{track_id}"
-            response = self.session.get(url, headers=self.headers)
-            if response.status_code == 200:
-                track = response.json()
-                track_details.append({
-                    "id": track["id"],
-                    "title": track["title"],
-                    "playable": track.get("streamable", True)
-                })
-            else:
+            response = self.session.get(url, headers=self.headers, params=kwargs)
+
+            if response.status_code != 200:
                 track_details.append({
                     "id": track_id,
                     "title": None,
                     "playable": False
                 })
+                continue
+
+            data = response.json()
+            while data.get("collection"):
+                track_data = data["collection"][0]
+                track_details.append({
+                    "id": track_data["id"],
+                    "title": track_data["title"],
+                    "playable": track_data.get("streamable", True)
+                })
+
+                next_href = data.get("next_href")
+                if not next_href:
+                    break
+
+                data = self.session.get(next_href, headers=self.headers).json()
+
         return track_details
 
-    def get_playlist_tracks(self, playlist_id):
+    def get_playlist_tracks(self, playlist_id, **kwargs):
+        tracks = []
         url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}/tracks"
-        response = self.session.get(url, headers=self.headers)
-        response.raise_for_status()
 
-        response = response.json()
-        return response
+        while url:
+            response = self.session.get(url, headers=self.headers, params=kwargs)
+            response.raise_for_status()
+            data = response.json()
+            tracks.extend(data.get("collection", []))
+            url = data.get("next_href")
 
-    def get_unplayable_tracks(self, playlist_id):
+        print(tracks)
+        return tracks
+
+    def get_unplayable_tracks(self, playlist_id, **kwargs):
+        unplayable_tracks = []
         url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}/tracks"
-        response = self.session.get(url, headers=self.headers)
-        response.raise_for_status()
 
-        tracks = response.json().get("tracks", [])
-        unplayable_tracks = [track for track in tracks if not track.get("streamable", True)]
+        while url:
+            response = self.session.get(url, headers=self.headers, params=kwargs)
+            response.raise_for_status()
+            data = response.json()
+
+            for track in data.get("collection", []):
+                if not track.get("streamable", True):
+                    unplayable_tracks.append(track)
+
+            url = data.get("next_href")
         return unplayable_tracks
 
 def create_http_session():

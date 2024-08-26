@@ -32,7 +32,7 @@ def lookup_soundcloud_ids(recordings):
 
 def _check_unplayable_tracks(soundcloud: SoundcloudAPI, playlist_id: str):
     """ Retrieve tracks for given spotify playlist and split into lists of playable and unplayable tracks """
-    tracks = soundcloud.get_playlist_tracks(playlist_id)
+    tracks = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100)
     track_details = [
         {
             "id": track["id"],
@@ -79,7 +79,7 @@ def _get_fixed_up_tracks(soundcloud: SoundcloudAPI, soundcloud_ids, index):
         for same item match, prefer the one occurring earlier. If no alternative is playable, ignore the
         item altogether.
     """
-    new_tracks = soundcloud.get_tracks(soundcloud_ids, market="from_token")
+    new_tracks = soundcloud.get_track_details(soundcloud_ids, linked_partitioning=True, limit=100)
 
     new_tracks_ids = set()
     for item in new_tracks:
@@ -134,7 +134,7 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     """ Get tracks from the Soundcloud playlist.
     """
     soundcloud = SoundcloudAPI(developer_token)
-    data = soundcloud.get_playlist_tracks(playlist_id)
+    data = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100)
 
     tracks = data["tracks"]
     name = data["title"]
