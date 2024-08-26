@@ -1,6 +1,7 @@
 import requests
 import json
 from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
 
 SOUNDCLOUD_URL = f"https://api.soundcloud.com/"
@@ -90,6 +91,15 @@ class SoundcloudAPI:
         http = requests.Session()
         http.mount("https://", adapter)
         http.mount("http://", adapter)
+
+        def raise_for_status_hook(response, *args, **kwargs):
+            try:
+                response.raise_for_status()
+            except HTTPError as http_err:
+                print(f"HTTP error occurred: {http_err}")
+                raise
+
+        http.hooks["response"] = [raise_for_status_hook]
         return http
 
     def create_playlist(self, title, sharing="public" ,track_ids=None, description=None):
