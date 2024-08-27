@@ -147,8 +147,6 @@ def _deserialize_from_jspf(data) -> Playlist:
             pass
 
         recording.musicbrainz = musicbrainz
-        print("recordings musicbrainz:")
-        print(recording.spotify_id)
         recordings.append(recording)
 
     try:
@@ -159,8 +157,6 @@ def _deserialize_from_jspf(data) -> Playlist:
                         description=data.get("annotation"),
                         mbid=ident,
                         recordings=recordings)
-    print("playlist:")
-    print(playlist)
     return playlist
 
 
@@ -310,8 +306,6 @@ class PlaylistElement(Element):
         """
         sp = spotipy.Spotify(auth=token)
         submitted = []
-        print("playlists")
-        print(self.playlists)
         for idx, playlist in enumerate(self.playlists):
             if len(playlist.recordings) == 0:
                 continue
@@ -327,20 +321,24 @@ class PlaylistElement(Element):
 
     def submit_to_apple_music(self,
                           user_token: str,
-                          developer_token: str):
+                          developer_token: str,
+                          is_public: bool = True,
+                          existing_urls: str = None):
         """ Given apple music user token, developer token, upload the playlists generated in the current element to Apple Music and return the
         urls of submitted playlists.
 
         """
         apple = AppleMusicAPI(developer_token, user_token)
         submitted = []
-        print("playlists")
-        print(self.playlists)
         for idx, playlist in enumerate(self.playlists):
             if len(playlist.recordings) == 0:
                 continue
+            
+            existing_url = None
+            if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
+                existing_url = existing_urls[idx]
 
-            playlist_url, playlist_id = submit_to_apple_music(apple, playlist)
+            playlist_url, playlist_id = submit_to_apple_music(apple, playlist, is_public, existing_url)
             submitted.append((playlist_url, playlist_id))
 
         return submitted

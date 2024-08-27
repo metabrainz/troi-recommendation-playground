@@ -61,9 +61,22 @@ cli.add_command(resolver_cli, name="db")
               type=str,
               required=False,
               multiple=True)
+@click.option('--apple-music-token',
+              help="The apple music developer token required to upload playlists",
+              type=str,
+              required=True)
+@click.option('--music-user-token',
+              help="The apple music user token required to upload playlists on behalf of the user",
+              type=str,
+              required=True)
+@click.option('--apple-music-url',
+              help="instead of creating a new spotify playlist, update the existing playlist at this url",
+              type=str,
+              required=False,
+              multiple=True)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, min_recordings, spotify_user_id, spotify_token,
-             spotify_url):
+             spotify_url, apple_music_token, music_user_token, apple_music_url):
     """
     Generate a global MBID based playlist using a patch
     """
@@ -92,6 +105,15 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
             "is_public": True,
             "is_collaborative": False,
             "existing_urls": spotify_url
+        }
+    
+    if apple_music_token:
+        patch_args["apple_music"] = {
+            "developer_token": apple_music_token,
+            "music_user_token": music_user_token,
+            "is_public": True,
+            "is_collaborative": False,
+            "existing_urls": apple_music_url
         }
 
     if args is None:

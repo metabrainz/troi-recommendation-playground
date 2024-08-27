@@ -155,8 +155,6 @@ class Patch(ABC):
             logger.info("Troi playlist generation starting...")
             result = playlist.generate(self.quiet)
 
-            print("new created playlistelement")
-            print(playlist)
             name = self.patch_args["name"]
             if name:
                 playlist.playlists[0].name = name
@@ -172,7 +170,7 @@ class Patch(ABC):
         upload = self.patch_args["upload"]
         token = self.patch_args["token"]
         spotify = self.patch_args["spotify"]
-        apple = self.patch_args["apple"]
+        apple = self.patch_args["apple_music"]
         if upload and not token and not spotify:
             raise RuntimeError("In order to upload a playlist, you must provide an auth token. Use option --token.")
 
@@ -188,7 +186,7 @@ class Patch(ABC):
                 logger.info("Submitted playlist to spotify: %s" % url)
 
         if result is not None and apple and upload:
-            for url, _ in playlist.submit_to_apple_music(apple, apple["user_token"], apple["token"]):
+            for url, _ in playlist.submit_to_apple_music(apple["music_user_token"], apple["developer_token"], apple["is_public"], apple.get("existing_urls", [])):
                 logger.info("Submitted playlist to apple music: %s" % url)
 
         created_for = self.patch_args["created_for"]

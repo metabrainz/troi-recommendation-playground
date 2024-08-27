@@ -25,7 +25,7 @@ def lookup_apple_music_ids(recordings):
         if len(lookup["apple_music_track_ids"]) > 0:
             recording.apple_music_id = lookup["apple_music_track_ids"][0]
             mbid_apple_music_ids_index[recording.mbid] = lookup["apple_music_track_ids"]
-            for apple_music_id in lookup["spotify_track_ids"]:
+            for apple_music_id in lookup["apple_music_track_ids"]:
                 apple_id_mbid_index[apple_music_id] = recording.mbid
     return recordings, mbid_apple_music_ids_index, apple_id_mbid_index
 
@@ -49,13 +49,12 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
 
     return mapped_tracks, name, description
 
-def submit_to_apple_music(apple: AppleMusicAPI ,playlist):
+def submit_to_apple_music(apple: AppleMusicAPI, playlist, is_public: bool=True, existing_url=None):
     """ Submit or update an existing Apple Music playlist.
 
     If existing urls are specified then isPublic arguments are ignored.
     """
     filtered_recordings = [recording for recording in playlist.recordings if recording.mbid]
-
     _, mbid_apple_music_index, apple_music_mbid_index = lookup_apple_music_ids(filtered_recordings)
     apple_music_track_ids = [recording.apple_music_id for recording in filtered_recordings if recording.apple_music_id]
     if len(apple_music_track_ids) == 0:
@@ -64,18 +63,23 @@ def submit_to_apple_music(apple: AppleMusicAPI ,playlist):
     logger.info("submit %d tracks" % len(apple_music_track_ids))
 
     playlist_id, playlist_url = None, None
+    if existing_url:
+        # apple music api does not support updating playlists, so as a option we can add new tracks to existing playlist
+        playlist_url = existing_url
+        playlist_id = existing_url.split("/")[-1]
 
     if not playlist_id:
         # create new playlist
         apple_playlist = apple.create_playlist(
             name=playlist.name,
-            description=playlist.description
+            description=playlist.description,
+            is_public=is_public
         )
-        playlist_id = apple_playlist["data"]["id"]
-        playlist_url = apple_playlist["data"]["href"]
+        playlist_id = apple_playlist["data"][0]["id"]
+        playlist_url = apple_playlist["data"][0]["href"]
 
     for chunk in chunked(apple_music_track_ids, 100):
-        apple.playlist_add_tracksx(playlist_id, chunk)
+        apple.playlist_add_tracks(playlist_id, chunk)
 
     playlist.add_metadata({"external_urls": {"apple_music": playlist_url}})
 
