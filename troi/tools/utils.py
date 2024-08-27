@@ -2,7 +2,6 @@ import requests
 import json
 import logging
 from requests.adapters import HTTPAdapter
-from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
@@ -47,8 +46,7 @@ class AppleMusicAPI:
         }
         if description:
             data["attributes"]["description"] = description
-        response = self.session.post(url, headers=self.headers, data=json.dumps(data))
-        return response.json()
+        self.session.post(url, headers=self.headers, data=json.dumps(data))
 
     def playlist_add_tracks(self, playlist_id, track_ids):
         """ Adds tracks to a playlist in Apple Music, does not return response
@@ -64,11 +62,13 @@ class AppleMusicAPI:
         response = self.session.get(url, headers=self.headers)
         return response.json()
 
+
 class SoundCloudException(Exception):
     def __init__(self, code, msg):
         self.code = code
         self.msg = msg
         super().__init__(f"http error {code}: {msg}")
+
 
 class SoundcloudAPI:
     def __init__(self, access_token):
@@ -77,34 +77,9 @@ class SoundcloudAPI:
             "Authorization": f"OAuth {self.access_token}",
             "Content-Type": "application/json"
         }
-        self.session = self._create_http_session()
+        self.session = create_http_session()
 
-    def _create_http_session(self):
-        """ Create an HTTP session with retry strategy for handling rate limits and server errors.
-        """
-        retry_strategy = Retry(
-            total=3,
-            status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "OPTIONS"],
-            backoff_factor=1
-        )
-
-        adapter = HTTPAdapter(max_retries=retry_strategy)
-        http = requests.Session()
-        http.mount("https://", adapter)
-        http.mount("http://", adapter)
-
-        def raise_for_status_hook(response, *args, **kwargs):
-            try:
-                response.raise_for_status()
-            except HTTPError as http_err:
-                logger.error(f"HTTP error occurred: {http_err}")
-                raise
-
-        http.hooks["response"] = [raise_for_status_hook]
-        return http
-
-    def create_playlist(self, title, sharing="public" , track_ids=None, description=None):
+    def create_playlist(self, title, sharing="public", track_ids=None, description=None):
         url = f"{SOUNDCLOUD_URL}/playlists"
         data = {
             "playlist": {
