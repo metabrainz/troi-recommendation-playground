@@ -146,6 +146,7 @@ class Patch(ABC):
         * desc: Override the algorithms that generate a playlist description and use this description instead.
         * min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete. If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it. Default: Off, a playlist with at least one track will be considere complete.
         * spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public, private or collaborative. it can also optionally have the existing urls to update playlists instead of creating new ones.
+        * apple: if present, attempt to submit the playlist to Apple Music as well. should be a dict and contain the apple developer token, user music token, whether the playlist should be public, private. it can also optionally have the existing urls to update playlists instead of creating new ones.
         """
 
         try:
@@ -171,7 +172,7 @@ class Patch(ABC):
         token = self.patch_args["token"]
         spotify = self.patch_args["spotify"]
         apple = self.patch_args["apple_music"]
-        if upload and not token and not spotify:
+        if upload and not token and not spotify and not apple:
             raise RuntimeError("In order to upload a playlist, you must provide an auth token. Use option --token.")
 
         min_recordings = self.patch_args["min_recordings"]
