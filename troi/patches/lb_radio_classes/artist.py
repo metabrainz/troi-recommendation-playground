@@ -52,7 +52,8 @@ class LBRadioArtistRecordingElement(troi.Element):
 
             try:
                 similar_artist_names.append(artist_recordings[mbid][0].artist_credit.name)
-            except IndexError:
+                # The item may not exist, or the artist credit may be None
+            except (AttributeError, IndexError):
                 pass
 
         # craft user feedback messages
