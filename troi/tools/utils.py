@@ -6,7 +6,7 @@ from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
-APPLE_MUSIC_URL = f"https://api.music.apple.com/v1/"
+APPLE_MUSIC_URL = f"https://api.music.apple.com/v1"
 
 class AppleMusicException(Exception):
     def __init__(self, code, msg):
