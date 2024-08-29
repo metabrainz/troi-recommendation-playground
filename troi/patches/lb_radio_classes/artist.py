@@ -41,9 +41,14 @@ class LBRadioArtistRecordingElement(troi.Element):
         # Fetch our mode ranges
         start, stop = self.local_storage["modes"][self.mode]
         self.recording_search_by_artist = self.patch.get_service("recording-search-by-artist")
+        if self.include_similar_artists:
+            similar_artist_count = self.MAX_NUM_SIMILAR_ARTISTS
+        else:
+            similar_artist_count = 0
+
         (artist_recordings, msgs) = self.recording_search_by_artist.search(self.mode, self.artist_mbid, start, stop,
                                                                            self.max_top_recordings_per_artist,
-                                                                           self.MAX_NUM_SIMILAR_ARTISTS)
+                                                                           similar_artist_count)
         # Collect the names of the similar artists
         similar_artist_names = []
         for mbid in artist_recordings:
