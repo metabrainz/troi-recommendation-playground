@@ -64,6 +64,7 @@ def submit_to_apple_music(apple: AppleMusicAPI, playlist, is_public: bool=True, 
     logger.info("submit %d tracks" % len(apple_music_track_ids))
 
     playlist_id, playlist_url = None, None
+
     if existing_url:
         logger.info("Apple Music API does not support updating playlists, --apple-music-url paramenter will be ignored. Creating a new playlist...")
 
