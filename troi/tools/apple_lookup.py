@@ -49,6 +49,7 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
 
     return mapped_tracks, name, description
 
+
 def submit_to_apple_music(apple: AppleMusicAPI, playlist, is_public: bool=True, existing_url=None):
     """ Submit or update an existing Apple Music playlist.
 
@@ -64,9 +65,7 @@ def submit_to_apple_music(apple: AppleMusicAPI, playlist, is_public: bool=True, 
 
     playlist_id, playlist_url = None, None
     if existing_url:
-        # apple music api does not support updating playlists, so as a option we can add new tracks to existing playlist
-        playlist_url = existing_url
-        playlist_id = existing_url.split("/")[-1]
+        logger.info("Apple Music API does not support updating playlists, --apple-music-url paramenter will be ignored. Creating a new playlist...")
 
     if not playlist_id:
         # create new playlist
