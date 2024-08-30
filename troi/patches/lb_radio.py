@@ -150,7 +150,6 @@ class LBRadioPatch(troi.patch.Patch):
         for element in prompt_elements:
             if element["entity"] == "artist":
                 name, mbid = self.lookup_artist(element["values"][0])
-                print(name, mbid)
                 element["values"][0] = mbid
                 artist_names[mbid] = name
 
