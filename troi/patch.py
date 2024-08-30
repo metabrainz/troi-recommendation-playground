@@ -18,6 +18,8 @@ default_patch_args = dict(save=False,
                           desc=None,
                           min_recordings=10,
                           spotify=None,
+                          apple_music=None,
+                          soundcloud=None,
                           quiet=False)
 
 
@@ -145,6 +147,8 @@ class Patch(ABC):
         * desc: Override the algorithms that generate a playlist description and use this description instead.
         * min-recordings: The minimum number of recordings that must be present in a playlist to consider it complete. If it doesn't have sufficient numbers of tracks, ignore the playlist and don't submit it. Default: Off, a playlist with at least one track will be considere complete.
         * spotify: if present, attempt to submit the playlist to spotify as well. should be a dict and contain the spotify user id, spotify auth token with appropriate permissions, whether the playlist should be public, private or collaborative. it can also optionally have the existing urls to update playlists instead of creating new ones.
+        * apple_music: if present, attempt to submit the playlist to Apple Music as well. should be a dict and contain the apple developer token, user music token, whether the playlist should be public, private. it can also optionally have the existing urls to update playlists instead of creating new ones.
+        * soundcloud: if present, attempt to submit the palylist to soundcloud. should contain soundcloud auth token, whether the playlist should be public or private
         """
 
         try:
@@ -169,7 +173,9 @@ class Patch(ABC):
         upload = self.patch_args["upload"]
         token = self.patch_args["token"]
         spotify = self.patch_args["spotify"]
-        if upload and not token and not spotify:
+        apple_music = self.patch_args["apple_music"]
+        soundcloud = self.patch_args["soundcloud"]
+        if upload and not token and not spotify and not apple_music and not soundcloud:
             raise RuntimeError("In order to upload a playlist, you must provide an auth token. Use option --token.")
 
         min_recordings = self.patch_args["min_recordings"]
@@ -182,6 +188,15 @@ class Patch(ABC):
             for url, _ in playlist.submit_to_spotify(spotify["user_id"], spotify["token"], spotify["is_public"],
                                                      spotify["is_collaborative"], spotify.get("existing_urls", [])):
                 logger.info("Submitted playlist to spotify: %s" % url)
+
+        if result is not None and soundcloud and upload:
+            for url, _ in playlist.submit_to_soundcloud(soundcloud["user_id"], soundcloud["token"], soundcloud["is_public"],
+                                                soundcloud.get("existing_urls", [])):
+                logger.info("Submitted playlist to soundcloud: %s" % url)
+
+        if result is not None and apple_music and upload:
+            for url, _ in playlist.submit_to_apple_music(apple_music["music_user_token"], apple_music["developer_token"], apple_music["is_public"], apple_music.get("existing_urls", [])):
+                logger.info("Submitted playlist to apple music: %s" % url)
 
         created_for = self.patch_args["created_for"]
         if result is not None and token and upload:

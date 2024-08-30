@@ -14,24 +14,17 @@ DAILY_JAMS_MIN_RECORDINGS = 25  # the minimum number of recordings we aspire to 
 BATCH_SIZE_RECS = 100  # the number of recommendations fetched in 1 go
 MAX_RECS_LIMIT = 1000  # the maximum of recommendations available in LB
 
-WEEKLY_JAMS_DESCRIPTION = """<p>The ListenBrainz Weekly Jams playlist aims to be a playlist of tracks that we believe
-    that you'll like. Designed to be a review playlist, it suits well for playing whenever you need to have comfortable
-    music to listen to that does not require active listening.</p>
+WEEKLY_JAMS_DESCRIPTION = """<p>The ListenBrainz Weekly Jams playlist features songs that you have listened to before, 
+    arranged into a comfortable playlist that doesn't require active listening on your part.</p>
 
-    <p>The playlist contains tracks that you've listened to before and that our collaborative filtering algorithm believes
-    that you might like to listen to this week.</p>
-
-    <p>ListenBrainz creates the Weekly Jams playlist every monday morning, according to the users' timezone setting.</p>
+    <p>Generated on Monday morning, in accordance with your timezone settings.</p>
 """
 
-WEEKLY_EXPLORATION_DESCRIPTION = """<p>The ListenBrainz Weekly Exploration aims to be a playlist of tracks that you'll like.
-    Designed to be an exploration playlist, it may help you discover some new music! However, exploration playlists require
-    more active listening and may require you to skip the occasional track that doesn't suit your taste.</p>
+WEEKLY_EXPLORATION_DESCRIPTION = """<p>The ListenBrainz Weekly Exploration playlist helps you discover new music! 
+    It may require active listening and skips. The playlist features tracks you haven't heard before, 
+    selected by a collaborative filtering algorithm.</p>
 
-    <p>The playlist contains tracks that you've not listened to before (as far as ListenBrainz knows) and that our
-    collaborative filtering algorithm believes that you might like.</p>
-
-    <p>ListenBrainz creates the Weekly Exploration playlist every monday morning, according to the users' timezone setting.</p>
+    <p>Updated every Monday morning based on your timezone.</p>
 """
 
 
