@@ -127,7 +127,6 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
     If existing urls are specified then is_public and is_collaborative arguments are ignored.
     """
     filtered_recordings = [r for r in playlist.recordings if r.mbid]
-
     _, mbid_spotify_index, spotify_mbid_index = lookup_spotify_ids(filtered_recordings)
     spotify_track_ids = [r.spotify_id for r in filtered_recordings if r.spotify_id]
     if len(spotify_track_ids) == 0:

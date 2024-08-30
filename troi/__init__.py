@@ -311,6 +311,7 @@ class Recording(Entity):
                  ranking=None,
                  year=None,
                  spotify_id=None,
+                 apple_music_id=None,
                  musicbrainz=None,
                  listenbrainz=None,
                  acousticbrainz=None):
@@ -323,6 +324,7 @@ class Recording(Entity):
         self.msid = msid
         self.year = year
         self.spotify_id = spotify_id
+        self.apple_music_id = apple_music_id
 
     def __str__(self):
         return "<Recording('%s', %s, %s)>" % (self.name, self.mbid, self.msid)
