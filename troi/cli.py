@@ -70,7 +70,7 @@ cli.add_command(resolver_cli, name="db")
               type=str,
               required=False)
 @click.option('--apple-music-url',
-              help="instead of creating a new apple music playlist, update the existing playlist at this url",
+              help="instead of creating a new apple music playlist, update the existing playlist at this url. currently not supported due to Apple Music API restrictions",
               type=str,
               required=False,
               multiple=True)

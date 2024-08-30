@@ -49,7 +49,6 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
 
     return mapped_tracks, name, description
 
-
 def submit_to_apple_music(apple: AppleMusicAPI, playlist, is_public: bool=True, existing_url=None):
     """ Submit or update an existing Apple Music playlist.
 
