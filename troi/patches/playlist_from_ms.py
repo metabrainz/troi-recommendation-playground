@@ -20,7 +20,7 @@ class ImportPlaylistPatch(Patch):
         MS_TOKEN is the music service token from which the playlist is retrieved. For now, only Spotify tokens are accepted. 
         PLAYLIST_ID is the playlist id to retrieve the tracks from it.
         MUSIC_SERVICE is the music service from which the playlist is retrieved
-        APPLE_USER_TOKEN is the apple user token. Optional, if music services is not Apple Music
+        APPLE_USER_TOKEN is the apple user token. Optional, if music service is not Apple Music
         """
         return [
             {"type": "argument", "args": ["ms_token"], "kwargs": {"required": False}},
