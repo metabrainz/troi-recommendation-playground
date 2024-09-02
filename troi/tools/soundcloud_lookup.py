@@ -131,11 +131,7 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     """ Get tracks from the Soundcloud playlist.
     """
     soundcloud = SoundcloudAPI(developer_token)
-    data = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100, access=['playable, preview ,blocked'])
-
-    tracks = data["tracks"]
-    name = data["title"]
-    description = data["description"]
+    tracks = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100, access=['playable, preview ,blocked'])
 
     mapped_tracks = [
         {
@@ -145,7 +141,19 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
         for track in tracks
     ]
 
-    return mapped_tracks, name, description
+    return mapped_tracks
+
+
+def get_soundcloud_playlist(developer_token, playlist_id):
+    soundcloud = SoundcloudAPI(developer_token)
+    data = soundcloud.get_playlist(playlist_id)
+    name = data["title"]
+    description = data["description"]
+
+    if description is None:
+        description = ""
+
+    return [], name, description
 
 
 def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, is_public: bool = True,

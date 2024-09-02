@@ -21,7 +21,7 @@ def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_t
     elif music_service == "apple_music":
         tracks, name, desc = get_tracks_from_apple_playlist(token, apple_user_token, playlist_id)
     elif music_service == "soundcloud":
-        tracks, name, desc = get_tracks_from_soundcloud_playlist(token, playlist_id)
+        tracks = get_tracks_from_soundcloud_playlist(token, playlist_id)
     else:
         raise ValueError("Unknown music service")
 
