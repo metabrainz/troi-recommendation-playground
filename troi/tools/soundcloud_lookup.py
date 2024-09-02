@@ -132,7 +132,7 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     """
     soundcloud = SoundcloudAPI(developer_token)
     data = soundcloud.get_playlist_tracks(playlist_id, linked_partitioning=True, limit=100, access=['playable, preview ,blocked'])
-
+    logger.info(data)
     tracks = data["tracks"]
     name = data["title"]
     description = data["description"]
