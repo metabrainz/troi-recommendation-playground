@@ -137,6 +137,7 @@ class SoundcloudAPI:
 
         while url:
             response = self.session.get(url, headers=self.headers, params=kwargs)
+            logger.info("response: %s", response.json())
             data = response.json()
             tracks.extend(data.get("collection", []))
             url = data.get("next_href")
