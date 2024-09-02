@@ -133,14 +133,12 @@ class SoundcloudAPI:
 
     def get_playlist_tracks(self, playlist_id, **kwargs):
         tracks = []
-        logger.info(self.headers)
         url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}/tracks"
 
         while url:
             response = self.session.get(url, headers=self.headers, params=kwargs)
-            logger.info("response: %s", response.json())
             data = response.json()
-            tracks.extend(data.get("collection", []))
+            tracks.extend(data.get('collection', []))
             url = data.get("next_href")
 
         return tracks
