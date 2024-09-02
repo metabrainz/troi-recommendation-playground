@@ -151,7 +151,7 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
 def get_soundcloud_playlist(developer_token, playlist_id):
     soundcloud = SoundcloudAPI(developer_token)
     data = soundcloud.get_playlist(playlist_id)
-
+    logger.info(data)
     name = data["title"]
     description = data.get("description", "")
     
