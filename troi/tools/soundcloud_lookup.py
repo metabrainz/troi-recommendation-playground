@@ -153,7 +153,7 @@ def get_soundcloud_playlist(developer_token, playlist_id):
     if description is None:
         description = ""
 
-    return "", name, description
+    return [], name, description
 
 
 def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, is_public: bool = True,
