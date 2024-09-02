@@ -148,6 +148,16 @@ def get_tracks_from_soundcloud_playlist(developer_token, playlist_id):
     return mapped_tracks, name, description
 
 
+def get_soundcloud_playlist(developer_token, playlist_id):
+    soundcloud = SoundcloudAPI(developer_token)
+    data = soundcloud.get_playlist(playlist_id)
+
+    name = data["title"]
+    description = data.get("description", "")
+    
+    return "", name, description
+
+
 def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, is_public: bool = True,
                     existing_url: str = None):
     """ Submit or update an existing soundcloud playlist.

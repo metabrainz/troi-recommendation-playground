@@ -6,7 +6,7 @@ from troi.playlist import RecordingsFromMusicServiceElement, PlaylistMakerElemen
 from troi.musicbrainz.recording_lookup import RecordingLookupElement
 from troi.tools.apple_lookup import get_tracks_from_apple_playlist
 from troi.tools.spotify_lookup import get_tracks_from_spotify_playlist
-from troi.tools.soundcloud_lookup import get_tracks_from_soundcloud_playlist
+from troi.tools.soundcloud_lookup import get_soundcloud_playlist
 
 
 class ImportPlaylistPatch(Patch):
@@ -57,7 +57,7 @@ class ImportPlaylistPatch(Patch):
         playlist_fetchers = {
             "spotify": get_tracks_from_spotify_playlist,
             "apple_music": get_tracks_from_apple_playlist,
-            "soundcloud": get_tracks_from_soundcloud_playlist
+            "soundcloud": get_soundcloud_playlist
         }
 
         get_tracks = playlist_fetchers.get(music_service)
