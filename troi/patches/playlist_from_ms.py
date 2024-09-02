@@ -64,7 +64,7 @@ class ImportPlaylistPatch(Patch):
         if not get_tracks:
             raise ValueError(f"Unsupported music service: {music_service}")
 
-        _, name, desc = get_tracks(ms_token, playlist_id, apple_user_token) if music_service == "apple_music" else get_tracks(ms_token, playlist_id)
+        _, name, desc = get_tracks(ms_token, apple_user_token, playlist_id) if music_service == "apple_music" else get_tracks(ms_token, playlist_id)
 
         source = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id, music_service=music_service, apple_user_token=apple_user_token)
         
