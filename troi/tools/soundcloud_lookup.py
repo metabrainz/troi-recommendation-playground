@@ -151,6 +151,9 @@ def get_soundcloud_playlist(developer_token, playlist_id):
     name = data["title"]
     description = data["description"]
 
+    if description is None:
+        description = ""
+
     return "", name, description
 
 
