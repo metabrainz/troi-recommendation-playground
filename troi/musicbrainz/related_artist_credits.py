@@ -31,9 +31,18 @@ class RelatedArtistCreditsElement(Element):
         ac_ids = ",".join([ str(a.artist_credit_id) for a in artists ])
         params = {"[artist_credit_id]": ac_ids,
                   "threshold": self.threshold}
-        r = requests.get(self.SERVER_URL, params=params)
-        if r.status_code != 200:
-            raise PipelineError("Cannot fetch related artist credits from ListenBrainz: HTTP code %d" % r.status_code)
+
+        while True:
+            r = requests.get(self.SERVER_URL, params=params)
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise PipelineError("Cannot fetch related artist credits from ListenBrainz: HTTP code %d" % r.status_code)
+
+            break
+
 
         try:
             relations = r.text

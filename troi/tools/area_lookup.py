@@ -10,9 +10,15 @@ def area_lookup(area_name):
     '''
 
     data = [ { '[area]': area_name } ]
-    r = requests.post(AREA_LOOKUP_SERVER_URL, json=data)
-    if r.status_code != 200:
-        raise PipelineError("Cannot lookup area name. " + str(r.text))
+    while True:
+        r = requests.post(AREA_LOOKUP_SERVER_URL, json=data)
+        if r.status_code == 429:
+            sleep(2)
+            continue
+        if r.status_code != 200:
+            raise PipelineError("Cannot lookup area name. " + str(r.text))
+
+        break
 
     try:
         rows = ujson.loads(r.text)

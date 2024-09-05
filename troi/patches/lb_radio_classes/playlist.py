@@ -29,11 +29,17 @@ class LBRadioPlaylistRecordingElement(troi.Element):
     def read(self, entities):
 
         # Fetch the playlist
-        r = requests.get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
-        if r.status_code == 404:
-            raise RuntimeError(f"Cannot find playlist {self.mbid}.")
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
+        while True:
+            r = requests.get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
+            if r.status_code == 404:
+                raise RuntimeError(f"Cannot find playlist {self.mbid}.")
+            if r.status_code == 429:
+                sleep(2)
+                continue
+            if r.status_code != 200:
+                raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
+
+            break
 
         # Give feedback about the playlist
         self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")

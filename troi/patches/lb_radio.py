@@ -119,7 +119,7 @@ class LBRadioPatch(troi.patch.Patch):
             if r.status_code == 404:
                 raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code} {r.text}")
 
-            if r.status_code == 429:
+            if r.status_code in (429, 503):
                 sleep(2)
                 continue
 

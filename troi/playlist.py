@@ -273,16 +273,24 @@ class PlaylistElement(Element):
             logger.info("submit %d tracks" % len(playlist.recordings))
             if playlist.patch_slug is not None:
                 playlist.add_metadata({"algorithm_metadata": {"source_patch": playlist.patch_slug}})
-            r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                              json=_serialize_to_jspf(playlist, created_for),
-                              headers={"Authorization": "Token " + str(token)})
-            if r.status_code != 200:
-                try:
-                    err = r.json()["error"]
-                except json.decoder.JSONDecodeError:
-                    err = r.text
 
-                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" % (r.status_code, err))
+            while True:
+                r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
+                                  json=_serialize_to_jspf(playlist, created_for),
+                                  headers={"Authorization": "Token " + str(token)})
+                if r.status_code == 429:
+                    sleep(2)
+                    continue
+
+                if r.status_code != 200:
+                    try:
+                        err = r.json()["error"]
+                    except json.decoder.JSONDecodeError:
+                        err = r.text
+
+                    raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" % (r.status_code, err))
+
+                break
 
             try:
                 result = json.loads(r.text)
