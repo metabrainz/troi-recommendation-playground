@@ -37,7 +37,7 @@ class LBRadioCountryRecordingElement(Element):
 
         while True:
             r = requests.get("https://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
-            if r.status_code == 503:
+            if r.status_code in (503, 429):
                 sleep(1)
                 continue
 
@@ -58,7 +58,7 @@ class LBRadioCountryRecordingElement(Element):
 
         while True:
             r = requests.get("https://musicbrainz.org/ws/2/area/%s?fmt=json" % area_mbid)
-            if r.status_code == 503:
+            if r.status_code in (503, 429):
                 sleep(1)
                 continue
 

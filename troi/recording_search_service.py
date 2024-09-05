@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from time import sleep
 
 import requests
 
@@ -26,9 +27,17 @@ class RecordingSearchByTagService(Service):
             "pop_end": pop_end,
             "tag": tags
         }
-        r = requests.get("https://api.listenbrainz.org/1/lb-radio/tags", params=data)
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
+        while True:
+            r = requests.get("https://api.listenbrainz.org/1/lb-radio/tags", params=data)
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
+
+            break
+
 
         return plist([ Recording(mbid=rec["recording_mbid"], musicbrainz={"popularity": rec["percent"]}) for rec in r.json() ])
 
@@ -59,9 +68,17 @@ class RecordingSearchByArtistService(Service):
         }
         url = f"https://api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
 
-        r = requests.get(url, params=params)
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch lb_radio artists: {r.status_code} ({r.text})")
+        while True:
+            r = requests.get(url, params=params)
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError(f"Cannot fetch lb_radio artists: {r.status_code} ({r.text})")
+
+            break
+
 
         try:
             artists = r.json()

@@ -15,6 +15,7 @@ class RecordingLookupElement(Element):
     '''
 
     SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
+    MAX_RECORDINGS = 1000
 
     def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None):
         Element.__init__(self)
@@ -42,6 +43,9 @@ class RecordingLookupElement(Element):
         recording_mbids = []
         for r in recordings:
             recording_mbids.append(r.mbid)
+
+        if len(recording_mbids) > self.MAX_RECORDINGS:
+            raise PipelineError("Cannot fetch more than %d recordings from ListenBrainz." % self.MAX_RECORDINGS)
 
         inc = "artist release"
         if self.lookup_tags:

@@ -100,13 +100,13 @@ class UnresolvedRecordingTracker:
             params = {"recording_mbids": args, "inc": "artist release"}
             while True:
                 r = requests.get("https://api.listenbrainz.org/1/metadata/recording", params=params)
-                if r.status_code != 200:
-                    logger.info("Failed to fetch metadata for recordings: ", r.text)
-                    return []
-
                 if r.status_code == 429:
                     sleep(1)
                     continue
+
+                if r.status_code != 200:
+                    logger.info("Failed to fetch metadata for recordings: ", r.text)
+                    return []
 
                 break
             recording_data.update(dict(r.json()))

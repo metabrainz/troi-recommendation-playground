@@ -1,5 +1,6 @@
 import requests
 import ujson
+from time import sleep
 
 from troi import Element, Artist, ArtistCredit, Recording, Release, PipelineError
 
@@ -36,9 +37,17 @@ class MBIDMappingLookupElement(Element):
         if not params:
             return []
 
-        r = requests.post(self.SERVER_URL, json=params)
-        if r.status_code != 200:
-            raise PipelineError("Cannot fetch MBID mapping rows from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
+        while True:
+            r = requests.post(self.SERVER_URL, json=params)
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise PipelineError("Cannot fetch MBID mapping rows from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
+
+            break
+
 
         entities = []
         for row in r.json():
