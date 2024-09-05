@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 import datetime
 import sys
+from time import sleep
 
 import peewee
 import requests

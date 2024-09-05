@@ -1,8 +1,9 @@
-import troi
 from random import shuffle
+from time import sleep
 
 import requests
 
+import troi
 from troi import Recording
 from troi import TARGET_NUMBER_OF_RECORDINGS
 

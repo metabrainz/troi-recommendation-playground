@@ -1,4 +1,5 @@
 import troi
+from time import sleep
 from random import shuffle
 
 import requests
