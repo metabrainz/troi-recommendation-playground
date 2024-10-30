@@ -1,4 +1,5 @@
 from collections import defaultdict
+from more_itertools import chunked
 from time import sleep
 
 import requests
@@ -15,6 +16,7 @@ class RecordingLookupElement(Element):
     '''
 
     SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
+    MAX_RECORDINGS_PER_CALL = 1000
 
     def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None):
         Element.__init__(self)
@@ -47,21 +49,23 @@ class RecordingLookupElement(Element):
         if self.lookup_tags:
             inc += " tag"
 
-        while True:
-            r = requests.post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc})
-            if r.status_code == 429:
-                sleep(2)
-                continue
+        data = []
+        for mbid_batch in chunked(recording_mbids, self.MAX_RECORDINGS_PER_CALL):
+            while True:
+                r = requests.post(self.SERVER_URL, json={"recording_mbids": mbid_batch, "inc": inc})
+                if r.status_code == 429:
+                    sleep(2)
+                    continue
 
-            if r.status_code != 200:
-                raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
+                if r.status_code != 200:
+                    raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
 
-            break
+                break
 
-        try:
-            data = ujson.loads(r.text)
-        except ValueError as err:
-            raise PipelineError("Cannot parse recordings: " + str(err))
+            try:
+                data.extend(ujson.loads(r.text))
+            except ValueError as err:
+                raise PipelineError("Cannot parse recordings: " + str(err))
 
         output = []
         for r in recordings:
