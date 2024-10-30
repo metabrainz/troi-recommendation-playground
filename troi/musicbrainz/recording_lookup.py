@@ -49,7 +49,7 @@ class RecordingLookupElement(Element):
         if self.lookup_tags:
             inc += " tag"
 
-        data = []
+        data = {}
         for mbid_batch in chunked(recording_mbids, self.MAX_RECORDINGS_PER_CALL):
             while True:
                 r = requests.post(self.SERVER_URL, json={"recording_mbids": mbid_batch, "inc": inc})
@@ -63,7 +63,7 @@ class RecordingLookupElement(Element):
                 break
 
             try:
-                data.extend(ujson.loads(r.text))
+                data = data | ujson.loads(r.text)
             except ValueError as err:
                 raise PipelineError("Cannot parse recordings: " + str(err))
 
