@@ -98,7 +98,7 @@ class Database:
     Keep a database with metadata for a collection of local music files.
     '''
 
-    def __init__(self, db_file, quiet):
+    def __init__(self, db_file, quiet=True):
         self.db_file = db_file
         self.fuzzy_index = None
         self.forced_scan = False
