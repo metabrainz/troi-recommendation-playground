@@ -1,6 +1,7 @@
 import datetime
 import logging
 
+from libsonic.errors import DataNotFoundError
 import peewee
 from tqdm import tqdm
 
@@ -235,9 +236,7 @@ class SubsonicDatabase(Database):
         #                                 , subsonic_id = excluded.subsonic_id
         #                                 , last_updated = excluded.last_updated""", recordings)
 
-
-
-    def upload_playlist(self, playlist):
+    def upload_playlist(self, playlist, playlist_id=None):
         """
             Given a Troi playlist, upload the playlist to the subsonic API.
         """
@@ -253,4 +252,16 @@ class SubsonicDatabase(Database):
             except KeyError:
                 continue
 
-        conn.createPlaylist(name=playlist.playlists[0].name, songIds=song_ids)
+        if playlist_id:
+            try:
+                remote_playlist = conn.getPlaylist(pid=playlist_id)
+                conn.updatePlaylist(
+                    lid=playlist_id,
+                    name=playlist.playlists[0].name,
+                    songIdsToAdd=song_ids,
+                    songIndexesToRemove=list(range(0, len(remote_playlist["playlist"]) - 1)),
+                )
+            except DataNotFoundError:
+                conn.createPlaylist(name=playlist.playlists[0].name, songIds=song_ids)
+        else:
+            conn.createPlaylist(name=playlist.playlists[0].name, songIds=song_ids)

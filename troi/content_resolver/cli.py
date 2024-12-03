@@ -26,7 +26,7 @@ except ImportError as err:
 DEFAULT_CHUNKSIZE = 100
 
 
-def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask):
+def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, subsonic_id=None):
     try:
         recording = playlist.playlists[0].recordings[0]
     except (KeyError, IndexError):
@@ -43,7 +43,7 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
 
             if dont_ask or ask_yes_no_question("Upload via subsonic? (Y/n)"):
                 logger.info("uploading playlist")
-                db.upload_playlist(playlist)
+                db.upload_playlist(playlist, subsonic_id)
             return
 
     if save_to_m3u or save_to_jspf:

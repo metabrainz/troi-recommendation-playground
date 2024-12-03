@@ -183,12 +183,13 @@ def info_cmd(patch):
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-t', '--threshold', default=.80, help="Minimum match percentage for metadata matches. Must be 0.0 - 1.0")
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, help="upload playlist via subsonic API")
+@click.option('-i', '--subsonic-id', required=False, help="overwrite existing subsonic playlist with the given ID")
 @click.option('-m', '--save-to-m3u', required=False, help="save to specified m3u playlist")
 @click.option('-j', '--save-to-jspf', required=False, help="save to specified JSPF playlist")
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 @click.argument('jspf_playlist')
-def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, jspf_playlist):
+def resolve(db_file, threshold, upload_to_subsonic, subsonic_id, save_to_m3u, save_to_jspf, dont_ask, quiet, jspf_playlist):
     """ Resolve a global JSPF playlist with MusicBrainz MBIDs to files in the local collection"""
     set_log_level(quiet)
     db_file = db_file_check(db_file)
@@ -197,20 +198,21 @@ def resolve(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, d
     lbrl = ListenBrainzRadioLocal(quiet)
     playlist = read_jspf_playlist(jspf_playlist)
     lbrl.resolve_playlist(threshold, playlist)
-    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, subsonic_id)
 
 
 @cli.command(name="lb-radio", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-t', '--threshold', default=.80, help="Minimum match percentage for metadata matches. Must be 0.0 - 1.0")
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, help="upload playlist via subsonic API")
+@click.option('-i', '--subsonic-id', required=False, help="overwrite existing subsonic playlist with the given ID")
 @click.option('-m', '--save-to-m3u', required=False, help="save to specified m3u playlist")
 @click.option('-j', '--save-to-jspf', required=False, help="save to specified JSPF playlist")
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 @click.argument('mode')
 @click.argument('prompt')
-def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, mode, prompt):
+def lb_radio(db_file, threshold, upload_to_subsonic, subsonic_id, save_to_m3u, save_to_jspf, dont_ask, quiet, mode, prompt):
     """Use LB Radio to create a playlist from a prompt, using a local music collection"""
     set_log_level(quiet)
     db_file = db_file_check(db_file)
@@ -224,19 +226,20 @@ def lb_radio(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, 
         db.metadata_sanity_check(include_subsonic=upload_to_subsonic)
         return
 
-    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, subsonic_id)
 
 
 @cli.command("weekly-jams", context_settings=dict(ignore_unknown_options=True, ))
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-t', '--threshold', default=.80, help="Minimum match percentage for metadata matches. Must be 0.0 - 1.0")
 @click.option('-u', '--upload-to-subsonic', required=False, is_flag=True, help="upload playlist via subsonic API")
+@click.option('-i', '--subsonic-id', required=False, help="overwrite existing subsonic playlist with the given ID")
 @click.option('-m', '--save-to-m3u', required=False, help="save to specified m3u playlist")
 @click.option('-j', '--save-to-jspf', required=False, help="save to specified JSPF playlist")
 @click.option('-y', '--dont-ask', required=False, is_flag=True, help="save playlist without asking user")
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
 @click.argument('user_name')
-def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, quiet, user_name):
+def periodic_jams(db_file, threshold, upload_to_subsonic, subsonic_id, save_to_m3u, save_to_jspf, dont_ask, quiet, user_name):
     "Generate a weekly jams playlist for your local collection"
     set_log_level(quiet)
     db_file = db_file_check(db_file)
@@ -251,7 +254,7 @@ def periodic_jams(db_file, threshold, upload_to_subsonic, save_to_m3u, save_to_j
         db.metadata_sanity_check(include_subsonic=upload_to_subsonic)
         return
 
-    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask)
+    output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf, dont_ask, subsonic_id)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True, ))
