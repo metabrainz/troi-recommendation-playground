@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 import datetime
 import sys
+from time import sleep
 
 import peewee
 import requests
@@ -37,15 +38,21 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
     def get_similar_artists(self, artist_mbid):
         """ Fetch similar artists, given an artist_mbid. Returns a sored plist of artists. """
 
-        r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
-                          json=[{
-                              'artist_mbids':
-                              [artist_mbid],
-                              'algorithm':
-                              "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
-                          }])
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
+        while True:
+            r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
+                              json=[{
+                                  'artist_mbids':
+                                  [artist_mbid],
+                                  'algorithm':
+                                  "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
+                              }])
+            if r.status_code == 429:
+                sleep(2)
+                continue
+            if r.status_code != 200:
+                raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
+
+            break
 
         artists = r.json()
 

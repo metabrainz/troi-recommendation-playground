@@ -1,4 +1,4 @@
-import requests
+from time import sleep
 
 import troi
 from troi import Recording, Artist
@@ -16,6 +16,7 @@ class LBRadioArtistRecordingElement(troi.Element):
 
     MAX_TOP_RECORDINGS_PER_ARTIST = 35  # should lower this when other sources of data get added
     MAX_NUM_SIMILAR_ARTISTS = 8
+    MAX_NUM_RECORDINGS = 1000
 
     def __init__(self, artist_mbid, artist_name, mode="easy", include_similar_artists=True):
         troi.Element.__init__(self)
@@ -80,4 +81,4 @@ class LBRadioArtistRecordingElement(troi.Element):
             self.local_storage["user_feedback"].append(msg)
         self.data_cache["element-descriptions"].append("artist %s" % self.artist_name)
 
-        return interleave([artist_recordings[mbid] for mbid in artist_recordings])
+        return interleave([artist_recordings[mbid] for mbid in artist_recordings])[:self.MAX_NUM_RECORDINGS]

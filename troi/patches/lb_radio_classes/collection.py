@@ -1,8 +1,9 @@
-import troi
 from random import shuffle
+from time import sleep
 
 import requests
 
+import troi
 from troi import Recording
 from troi import TARGET_NUMBER_OF_RECORDINGS
 
@@ -30,11 +31,20 @@ class LBRadioCollectionRecordingElement(troi.Element):
 
         # Fetch collection recordings
         params = {"collection": self.mbid, "fmt": "json"}
-        r = requests.get("https://musicbrainz.org/ws/2/recording", params=params)
-        if r.status_code == 404:
-            raise RuntimeError(f"Cannot find collection {self.mbid}.")
-        if r.status_code != 200:
-            raise RuntimeError(f"Cannot fetch collection {self.mbid}. {r.text}")
+
+        while True:
+            r = requests.get("https://musicbrainz.org/ws/2/recording", params=params)
+            if r.status_code == 404:
+                raise RuntimeError(f"Cannot find collection {self.mbid}.")
+
+            if r.status_code == 429:
+                sleep(2)
+                continue
+
+            if r.status_code != 200:
+                raise RuntimeError(f"Cannot fetch collection {self.mbid}. {r.text}")
+
+            break
 
         # Give feedback about what we collected
         self.local_storage["data_cache"]["element-descriptions"].append(f"collection {self.mbid}")
