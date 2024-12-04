@@ -177,7 +177,20 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
     """
     sp = spotipy.Spotify(auth=spotify_token, requests_timeout=10, retries=10)
     playlist_info = sp.playlist(playlist_id)
-    tracks = sp.playlist_items(playlist_id, limit=100)
+
+    offset = 0
+    tracks = []
+
+    # spotipy limits to 100 items for each call, so run iteratively with an offset until there are no more tracks
+    while True:
+        results = sp.playlist_items(playlist_id, limit=100, offset=offset)
+        if len(results['items']) == 0:
+            break
+
+        tracks.extend(results['items'])
+        # set new offset for the next loop
+        offset = offset + len(results['items'])
+
     name = playlist_info["name"]
     description = playlist_info["description"]
     
@@ -185,9 +198,9 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
     return tracks, name, description
 
 
-def _convert_spotify_tracks_to_json(spotify_tracks):
+def _convert_spotify_tracks_to_json(spotify_tracks: list):
     tracks = []
-    for track in spotify_tracks["items"]:
+    for track in spotify_tracks:
         artists = track["track"].get("artists", [])
         artist_names = []
         for a in artists:
