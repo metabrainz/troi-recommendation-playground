@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-
+import re
 import requests
 import spotipy
 from more_itertools import chunked
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 APPLE_MUSIC_URL = f"https://api.music.apple.com/"
 SPOTIFY_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/spotify-id-from-mbid/json"
-
+CLEAN_HTML_RE = re.compile('<.*?>')
 
 def lookup_spotify_ids(recordings):
     """ Given a list of Recording elements, try to find spotify track ids from labs api spotify lookup using mbids
@@ -134,13 +134,24 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
 
     logger.info("submit %d tracks" % len(spotify_track_ids))
 
+    # Truncate to character limit for title
+    playlist_name = playlist.name[0:100]
+    # Remove HTML tags
+    playlist_description = re.sub(
+        CLEAN_HTML_RE, '', playlist.description or "")
+    # Remove newlines
+    playlist_description = ''.join(playlist_description.splitlines())
+    # Truncate to character limit for description
+    playlist_description = playlist_description[0:300]
+
     playlist_id, playlist_url = None, None
     if existing_url:
         # update existing playlist
         playlist_url = existing_url
         playlist_id = existing_url.split("/")[-1]
         try:
-            spotify.playlist_change_details(playlist_id=playlist_id, name=playlist.name, description=playlist.description)
+            spotify.playlist_change_details(
+                playlist_id=playlist_id, name=playlist_name, description=playlist_description)
         except SpotifyException as err:
             # one possibility is that the user has deleted the spotify from playlist, so try creating a new one
             logger.info("provided playlist url has been unfollowed/deleted by the user, creating a new one")
@@ -150,10 +161,10 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
         # create new playlist
         spotify_playlist = spotify.user_playlist_create(
             user=spotify_user_id,
-            name=playlist.name,
+            name=playlist_name,
             public=is_public,
             collaborative=is_collaborative,
-            description=playlist.description
+            description=playlist_description
         )
         playlist_id = spotify_playlist["id"]
         playlist_url = spotify_playlist["external_urls"]["spotify"]
