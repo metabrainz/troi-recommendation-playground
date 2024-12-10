@@ -75,6 +75,15 @@ class AppleMusicAPI:
                 url = f"{APPLE_MUSIC_URL}/me/library/playlists/{playlist_id}/tracks?limit=100&offset={offset}"
                 response = self.session.get(url, headers=self.headers).json()
                 try:
+                    if "errors" in response:
+                        # https: // developer.apple.com/documentation/applemusicapi/errorsresponse
+                        error_objects = response["errors"]
+                        for error_object in error_objects:
+                            error_message = error_object["detail"] if "detail" in error_object else error_object["title"]
+                            logger.error(
+                                f"Error code {error_object['status']}: {error_message}")
+                        break
+
                     tracks_data = response["data"]
                     tracks.extend(tracks_data) if tracks_data else None
 
