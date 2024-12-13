@@ -115,7 +115,7 @@ To scan a subsonic collection, you'll need to setup a config.py file. See above.
 
 .. code-block:: bash
 
-   resolve subsonic
+   troi db subsonic
 
 This discovers the files present in the subsonic API hosted collection and adds a reference
 to the local DB.
