@@ -591,7 +591,7 @@ class RecordingsFromMusicServiceElement(Element):
     def __init__(self, token=None, playlist_id=None, music_service=None, apple_user_token=None):
         """
             Args:
-                playlist_id: id of the Spotify playlist to be used for creating the playlist element
+                playlist_id: id of the playlist to be used for creating the playlist element
                 token: the Spotify token to fetch the playlist tracks
                 music_service: the name of the music service to be used for fetching the playlist data
                 apple_music_token (optional): the user token for Apple Music API 
