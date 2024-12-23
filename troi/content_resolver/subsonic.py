@@ -255,11 +255,12 @@ class SubsonicDatabase(Database):
         if playlist_id:
             try:
                 remote_playlist = conn.getPlaylist(pid=playlist_id)
+                removed_song_idx = list(range(0, remote_playlist["playlist"]["songCount"]))
                 conn.updatePlaylist(
                     lid=playlist_id,
                     name=playlist.playlists[0].name,
                     songIdsToAdd=song_ids,
-                    songIndexesToRemove=list(range(0, len(remote_playlist["playlist"]) - 1)),
+                    songIndexesToRemove=removed_song_idx,
                 )
             except DataNotFoundError:
                 conn.createPlaylist(name=playlist.playlists[0].name, songIds=song_ids)
