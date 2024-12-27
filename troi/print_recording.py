@@ -1,6 +1,6 @@
 import datetime
 import logging
-
+from prettytable import PrettyTable
 from troi import Recording, Playlist, PipelineError
 
 logger = logging.getLogger(__name__)
@@ -94,30 +94,62 @@ class PrintRecordingList:
                 text += " %3d days " % td.days
         if self.print_moods or moods:
             # TODO: make this print more than agg, but given the current state of moods/coverage...
-            text = " mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"])
+            text += " mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"])
         if self.print_genre or genre:
-            text = " %s" % ",".join(recording.musicbrainz.get("genres", []))
-            text = " %s" % ",".join(recording.musicbrainz.get("tags", []))
+            text += " %s" % ",".join(recording.musicbrainz.get("genres", []))
+            text += " %s" % ",".join(recording.musicbrainz.get("tags", []))
 
         logger.info(text)
+        return text
+
+    def _print_headers(self):
+        """Print the column headers using PrettyTable"""
+        table = PrettyTable()
+        headers = ["Recording Name", "Artist Name", "MBID"]
+        
+        if self.print_year:
+            headers.append("Year")
+        if self.print_ranking:
+            headers.append("Ranking")
+        if self.print_listen_count:
+            headers.append("Listen Count")
+        if self.print_bpm:
+            headers.append("BPM")
+        if self.print_popularity:
+            headers.append("Popularity")
+        if self.print_latest_listened_at:
+            headers.append("Last Listened")
+        if self.print_moods:
+            headers.append("Mood Aggressive")
+        if self.print_genre:
+            headers.append("Genres/Tags")
+            
+        table.field_names = headers
+        logger.info(table.get_string(header=True, border=True, rows=[]))
 
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
 
         if type(entity) == Recording:
             self._examine_recording_for_headers(entity)
+            self._print_headers()
             self._print_recording(entity)
             return
 
-        for rec in entity:
-            self._examine_recording_for_headers(rec)
-
         if type(entity) == list and type(entity[0]) == Recording:
             for rec in entity:
+                self._examine_recording_for_headers(rec)
+            self._print_headers()
+            for rec in entity:
                 self._print_recording(rec)
+            return
 
         if type(entity) == Playlist:
             for rec in entity.recordings:
+                self._examine_recording_for_headers(rec)
+            self._print_headers()
+            for rec in entity.recordings:
                 self._print_recording(rec)
+            return
 
         raise PipelineError("You must pass a Recording or list of Recordings or a Playlist to print.")
