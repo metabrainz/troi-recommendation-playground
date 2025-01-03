@@ -46,7 +46,8 @@ class AppleMusicAPI:
         }
         if description:
             data["attributes"]["description"] = description
-        self.session.post(url, headers=self.headers, data=json.dumps(data))
+        response = self.session.post(url, headers=self.headers, data=json.dumps(data))
+        return response.json()
 
     def playlist_add_tracks(self, playlist_id, track_ids):
         """ Adds tracks to a playlist in Apple Music, does not return response
