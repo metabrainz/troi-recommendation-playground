@@ -33,11 +33,7 @@ def get_tracks_from_apple_playlist(developer_token, user_token, playlist_id):
     """ Get tracks from the Apple Music playlist.
     """
     apple = AppleMusicAPI(developer_token, user_token)
-    response = apple.get_playlist_tracks(playlist_id)
-
-    tracks = response["data"][0]["relationships"]["tracks"]["data"]
-    name = response["data"][0]["attributes"]["name"]
-    description = response["data"][0]["attributes"].get("description", {}).get("standard", "")
+    tracks, name, description = apple.get_playlist_tracks(playlist_id)
 
     mapped_tracks = [
         {

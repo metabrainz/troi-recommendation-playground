@@ -60,8 +60,45 @@ class AppleMusicAPI:
 
     def get_playlist_tracks(self, playlist_id):
         url = f"{APPLE_MUSIC_URL}/me/library/playlists/{playlist_id}?include=tracks"
-        response = self.session.get(url, headers=self.headers)
-        return response.json()
+        response = self.session.get(url, headers=self.headers).json()
+        tracks = response["data"][0]["relationships"]["tracks"]["data"]
+        total_tracks_count = response["data"][0]["relationships"]["tracks"]["meta"]["total"]
+        playlist_name = response["data"][0]["attributes"]["name"]
+        playlist_description = response["data"][0]["attributes"].get(
+            "description", {}).get("standard", "")
+
+        # apple music returns only the first 100 tracks with "/playlists/{playlist_id}?include=tracks"
+        # and we need to fetch the rest of the tracks using the "playlists/{playlist_id}/tracks" endpoint
+        if len(tracks) < total_tracks_count:
+            offset = len(tracks)
+            # endpoint returns 100 tracks per call max -> run iteratively with an offset until there are no more tracks
+            while True:
+                url = f"{APPLE_MUSIC_URL}/me/library/playlists/{playlist_id}/tracks?limit=100&offset={offset}"
+                response = self.session.get(url, headers=self.headers).json()
+                try:
+                    if "errors" in response:
+                        # https: // developer.apple.com/documentation/applemusicapi/errorsresponse
+                        error_objects = response["errors"]
+                        for error_object in error_objects:
+                            error_message = error_object["detail"] if "detail" in error_object else error_object["title"]
+                            logger.error(
+                                f"Error code {error_object['status']}: {error_message}")
+                        break
+
+                    tracks_data = response["data"]
+                    tracks.extend(tracks_data) if tracks_data else None
+
+                    if len(tracks_data) == 0 or len(tracks) == total_tracks_count:
+                        break
+                    # set new offset for the next loop
+                    offset = offset + len(tracks_data)
+                except KeyError as err:
+                    # No data returned from API call, could be an error, do nothing
+                    logger.error(
+                        "Failed to fetch Apple playlist tracks: %s, ignoring error..." % err)
+                    break
+
+        return tracks, playlist_name, playlist_description
 
 
 class SoundCloudException(Exception):
