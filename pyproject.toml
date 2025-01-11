@@ -13,6 +13,7 @@ classifiers=[
 ]
 dynamic = ["version"]
 dependencies = [
+  'prettytable>=3.5.0',
   'click>=8.0',
   'countryinfo>=0.1.2',
   'lb_matching_tools>=v2024.01.30.1',
