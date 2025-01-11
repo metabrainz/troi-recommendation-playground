@@ -1,28 +1,48 @@
 from prettytable import PrettyTable
 import datetime
 import logging
+from troi import PipelineError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 class PrintRecordingList:
-    def __init__(self, print_year=True, print_ranking=True, print_listen_count=True, print_bpm=True,
-                 print_popularity=True, print_latest_listened_at=True, print_moods=True, print_genre=True):
-        self.print_year = print_year
-        self.print_ranking = print_ranking
-        self.print_listen_count = print_listen_count
-        self.print_bpm = print_bpm
-        self.print_popularity = print_popularity
-        self.print_latest_listened_at = print_latest_listened_at
-        self.print_moods = print_moods
-        self.print_genre = print_genre
+    def __init__(self):
+        self.print_year = False
+        self.print_ranking = False
+        self.print_listen_count = False
+        self.print_bpm = False
+        self.print_popularity = False
+        self.print_latest_listened_at = False
+        self.print_moods = False
+        self.print_genre = False
 
-    def print(self, playlist):
-        for recording in playlist.recordings:
-            self._print_recording(recording)
+    def _examine_recording_for_headers(self, recording):
+        if hasattr(recording, 'year') and recording.year is not None:
+            self.print_year = True
 
-    def _print_recording(self, recording):
-        table = PrettyTable()
+        if hasattr(recording, 'listenbrainz') and "listen_count" in recording.listenbrainz:
+            self.print_listen_count = True
+
+        if hasattr(recording, 'acousticbrainz') and "bpm" in recording.acousticbrainz:
+            self.print_bpm = True
+
+        if hasattr(recording, 'acousticbrainz') and "moods" in recording.acousticbrainz:
+            self.print_moods = True
+
+        if hasattr(recording, 'musicbrainz') and ("genres" in recording.musicbrainz or "tags" in recording.musicbrainz):
+            self.print_genre = True
+
+        if hasattr(recording, 'listenbrainz') and "latest_listened_at" in recording.listenbrainz:
+            self.print_latest_listened_at = True
+
+        if hasattr(recording, 'ranking') and recording.ranking:
+            self.print_ranking = True
+        
+        if hasattr(recording, 'musicbrainz') and "popularity" in recording.musicbrainz:
+            self.print_popularity = True
+
+    def _create_table_headers(self):
         headers = ["Recording Name", "Artist Name", "MBID"]
 
         if self.print_year:
@@ -42,19 +62,21 @@ class PrintRecordingList:
         if self.print_genre:
             headers.append("Genres/Tags")
 
-        table.field_names = headers
+        return headers
+
+    def _get_row_data(self, recording):
         row_data = []
 
-        rec_name = recording.name if recording.name else f"[[ mbid:{recording.mbid} ]]"
-        artist = recording.artist_credit.name if recording.artist_credit and recording.artist_credit.name else "[missing]"
-        rec_mbid = recording.mbid[:5] if recording.mbid else "[[ ]]"
+        rec_name = recording.name if hasattr(recording, 'name') and recording.name else f"[[ mbid:{recording.mbid if hasattr(recording, 'mbid') else ''}]]"
+        artist = recording.artist_credit.name if hasattr(recording, 'artist_credit') and recording.artist_credit and hasattr(recording.artist_credit, 'name') else "[missing]"
+        rec_mbid = recording.mbid[:5] if hasattr(recording, 'mbid') and recording.mbid else "[[ ]]"
 
         row_data.extend([rec_name, artist, rec_mbid])
 
         if self.print_year:
-            row_data.append(recording.year if recording.year is not None else "")
+            row_data.append(recording.year if hasattr(recording, 'year') and recording.year is not None else "")
         if self.print_ranking:
-            row_data.append(f"{recording.ranking:.3f}" if recording.ranking else "")
+            row_data.append(f"{recording.ranking:.3f}" if hasattr(recording, 'ranking') and recording.ranking else "")
         if self.print_listen_count:
             row_data.append(recording.listenbrainz.get("listen_count", ""))
         if self.print_bpm:
@@ -76,43 +98,30 @@ class PrintRecordingList:
             tags = recording.musicbrainz.get("tags", [])
             row_data.append(", ".join(genres + tags))
 
-        table.add_row(row_data)
+        return row_data
+
+    def print(self, entity):
+        if hasattr(entity, 'name') and hasattr(entity, 'artist_credit'):
+            recordings = [entity]
+        elif isinstance(entity, list):
+            recordings = entity
+        elif hasattr(entity, 'recordings'):
+            recordings = entity.recordings
+        else:
+            raise PipelineError("You must pass a Recording or list of Recordings or a Playlist to print.")
+
+        if recordings:
+            self._examine_recording_for_headers(recordings[0])
+
+        table = PrettyTable()
+        table.field_names = self._create_table_headers()
         table.align = "l"
+
+        for recording in recordings:
+            table.add_row(self._get_row_data(recording))
+
         logger.info("Recording Table:\n" + table.get_string())
         return table
 
 if __name__ == "__main__":
-    import logging
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    
-    class MockRecording:
-        def __init__(self, name, artist_credit, mbid, year, ranking, listenbrainz, acousticbrainz, musicbrainz):
-            self.name = name
-            self.artist_credit = artist_credit
-            self.mbid = mbid
-            self.year = year
-            self.ranking = ranking
-            self.listenbrainz = listenbrainz
-            self.acousticbrainz = acousticbrainz
-            self.musicbrainz = musicbrainz
-
-    class MockPlaylist:
-        def __init__(self, recordings):
-            self.recordings = recordings
-
-    mock_recordings = [
-        MockRecording(
-            name="Song 1",
-            artist_credit=type("ArtistCredit", (object,), {"name": "Artist 1"})(),
-            mbid="abcd1234",
-            year=2023,
-            ranking=4.5,
-            listenbrainz={"listen_count": 25, "latest_listened_at": datetime.datetime(2024, 1, 1)},
-            acousticbrainz={"bpm": 120, "moods": {"mood_aggressive": 0.7}},
-            musicbrainz={"popularity": 75.2, "genres": ["Rock"], "tags": ["Live"]}
-        )
-    ]
-
-    mock_playlist = MockPlaylist(recordings=mock_recordings)
-    prl = PrintRecordingList()
-    prl.print(mock_playlist)
