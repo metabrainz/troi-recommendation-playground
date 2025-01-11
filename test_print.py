@@ -1,5 +1,5 @@
 from troi import Recording, ArtistCredit, Playlist
-from troi.tools.print_recording import PrintRecordingList # type: ignore
+from troi._print_recording import PrintRecordingList  # Corrected import
 
 # Create a sample recording
 recording = Recording(
