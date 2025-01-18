@@ -1,8 +1,27 @@
 from uuid import UUID
 import re
 
-TIME_RANGES = ["week", "month", "quarter", "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"]
-ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs", "country"]
+TIME_RANGES = [
+    "week",
+    "month",
+    "quarter",
+    "half_yearly",
+    "year",
+    "all_time",
+    "this_week",
+    "this_month",
+    "this_year",
+]
+ELEMENTS = [
+    "artist",
+    "tag",
+    "collection",
+    "playlist",
+    "stats",
+    "recs",
+    "country",
+    "recording",
+]
 
 ELEMENT_OPTIONS = {
     "artist": ["nosim", "easy", "medium", "hard"],
@@ -11,7 +30,8 @@ ELEMENT_OPTIONS = {
     "playlist": ["easy", "medium", "hard"],
     "stats": TIME_RANGES,
     "recs": ["easy", "medium", "hard", "listened", "unlistened"],
-    "country": ["easy", "medium", "hard"]
+    "country": ["easy", "medium", "hard"],
+    "recording": ["easy", "medium", "hard"],
 }
 
 OPTIONS = set()
@@ -47,7 +67,10 @@ class PromptParser:
         # check for malformed element names
         m = self.element_check.match(block)
         if m is not None:
-            raise ParseError("Unrecognized element name '%s'. Must be one of: %s" % (m.group(0), ",".join(ELEMENTS)))
+            raise ParseError(
+                "Unrecognized element name '%s'. Must be one of: %s"
+                % (m.group(0), ",".join(ELEMENTS))
+            )
 
         return "artistname"
 
@@ -83,7 +106,9 @@ class PromptParser:
                 try:
                     weight = int(text)
                 except ValueError:
-                    raise ParseError("Weight must be a positive integer, not '%s'" % text)
+                    raise ParseError(
+                        "Weight must be a positive integer, not '%s'" % text
+                    )
         elif not opts:
             opts = text.split(",")
             if opts and opts[-1] == "":
@@ -106,8 +131,8 @@ class PromptParser:
             if not name:
                 raise ParseError("Unknown element '%s'" % block)
 
-            block = block[len(name):]
-            if block[0] == ':':
+            block = block[len(name) :]
+            if block[0] == ":":
                 block = block[1:]
 
             opts = []
@@ -117,47 +142,62 @@ class PromptParser:
             parens = 0
             escaped = False
             for i in range(len(block)):
-                if not escaped and block[i] == '\\':
+                if not escaped and block[i] == "\\":
                     escaped = True
                     continue
 
                 if escaped:
-                    if block[i] in ('(', ')', '\\'):
+                    if block[i] in ("(", ")", "\\"):
                         escaped = False
                         text += block[i]
                         continue
                     escaped = False
 
-                if block[i] == '(':
+                if block[i] == "(":
                     if i > 0:
-                        raise ParseError("() must start at the beginning of the value field.")
+                        raise ParseError(
+                            "() must start at the beginning of the value field."
+                        )
                     parens += 1
                     continue
 
-                if block[i] == ')':
+                if block[i] == ")":
                     parens -= 1
                     if parens < 0:
-                        raise ParseError("closing ) without matching opening ( near: '%s'." % block[i:])
+                        raise ParseError(
+                            "closing ) without matching opening ( near: '%s'."
+                            % block[i:]
+                        )
                     continue
 
-                if block[i] == ':' and parens == 0:
-                    values, weight, opts = self.set_block_values(name, values, weight, opts, text, block)
+                if block[i] == ":" and parens == 0:
+                    values, weight, opts = self.set_block_values(
+                        name, values, weight, opts, text, block
+                    )
                     text = ""
                     continue
 
                 # Check to make sure that some values are in ()
-                if name in ("artist", "country", "collection", "playlist") and i == 0 and not block[i] == "(":
-                    raise ParseError("Element value must be enclosed in ( ). Try: %s:(name)" % (name))
+                if (
+                    name in ("artist", "country", "collection", "playlist")
+                    and i == 0
+                    and not block[i] == "("
+                ):
+                    raise ParseError(
+                        "Element value must be enclosed in ( ). Try: %s:(name)" % (name)
+                    )
 
-                if block[i] == ' ' and parens == 0:
+                if block[i] == " " and parens == 0:
                     break
 
                 text += block[i]
 
             # Now that we've parsed a block, do some sanity checking
-            values, weight, opts = self.set_block_values(name, values, weight, opts, text, block)
+            values, weight, opts = self.set_block_values(
+                name, values, weight, opts, text, block
+            )
             try:
-                block = block[i + 1:]
+                block = block[i + 1 :]
             except UnboundLocalError:
                 raise ParseError("incomplete prompt")
 
@@ -169,9 +209,13 @@ class PromptParser:
 
             for opt in opts:
                 if opt not in ELEMENT_OPTIONS[name]:
-                    raise ParseError("Option '%s' is not allowed for element %s" % (opt, name))
+                    raise ParseError(
+                        "Option '%s' is not allowed for element %s" % (opt, name)
+                    )
 
-            blocks.append({"entity": name, "values": values, "weight": weight or 1, "opts": opts})
+            blocks.append(
+                {"entity": name, "values": values, "weight": weight or 1, "opts": opts}
+            )
 
             if len(block) == 0:
                 break
