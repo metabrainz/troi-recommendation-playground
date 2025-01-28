@@ -17,11 +17,12 @@ class RecordingLookupElement(Element):
     SERVER_URL = "https://api.listenbrainz.org/1/metadata/recording"
     MAX_RECORDINGS = 1000
 
-    def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None):
+    def __init__(self, skip_not_found=True, lookup_tags=False, tag_threshold=None, auth_token=None):
         Element.__init__(self)
         self.skip_not_found = skip_not_found
         self.lookup_tags = lookup_tags
         self.tag_threshold = tag_threshold
+        self.auth_token = auth_token
 
     @staticmethod
     def inputs():
@@ -52,7 +53,8 @@ class RecordingLookupElement(Element):
             inc += " tag"
 
         while True:
-            r = requests.post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc})
+            headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
+            r = requests.post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc}, headers=headers)
             if r.status_code == 429:
                 sleep(2)
                 continue
