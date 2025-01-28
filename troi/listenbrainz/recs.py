@@ -19,9 +19,11 @@ class UserRecordingRecommendationsElement(Element):
 
     MAX_RECORDINGS_TO_FETCH = 2000
 
-    def __init__(self, user_name, artist_type, count=25, offset=0):
+    def __init__(self, user_name, artist_type, count=25, offset=0, auth_token=None):
         super().__init__()
         self.client = liblistenbrainz.ListenBrainz()
+        if auth_token is not None:
+            self.client.set_auth_token(auth_token)
         self.user_name = user_name
         self.count = count
         self.offset = offset

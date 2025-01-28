@@ -98,7 +98,8 @@ class PeriodicJamsPatch(Patch):
 
         recs = troi.listenbrainz.recs.UserRecordingRecommendationsElement(user_name,
                                                                           "raw",
-                                                                          count=1000)
+                                                                          count=1000,
+                                                                          auth_token=inputs.get("token"))
 
         recent_listens_lookup = troi.listenbrainz.listens.RecentListensTimestampLookup(user_name,
                                                                                        days=2,
@@ -129,7 +130,7 @@ class PeriodicJamsPatch(Patch):
         feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name, auth_token=inputs.get("token"))
         feedback_lookup.set_sources(latest_filter)
 
-        recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement()
+        recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(auth_token=inputs.get("token"))
         recs_lookup.set_sources(feedback_lookup)
 
         hate_filter = troi.filters.HatedRecordingsFilterElement()
