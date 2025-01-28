@@ -322,7 +322,8 @@ class TestRecordingLookup(unittest.TestCase):
                                    'recording_mbids':
                                    ['1234a7ae-2af2-4291-aa84-bd0bafe291a1', 'ec5b8aa9-7483-4791-a185-1f599a0cdc35'],
                                    'inc': 'artist release tag'
-                               })
+                               },
+                               headers={})
 
         assert len(entities) == 2
 
