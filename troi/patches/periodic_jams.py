@@ -108,24 +108,31 @@ class PeriodicJamsPatch(Patch):
 
         if jam_type in ("daily-jams", "weekly-jams"):
             # Remove tracks that have not been listened to before.
-            never_listened = troi.filters.NeverListenedFilterElement()
+            never_listened = troi.filters.NeverListenedFilterElement(keep_unlistened_if_empty=True)
             never_listened.set_sources(recent_listens_lookup)
             if jam_type == "daily-jams":
                 jam_name = "Daily Jams"
             else:
                 jam_name = "Weekly Jams"
                 jam_date = "week of " + jam_date
+            self.local_storage["jam_name"] = jam_name
+
+            latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE,
+                                                                       keep_unlistened_if_empty=True)
+            latest_filter.set_sources(never_listened)
         elif jam_type == "weekly-exploration":
             # Remove tracks that have been listened to before.
             never_listened = troi.filters.NeverListenedFilterElement(remove_unlistened=False)
             never_listened.set_sources(recent_listens_lookup)
             jam_name = "Weekly Exploration"
             jam_date = "week of " + jam_date
+            self.local_storage["jam_name"] = jam_name
+
+            latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
+            latest_filter.set_sources(never_listened)
+
         else:
             raise RuntimeError("someone goofed up!")
-
-        latest_filter = troi.filters.LatestListenedAtFilterElement(DAYS_OF_RECENT_LISTENS_TO_EXCLUDE)
-        latest_filter.set_sources(never_listened)
 
         feedback_lookup = troi.listenbrainz.feedback.ListensFeedbackLookup(user_name, auth_token=inputs.get("token"))
         feedback_lookup.set_sources(latest_filter)
@@ -137,7 +144,7 @@ class PeriodicJamsPatch(Patch):
         hate_filter.set_sources(recs_lookup)
 
         pl_maker = PlaylistMakerElement(name="%s for %s, %s" % (jam_name, user_name, jam_date),
-                                        desc="%s playlist!" % jam_name,
+                                        desc=None,
                                         patch_slug=jam_type,
                                         max_num_recordings=50,
                                         max_artist_occurrence=2,
@@ -147,3 +154,16 @@ class PeriodicJamsPatch(Patch):
         pl_maker.set_sources(hate_filter)
 
         return pl_maker
+
+    def post_process(self):
+        """ 
+            Take the information saved in local_storage and create proper playlist names and descriptions.
+        """
+
+        jam_name = self.local_storage["jam_name"]
+        if self.local_storage["latest_listened_was_empty"]:
+            desc = f"This {jam_name} playlist includes tracks you've recently heard, as we don't have enough listens to create a better playlist."
+        else:
+            desc = f"We made this {jam_name} playlist from your recommended tracks to create a comfortable playlist of music you've not listened to recently."
+            
+        self.local_storage["_playlist_desc"] = desc

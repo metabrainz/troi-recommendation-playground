@@ -343,9 +343,12 @@ class LatestListenedAtFilterElement(troi.Element):
         :param min_number_of_days: The number of tracks that must have passed for a track to be kept.
     '''
 
-    def __init__(self, min_number_of_days=14):
+    MIN_ITEMS_REQUIRED = 5
+
+    def __init__(self, min_number_of_days=14, keep_unlistened_if_empty=False):
         troi.Element.__init__(self)
         self.min_number_of_days = min_number_of_days
+        self.keep_unlistened_if_empty = keep_unlistened_if_empty
 
     @staticmethod
     def inputs():
@@ -369,6 +372,12 @@ class LatestListenedAtFilterElement(troi.Element):
             else:
                 results.append(r)
 
+        if len(results) < self.MIN_ITEMS_REQUIRED and self.keep_unlistened_if_empty:
+            self.local_storage["latest_listened_was_empty"] = True
+            return recordings
+
+        self.local_storage["latest_listened_was_empty"] = False
+
         return results
 
 
@@ -377,7 +386,9 @@ class NeverListenedFilterElement(troi.Element):
         Remove/keep only recordings if they have not/been listened to.
     '''
 
-    def __init__(self, remove_unlistened=True):
+    MIN_ITEMS_REQUIRED = 5
+
+    def __init__(self, remove_unlistened=True, keep_unlistened_if_empty=False):
         '''
             Filter the recordings according to latest_listened_at field in the lb metadata. 
             If that field is None, treat it as if the user hasn't listened to this track
@@ -385,6 +396,7 @@ class NeverListenedFilterElement(troi.Element):
         '''
         troi.Element.__init__(self)
         self.remove_unlistened = remove_unlistened
+        self.keep_unlistened_if_empty = keep_unlistened_if_empty
 
     @staticmethod
     def inputs():
@@ -411,8 +423,12 @@ class NeverListenedFilterElement(troi.Element):
                     continue
                 else:
                     results.append(r)
-            
 
+        if len(results) < self.MIN_ITEMS_REQUIRED and self.keep_unlistened_if_empty:
+            self.local_storage["never_listened_was_empty"] = True
+            return recordings
+
+        self.local_storage["never_listened_was_empty"] = False
         return results
 
 
