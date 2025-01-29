@@ -228,6 +228,9 @@ class PlaylistElement(Element):
                     continue
                 self.print_recording.print(recording)
 
+            if playlist.description:
+                logger.info("description: '%s'" % playlist.description)
+
     def save(self, track_count=None, file_obj=None):
         """Save each playlist to disk, giving each playlist a unique name if none was provided.
 
