@@ -2,10 +2,20 @@ import unittest
 
 import requests_mock
 
+from troi.patch import Patch
 from troi import Artist, ArtistCredit, Recording, Playlist
 import troi.filters
 from troi.musicbrainz.recording import RecordingListElement
 from troi.listenbrainz.feedback import ListensFeedbackLookup
+
+
+class DummyPatch:
+
+    def __init__(self):
+        self.local_storage = {}
+
+    def set_patch_object(self, obj):
+        pass
 
 
 class TestArtistCreditFilterElement(unittest.TestCase):
@@ -55,6 +65,7 @@ class TestArtistCreditLimiterElement(unittest.TestCase):
             Recording(mbid='139654ae-2c02-4e0f-aee0-c47da6e59ff1', artist_credit=ArtistCredit(artist_credit_id=65), ranking=.5),
             Recording(mbid='73a9d0db-0ec7-490e-9a85-0525a5ccef8e', artist_credit=ArtistCredit(artist_credit_id=197), ranking=.1)
         ]
+
 
         e = troi.filters.ArtistCreditLimiterElement(1)
         flist = e.read([rlist])
@@ -235,7 +246,9 @@ class TestNeverListenedFilterElement(unittest.TestCase):
             Recording(mbid='c88b3490-35a0-460d-b3bc-bc50c8855d00'),
             Recording(mbid='139654ae-2c02-4e0f-aee0-c47da6e59ff1', listenbrainz={"latest_listened_at": 345345345})
         ]
+        p = DummyPatch()
         e = troi.filters.NeverListenedFilterElement()
+        e.set_patch_object(p)
         flist = e.read([rlist])
         assert len(flist) == 2
 
@@ -243,6 +256,7 @@ class TestNeverListenedFilterElement(unittest.TestCase):
         assert flist[1].mbid == '139654ae-2c02-4e0f-aee0-c47da6e59ff1'
 
         e = troi.filters.NeverListenedFilterElement(remove_unlistened=False)
+        e.set_patch_object(p)
         flist = e.read([rlist])
         assert len(flist) == 2
 
