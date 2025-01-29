@@ -162,10 +162,8 @@ class PeriodicJamsPatch(Patch):
 
         jam_name = self.local_storage["jam_name"]
         if self.local_storage["latest_listened_was_empty"]:
-            desc = f"We made this {jam_name} playlist from your recommended recording recordings, some of which " + \
-                    "you may have already listened to recently."
+            desc = f"This {jam_name} playlist includes tracks you've recently heard, as we don't have enough listens to create a better playlist."
         else:
-            desc = f"We made this {jam_name} playlist from your recommended recording recordings to create a " + \
-                    "comfortable playlist of tracks you've not recently listened to."
+            desc = f"We made this {jam_name} playlist from your recommended tracks to create a comfortable playlist of music you've not listened to recently."
             
         self.local_storage["_playlist_desc"] = desc
