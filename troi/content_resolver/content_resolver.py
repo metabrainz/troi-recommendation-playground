@@ -14,7 +14,7 @@ class ContentResolver:
     Scan a given path and enter/update the metadata in the search index
     '''
 
-    def __init__(self, quiet):
+    def __init__(self, quiet=False):
         self.fuzzy_index = None
         self.quiet = quiet
 

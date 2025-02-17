@@ -16,7 +16,7 @@ class ListenBrainzRadioLocal:
        Generate local playlists against a music collection available via subsonic.
     '''
 
-    def __init__(self, quiet):
+    def __init__(self, quiet=False):
         self.quiet = quiet
 
     def generate(self, mode, prompt, match_threshold):
