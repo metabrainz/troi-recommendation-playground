@@ -51,7 +51,7 @@ class SubsonicDatabase(Database):
         logger.info("[ connect to subsonic ]")
 
         return FixedConnection(
-            base_url=self.config.SUBSONIC_HOST,
+            self.config.SUBSONIC_HOST,
             username=self.config.SUBSONIC_USER,
             port=self.config.SUBSONIC_PORT,
             salt=self.config.SUBSONIC_SALT,
