@@ -116,7 +116,7 @@ class UnresolvedRecordingTracker:
             try:
                 rec = recording_data[mbid]
             except KeyError:
-                print("Recording %s not found. Skipping." % mbid) 
+                print("Recording %s not found. Skipping." % mbid)
                 continue
 
             releases[rec["release"]["mbid"]].append({
