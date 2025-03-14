@@ -21,6 +21,7 @@ from troi.patches.lb_radio_classes.tag import LBRadioTagRecordingElement
 from troi.patches.lb_radio_classes.stats import LBRadioStatsRecordingElement
 from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingElement
 from troi.patches.lb_radio_classes.country import LBRadioCountryRecordingElement
+from troi.patches.lb_radio_classes.fresh_releases import LBRadioFreshReleasesRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS, Playlist
 from troi.utils import interleave
 
@@ -248,6 +249,17 @@ class LBRadioPatch(troi.patch.Patch):
                     listened = element["opts"][0]
                 source = LBRadioRecommendationRecordingElement(
                     element["values"][0], mode=mode, listened=listened)
+
+            if element["entity"] == "fresh":
+                if len(element["values"]) == 0:
+                    raise RuntimeError(
+                        "user name cannot be blank for fresh_releases. (at least not yet -- soon it will be)"
+                    )
+                if len(element["opts"]) == 0:
+                    range = "month"
+                else:
+                    range = element["opts"][0]
+                source = LBRadioFreshReleasesRecordingElement(element["values"][0], mode=mode, range=range)
 
             recs_lookup = troi.musicbrainz.recording_lookup.RecordingLookupElement(
             )

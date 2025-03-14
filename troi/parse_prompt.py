@@ -2,7 +2,7 @@ from uuid import UUID
 import re
 
 TIME_RANGES = ["week", "month", "quarter", "half_yearly", "year", "all_time", "this_week", "this_month", "this_year"]
-ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs", "country"]
+ELEMENTS = ["artist", "tag", "collection", "playlist", "stats", "recs", "country", "fresh"]
 
 ELEMENT_OPTIONS = {
     "artist": ["nosim", "easy", "medium", "hard"],
@@ -11,7 +11,8 @@ ELEMENT_OPTIONS = {
     "playlist": ["easy", "medium", "hard"],
     "stats": TIME_RANGES,
     "recs": ["easy", "medium", "hard", "listened", "unlistened"],
-    "country": ["easy", "medium", "hard"]
+    "country": ["easy", "medium", "hard"],
+    "fresh": ["week", "month"]
 }
 
 OPTIONS = set()
