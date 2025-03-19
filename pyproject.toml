@@ -21,7 +21,7 @@ dependencies = [
   'mutagen==1.46.0',
   'peewee>=3.17.0',
   'psycopg2-binary>=2.9.3', 
-  'py-sonic>=1.0.0',
+  'py-sonic>=1.0.2', 
   'python-dateutil>=2.8.2',
   'regex>=2023.6.3',
   'requests>=2.31.0',

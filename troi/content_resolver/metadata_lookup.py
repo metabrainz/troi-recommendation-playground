@@ -10,7 +10,7 @@ from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.model.tag import RecordingTag
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("troi_metadata_lookup")
 
 
 RecordingRow = namedtuple('RecordingRow', ('id', 'mbid', 'metadata_id'))
@@ -23,7 +23,7 @@ class MetadataLookup:
 
     BATCH_SIZE = 1000
 
-    def __init__(self, quiet):
+    def __init__(self, quiet=False):
         self.quiet = quiet
 
     def lookup(self):

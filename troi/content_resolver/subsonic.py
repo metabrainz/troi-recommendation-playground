@@ -22,7 +22,7 @@ class SubsonicDatabase(Database):
     # Determined by the number of albums we can fetch in one go
     BATCH_SIZE = 500
 
-    def __init__(self, index_dir, config, quiet):
+    def __init__(self, index_dir, config, quiet=False):
         self.config = config
         Database.__init__(self, index_dir, quiet)
         self.quiet = quiet
@@ -38,7 +38,7 @@ class SubsonicDatabase(Database):
         self.error = 0
 
         self.run_sync()
-        
+
         logger.info("Checked %s albums:" % self.total)
         logger.info("  %5d albums matched" % self.matched)
         logger.info("  %5d recordings with errors" % self.error)
@@ -52,9 +52,10 @@ class SubsonicDatabase(Database):
 
         return FixedConnection(
             self.config.SUBSONIC_HOST,
-            self.config.SUBSONIC_USER,
-            self.config.SUBSONIC_PASSWORD,
-            self.config.SUBSONIC_PORT,
+            username=self.config.SUBSONIC_USER,
+            port=self.config.SUBSONIC_PORT,
+            salt=self.config.SUBSONIC_SALT,
+            token=self.config.SUBSONIC_TOKEN,
         )
 
     def run_sync(self):
@@ -111,7 +112,7 @@ class SubsonicDatabase(Database):
             recordings = []
             for song in album_info["album"]["song"]:
                 album = album_info["album"]
-            
+
                 if "artistId" in song:
                     artist_id = song["artistId"]
                 else:
@@ -156,7 +157,7 @@ class SubsonicDatabase(Database):
             self.update_recordings(recordings)
 
     def add_subsonic(self, mdata):
-        """ 
+        """
             Given recording metadata, add it to the database or update it if it already exists
             update the recording instead
         """
@@ -226,7 +227,7 @@ class SubsonicDatabase(Database):
                                    WHERE recording_id = ?""", tuple(existing_recordings))
 
 
-        # This concise query does the same as above. But older versions of python/sqlite on Raspberry Pis 
+        # This concise query does the same as above. But older versions of python/sqlite on Raspberry Pis
         # don't support upserts yet. :(
         #recordings = [(r[0], r[1], datetime.datetime.now()) for r in recordings]
         #cursor.executemany(

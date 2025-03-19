@@ -22,7 +22,7 @@ from troi.content_resolver.formats import mp3, m4a, flac, ogg_opus, ogg_vorbis, 
 
 from troi.content_resolver.utils import existing_dirs
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("troi_db_scan")
 
 SUPPORTED_FORMATS = (
     flac,
@@ -168,11 +168,8 @@ class Database:
         if not self.quiet:
             logger.info(self.counters.dry_run_stats())
 
-        if not self.quiet:
-            with tqdm(total=self.counters.audio_files) as self.progress_bar:
-                logger.info("Scanning ...")
-                self.traverse()
-        else:
+        with tqdm(total=self.counters.audio_files, disable=self.quiet) as self.progress_bar:
+            logger.info("Scanning ...")
             self.traverse()
 
         self.close()
@@ -353,7 +350,10 @@ class Database:
             Update status counter and display matching progress
         """
         self.counters.status[statusdata.status] += 1
-        if not self.quiet:
+
+        if self.quiet:
+            logger.info(self.fmtdetails(statusdata))
+        else:
             self.progress_bar.write(self.fmtdetails(statusdata))
 
     def add(self, file_path, audio_file_count):
@@ -364,8 +364,7 @@ class Database:
         """
 
         # update the progress bar
-        if not self.quiet:
-            self.progress_bar.update(1)
+        self.progress_bar.update(1)
 
         self.counters.total += 1
 
@@ -429,7 +428,7 @@ class Database:
             PathId(d.dir_path, d.id) for d in Directory.select(Directory.dir_path, Directory.id) if not os.path.isdir(d.dir_path))
 
         if not recordings and not directories:
-            logger.error("No cleanup needed.")
+            logger.info("No cleanup needed.")
             return
 
         for elem in sorted(recordings + directories):

@@ -113,7 +113,12 @@ class UnresolvedRecordingTracker:
 
         releases = defaultdict(list)
         for mbid in recording_mbids:
-            rec = recording_data[mbid]
+            try:
+                rec = recording_data[mbid]
+            except KeyError:
+                print("Recording %s not found. Skipping." % mbid)
+                continue
+
             releases[rec["release"]["mbid"]].append({
                 "artist_name": rec["artist"]["name"],
                 "artists": rec["artist"]["artists"],
