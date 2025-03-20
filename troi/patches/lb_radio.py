@@ -84,9 +84,10 @@ class LBRadioPatch(troi.patch.Patch):
             return self.lookup_artist_from_mbid(artist_name)
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
-
+        
+        headers = { "User-Agent": "troi-recommendation-playlist (MetaBrainz)"}
         while True:
-            r = requests.get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
+            r = requests.get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json", headers=headers)
             if r.status_code == 404:
                 raise RuntimeError(err_msg)
 
