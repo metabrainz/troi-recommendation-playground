@@ -6,7 +6,7 @@ from random import randint, shuffle
 from troi import Recording
 from troi.plist import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
-from troi.http_request import http_get
+from troi.http_request import http_post
 
 
 class LBRadioTagRecordingElement(troi.Element):
