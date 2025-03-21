@@ -4,10 +4,9 @@ import json
 from time import sleep
 
 
-import requests
 import spotipy
 from troi.tools.utils import AppleMusicAPI
-
+from troi.http_request import http_get
 from troi import Recording, Playlist, PipelineError, Element, Artist, ArtistCredit, Release
 from troi.operations import is_homogeneous
 from troi.print_recording import PrintRecordingList
@@ -278,23 +277,17 @@ class PlaylistElement(Element):
             if playlist.patch_slug is not None:
                 playlist.add_metadata({"algorithm_metadata": {"source_patch": playlist.patch_slug}})
 
-            while True:
-                r = requests.post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
-                                  json=_serialize_to_jspf(playlist, created_for),
-                                  headers={"Authorization": "Token " + str(token)})
-                if r.status_code == 429:
-                    sleep(2)
-                    continue
+            r = http_post(LISTENBRAINZ_PLAYLIST_CREATE_URL,
+                          json=_serialize_to_jspf(playlist, created_for),
+                          headers={"Authorization": "Token " + str(token)})
 
-                if r.status_code != 200:
-                    try:
-                        err = r.json()["error"]
-                    except json.decoder.JSONDecodeError:
-                        err = r.text
+            if r.status_code != 200:
+                try:
+                    err = r.json()["error"]
+                except json.decoder.JSONDecodeError:
+                    err = r.text
 
-                    raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" % (r.status_code, err))
-
-                break
+                raise PipelineError("Cannot post playlist to ListenBrainz: HTTP code %d: %s" % (r.status_code, err))
 
             try:
                 result = json.loads(r.text)
@@ -649,7 +642,7 @@ class PlaylistFromJSPFElement(Element):
             headers = None
             if self.token:
                 headers = {"Authorization": f"Token {self.token}"}
-            response = requests.get(LISTENBRAINZ_PLAYLIST_FETCH_URL + self.playlist_mbid, headers=headers)
+            response = http_get(LISTENBRAINZ_PLAYLIST_FETCH_URL + self.playlist_mbid, headers=headers)
             response.raise_for_status()
             data = response.json()
             return [_deserialize_from_jspf(data)]

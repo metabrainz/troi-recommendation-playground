@@ -4,7 +4,6 @@ import datetime
 import sys
 
 import peewee
-import requests
 
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata

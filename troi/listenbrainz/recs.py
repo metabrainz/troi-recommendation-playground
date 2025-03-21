@@ -1,9 +1,11 @@
 import json
+import dateutil.parser
 import requests
-from troi import Element, Recording, PipelineError
+
 import liblistenbrainz
 import liblistenbrainz.errors
-import dateutil.parser
+
+from troi import Element, Recording, PipelineError
 
 MAX_NUM_RECORDINGS_PER_REQUEST = 100
 

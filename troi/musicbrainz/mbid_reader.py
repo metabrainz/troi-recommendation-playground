@@ -1,4 +1,3 @@
-import requests
 import ujson
 
 from troi import Element, Recording

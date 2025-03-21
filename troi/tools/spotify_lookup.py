@@ -1,10 +1,11 @@
 import logging
 from collections import defaultdict
 import re
-import requests
 import spotipy
 from more_itertools import chunked
 from spotipy import SpotifyException
+
+from troi.http_request import http_post
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ CLEAN_HTML_RE = re.compile('<.*?>')
 def lookup_spotify_ids(recordings):
     """ Given a list of Recording elements, try to find spotify track ids from labs api spotify lookup using mbids
     and add those to the recordings. """
-    response = requests.post(
+    response = http_post(
         SPOTIFY_IDS_LOOKUP_URL,
         json=[{"recording_mbid": recording.mbid} for recording in recordings]
     )
