@@ -1,8 +1,7 @@
-import requests
 import json
 import logging
-from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from troi.http_request import http_get, http_post, http_put
 
 logger = logging.getLogger(__name__)
 SOUNDCLOUD_URL = f"https://api.soundcloud.com/"
@@ -24,14 +23,13 @@ class AppleMusicAPI:
             "Music-User-Token": self.user_token,
             "Content-Type": "application/json"
         }
-        self.session = create_http_session()
         self.storefront = self._get_user_storefront()
 
     def _get_user_storefront(self):
         """ Fetch a storefront for a specific user.
         """
         url=f"{APPLE_MUSIC_URL}/me/storefront"
-        response = self.session.get(url, headers=self.headers)
+        response = http_get(url, headers=self.headers)
 
         data = response.json()["data"][0]["id"]
         return data
@@ -46,7 +44,7 @@ class AppleMusicAPI:
         }
         if description:
             data["attributes"]["description"] = description
-        response = self.session.post(url, headers=self.headers, data=json.dumps(data))
+        response = http_post(url, headers=self.headers, data=json.dumps(data))
         return response.json()
 
     def playlist_add_tracks(self, playlist_id, track_ids):
@@ -56,11 +54,11 @@ class AppleMusicAPI:
         data = {
             "data": [{"id": track_id, "type": "songs"} for track_id in track_ids]
         }
-        self.session.post(url, headers=self.headers, data=json.dumps(data))
+        http_post(url, headers=self.headers, data=json.dumps(data))
 
     def get_playlist_tracks(self, playlist_id):
         url = f"{APPLE_MUSIC_URL}/me/library/playlists/{playlist_id}?include=tracks"
-        response = self.session.get(url, headers=self.headers).json()
+        response = http_get(url, headers=self.headers).json()
         tracks = response["data"][0]["relationships"]["tracks"]["data"]
         total_tracks_count = response["data"][0]["relationships"]["tracks"]["meta"]["total"]
         playlist_name = response["data"][0]["attributes"]["name"]
@@ -74,7 +72,7 @@ class AppleMusicAPI:
             # endpoint returns 100 tracks per call max -> run iteratively with an offset until there are no more tracks
             while True:
                 url = f"{APPLE_MUSIC_URL}/me/library/playlists/{playlist_id}/tracks?limit=100&offset={offset}"
-                response = self.session.get(url, headers=self.headers).json()
+                response = http_get(url, headers=self.headers).json()
                 try:
                     if "errors" in response:
                         # https: // developer.apple.com/documentation/applemusicapi/errorsresponse
@@ -115,7 +113,6 @@ class SoundcloudAPI:
             "Authorization": f"OAuth {self.access_token}",
             "Content-Type": "application/json"
         }
-        self.session = create_http_session()
 
     def create_playlist(self, title, sharing="public", track_ids=None, description=None):
         url = f"{SOUNDCLOUD_URL}/playlists"
@@ -130,7 +127,7 @@ class SoundcloudAPI:
 
         if description:
             data["playlist"]["description"] = description
-        response = self.session.post(url, headers=self.headers, data=json.dumps(data))
+        response = http_post(url, headers=self.headers, data=json.dumps(data))
         return response.json()
 
     def add_playlist_tracks(self, playlist_id, track_ids):
@@ -140,7 +137,7 @@ class SoundcloudAPI:
                 "tracks": [{"id": track_id} for track_id in track_ids]
             }
         }
-        response = self.session.put(url, headers=self.headers, data=json.dumps(data))
+        response = http_put(url, headers=self.headers, data=json.dumps(data))
         return response.json()
 
     def update_playlist_details(self, playlist_id, title=None, description=None, track_ids=None):
@@ -155,7 +152,7 @@ class SoundcloudAPI:
         if track_ids:
             data["playlist"]["tracks"] = [{"id": track_id} for track_id in track_ids]
 
-        response = self.session.put(url, headers=self.headers, data=json.dumps(list(data)))
+        response = http_put(url, headers=self.headers, data=json.dumps(list(data)))
         return response.json()
 
     def get_track_details(self, track_ids):
@@ -163,7 +160,7 @@ class SoundcloudAPI:
 
         for track_id in track_ids:
             url = f"{SOUNDCLOUD_URL}/tracks/{track_id}"
-            response = self.session.get(url, headers=self.headers)
+            response = http_get(url, headers=self.headers)
             data = response.json()
             track_details.append(data)
 
@@ -173,7 +170,7 @@ class SoundcloudAPI:
     def get_playlist(self, playlist_id):
         url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}"
 
-        response = self.session.get(url, headers=self.headers)
+        response = http_get(url, headers=self.headers)
         return response.json()
 
 
@@ -182,26 +179,9 @@ class SoundcloudAPI:
         url = f"{SOUNDCLOUD_URL}/playlists/{playlist_id}/tracks"
 
         while url:
-            response = self.session.get(url, headers=self.headers, params=kwargs)
+            response = http_get(url, headers=self.headers, params=kwargs)
             data = response.json()
             tracks.extend(data.get('collection', []))
             url = data.get("next_href")
 
         return tracks
-
-
-def create_http_session():
-    """ Create an HTTP session with retry strategy for handling rate limits and server errors.
-    """
-    retry_strategy = Retry(
-        total=3,
-        status_forcelist=[429, 500, 502, 503, 504],
-        allowed_methods=["HEAD", "GET", "OPTIONS"],
-        backoff_factor=1
-    )
-
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    http = requests.Session()
-    http.mount("https://", adapter)
-    http.mount("http://", adapter)
-    return http

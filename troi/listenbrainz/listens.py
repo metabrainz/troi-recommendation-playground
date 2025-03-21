@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from time import sleep
 
-import requests
-
+from troi.http_request import http_get
 from troi import Element, Recording
 
 
@@ -45,15 +44,11 @@ class RecentListensTimestampLookup(Element):
         min_ts = int(min_dt.timestamp())
         while True:
             headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
-            response = requests.get(
+            response = http_get(
                 f"https://api.listenbrainz.org/1/user/{self.user_name}/listens",
                 params={"min_ts": min_ts, "count": 100},
                 headers=headers
             )
-            if response.status_code == 429:
-                sleep(2)
-                continue
-
             response.raise_for_status()
             data = response.json()["payload"]
             if len(data["listens"]) == 0:

@@ -3,11 +3,10 @@ from time import sleep
 import troi
 from random import randint, shuffle
 
-import requests
-
 from troi import Recording
 from troi.plist import plist
 from troi import TARGET_NUMBER_OF_RECORDINGS
+from troi.http_request import http_get
 
 
 class LBRadioTagRecordingElement(troi.Element):
@@ -36,19 +35,12 @@ class LBRadioTagRecordingElement(troi.Element):
             Fetch similar tags from LB
         """
 
-        while True:
-            r = requests.post("https://labs.api.listenbrainz.org/tag-similarity/json", json=[{"tag": tag}])
-            if r.status_code == 429:
-                sleep(2)
-                continue
+        r = http_post("https://labs.api.listenbrainz.org/tag-similarity/json", json=[{"tag": tag}])
+        if r.status_code == 404:
+            return plist()
 
-            if r.status_code == 404:
-                return plist()
-
-            if r.status_code != 200:
-                raise RuntimeError(f"Cannot fetch similar tags. {r.text}")
-
-            break
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch similar tags. {r.text}")
 
         return plist(r.json())
 

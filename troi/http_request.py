@@ -11,7 +11,7 @@ domain_ratelimit_lookup = {}
 def requests_retry_session(
     retries=3,
     backoff_factor=0.3,
-    status_forcelist=(500, 502, 504, 503, 419),
+    status_forcelist=(500, 502, 504, 503, 429),
     session=None,
 ):
     session = session or requests.Session()
@@ -34,6 +34,9 @@ def http_get(url, headers=None, params=None, **kwargs):
 def http_post(url, headers=None, params=None, **kwargs):
     return http_fetch(url, "POST", headers=headers, params=params, **kwargs)
 
+def http_put(url, headers=None, params=None, **kwargs):
+    return http_fetch(url, "PUT", headers=headers, params=params, **kwargs)
+
 def http_fetch(url, method, headers=None, params=None, **kwargs):
 
     if not headers:
@@ -49,10 +52,15 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
         _key = parse.scheme + parse.netloc
         if _key in domain_ratelimit_lookup:
             (limit, remaining, reset) = domain_ratelimit_lookup[_key]
-            time_left = reset - time()
-            if time_left > 0:
-                time_to_wait = time_left / remaining
-                sleep(time_to_wait)
+
+            # MB's rate limit headers are borked, so for the time being, use nearly 1s
+            if parse.netloc.startswith("musicbrainz.org"):
+                time_left = .9
+            else:
+                time_left = reset - time()
+                if time_left > 0:
+                    time_to_wait = time_left / remaining
+                    sleep(time_to_wait)
             del domain_ratelimit_lookup[_key]
 
         if method == "GET":
@@ -60,13 +68,16 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
         else:
             r = session.post(url, params=params, headers=headers, **kwargs)
 
-        reset = int(r.headers["X-RateLimit-Reset"])
-        remaining = int(r.headers["X-RateLimit-Remaining"])
-        limit = int(r.headers["X-RateLimit-Limit"])
-        domain_ratelimit_lookup[_key] = (limit, remaining, reset)
+        try:
+            reset = int(r.headers["X-RateLimit-Reset"])
+            remaining = int(r.headers["X-RateLimit-Remaining"])
+            limit = int(r.headers["X-RateLimit-Limit"])
+            domain_ratelimit_lookup[_key] = (limit, remaining, reset)
+        except KeyError:
+            pass
 
         # This should never happen, but if it does, just retry
-        if r.status_code in (503, 419):
+        if r.status_code in (503, 429):
             continue
 
         return r
