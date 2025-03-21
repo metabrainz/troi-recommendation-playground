@@ -14,6 +14,8 @@ def requests_retry_session(
     status_forcelist=(500, 502, 504, 503, 429),
     session=None,
 ):
+    """ Create the session object for retry handling """
+
     session = session or requests.Session()
     retry = Retry(
         total=retries,
@@ -29,15 +31,23 @@ def requests_retry_session(
 
 
 def http_get(url, headers=None, params=None, **kwargs):
+    """ Convenience function for http get"""
     return http_fetch(url, "GET", headers=headers, params=params, **kwargs)
 
 def http_post(url, headers=None, params=None, **kwargs):
+    """ Convenience function for http post"""
     return http_fetch(url, "POST", headers=headers, params=params, **kwargs)
 
 def http_put(url, headers=None, params=None, **kwargs):
+    """ Convenience function for http put"""
     return http_fetch(url, "PUT", headers=headers, params=params, **kwargs)
 
 def http_fetch(url, method, headers=None, params=None, **kwargs):
+    """ HTTP fetch wrapper that uses HTTPAdapter sessions with back-off retries
+        and support for delaying calls based on the RateLimit headers provided
+        by the API. Note: MusicBrainz' Rate Limit headers are busted, so we use a 1s
+        delay for that. Will need to remove after https://tickets.metabrainz.org/browse/MBH-589
+        is fixed. """
 
     if not headers:
         headers = {}
@@ -81,12 +91,3 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
             continue
 
         return r
-
-if __name__ == "__main__":
-    print("\nLISTENBRAINZ")
-    for i in range(500):
-        resp = http_get("https://api.listenbrainz.org/1/metadata/recording?recording_mbids=e97f805a-ab48-4c52-855e-07049142113d")
-
-    #print("\nMUSICBRAINZ")
-    #for i in range(10):
-    #    resp = http_get("https://musicbrainz.org/ws/2/artist/8f6bd1e4-fbe1-4f50-aa9b-94c450ec0f11?fmt=json")
