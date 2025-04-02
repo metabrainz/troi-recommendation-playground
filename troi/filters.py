@@ -340,7 +340,7 @@ class LatestListenedAtFilterElement(troi.Element):
         If that field is None, treat it as if the user hasn't listened to this track
         recently or at all and keep the track in the list.
 
-        :param min_number_of_days: The number of tracks that must have passed for a track to be kept.
+        :param min_number_of_days: The number of days that must have passed for a track to be kept.
     '''
 
     MIN_ITEMS_REQUIRED = 5
