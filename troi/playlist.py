@@ -358,7 +358,6 @@ class PlaylistElement(Element):
         return submitted
 
     def submit_to_soundcloud(self,
-                             user_id: str,
                              access_token: str,
                              is_public: bool = True,
                              existing_urls: str = None):

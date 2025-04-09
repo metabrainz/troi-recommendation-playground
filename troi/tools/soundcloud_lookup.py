@@ -157,7 +157,7 @@ def get_soundcloud_playlist(developer_token, playlist_id):
 
 
 def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, is_public: bool = True,
-                    existing_url: str = None):
+                         existing_url: str = None):
     """ Submit or update an existing soundcloud playlist.
 
     If existing urls are specified then is_public and is_collaborative arguments are ignored.
@@ -191,7 +191,7 @@ def submit_to_soundcloud(soundcloud: SoundcloudAPI, playlist, is_public: bool = 
             description=playlist.description
         )
         playlist_id = soundcloud_playlist["id"]
-        playlist_url = soundcloud_playlist["permalink"]
+        playlist_url = soundcloud_playlist["permalink_url"]
     else:
         # existing playlist, clear it
         tracks = map(lambda id: dict(id=id), [0])

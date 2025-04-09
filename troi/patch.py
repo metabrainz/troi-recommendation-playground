@@ -185,17 +185,30 @@ class Patch(ABC):
 
         save = self.patch_args["save"]
         if result is not None and spotify and upload:
-            for url, _ in playlist.submit_to_spotify(spotify["user_id"], spotify["token"], spotify["is_public"],
-                                                     spotify["is_collaborative"], spotify.get("existing_urls", [])):
+            for url, _ in playlist.submit_to_spotify(
+                spotify["user_id"],
+                spotify["token"],
+                spotify["is_public"],
+                spotify["is_collaborative"],
+                spotify.get("existing_urls", [])
+            ):
                 logger.info("Submitted playlist to spotify: %s" % url)
 
         if result is not None and soundcloud and upload:
-            for url, _ in playlist.submit_to_soundcloud(soundcloud["user_id"], soundcloud["token"], soundcloud["is_public"],
-                                                soundcloud.get("existing_urls", [])):
+            for url, _ in playlist.submit_to_soundcloud(
+                soundcloud["token"],
+                soundcloud["is_public"],
+                soundcloud.get("existing_urls", [])
+            ):
                 logger.info("Submitted playlist to soundcloud: %s" % url)
 
         if result is not None and apple_music and upload:
-            for url, _ in playlist.submit_to_apple_music(apple_music["music_user_token"], apple_music["developer_token"], apple_music["is_public"], apple_music.get("existing_urls", [])):
+            for url, _ in playlist.submit_to_apple_music(
+                apple_music["music_user_token"],
+                apple_music["developer_token"],
+                apple_music["is_public"],
+                apple_music.get("existing_urls", [])
+            ):
                 logger.info("Submitted playlist to apple music: %s" % url)
 
         created_for = self.patch_args["created_for"]
