@@ -23,7 +23,7 @@ return_json = [
 
 class TestArtistCreditNameLookup(unittest.TestCase):
 
-    @unittest.mock.patch('requests.get')
+    @unittest.mock.patch('troi.http_request.http_get')
     def test_read(self, req):
 
         mock = unittest.mock.MagicMock()

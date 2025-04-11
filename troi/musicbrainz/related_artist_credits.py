@@ -2,8 +2,7 @@ import copy
 from collections import defaultdict
 from time import sleep
 
-import requests
-
+import troi.http_request
 from troi import Element, Recording, PipelineError, DEVELOPMENT_SERVER_URL
 
 
@@ -33,17 +32,9 @@ class RelatedArtistCreditsElement(Element):
         params = {"[artist_credit_id]": ac_ids,
                   "threshold": self.threshold}
 
-        while True:
-            r = requests.get(self.SERVER_URL, params=params)
-            if r.status_code == 429:
-                sleep(2)
-                continue
-
-            if r.status_code != 200:
-                raise PipelineError("Cannot fetch related artist credits from ListenBrainz: HTTP code %d" % r.status_code)
-
-            break
-
+        r = troi.http_request.http_get(self.SERVER_URL, params=params)
+        if r.status_code != 200:
+            raise PipelineError("Cannot fetch related artist credits from ListenBrainz: HTTP code %d" % r.status_code)
 
         try:
             relations = r.text

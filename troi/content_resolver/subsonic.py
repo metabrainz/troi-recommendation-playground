@@ -54,8 +54,7 @@ class SubsonicDatabase(Database):
             self.config.SUBSONIC_HOST,
             username=self.config.SUBSONIC_USER,
             port=self.config.SUBSONIC_PORT,
-            salt=self.config.SUBSONIC_SALT,
-            token=self.config.SUBSONIC_TOKEN,
+            password=self.config.SUBSONIC_PASSWORD
         )
 
     def run_sync(self):

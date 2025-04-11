@@ -5,13 +5,13 @@ import sys
 from time import sleep
 
 import peewee
-import requests
 
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.utils import select_recordings_on_popularity
 from troi.recording_search_service import RecordingSearchByArtistService
 from troi.plist import plist
+from troi.http_request import http_get
 
 OVERHYPED_SIMILAR_ARTISTS = [
     "b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d",  # The Beatles
@@ -38,21 +38,15 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
     def get_similar_artists(self, artist_mbid):
         """ Fetch similar artists, given an artist_mbid. Returns a sored plist of artists. """
 
-        while True:
-            r = requests.post("https://labs.api.listenbrainz.org/similar-artists/json",
-                              json=[{
-                                  'artist_mbids':
-                                  [artist_mbid],
-                                  'algorithm':
-                                  "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
-                              }])
-            if r.status_code == 429:
-                sleep(2)
-                continue
-            if r.status_code != 200:
-                raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
-
-            break
+        r = http_post("https://labs.api.listenbrainz.org/similar-artists/json",
+                          json=[{
+                              'artist_mbids':
+                              [artist_mbid],
+                              'algorithm':
+                              "session_based_days_7500_session_300_contribution_5_threshold_10_limit_100_filter_True_skip_30"
+                          }])
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch similar artists: {r.status_code} ({r.text})")
 
         artists = r.json()
 

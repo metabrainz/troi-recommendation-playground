@@ -1,11 +1,11 @@
 import logging
 
-import requests
 from more_itertools import chunked
 
 from troi.tools.apple_lookup import get_tracks_from_apple_playlist
 from troi.tools.spotify_lookup import get_tracks_from_spotify_playlist
 from troi.tools.soundcloud_lookup import get_tracks_from_soundcloud_playlist
+from troi.http_request import http_post
 
 MAX_LOOKUPS_PER_POST = 50
 MBID_LOOKUP_URL = "https://api.listenbrainz.org/1/metadata/lookup/"
@@ -37,7 +37,7 @@ def mbid_mapping_tracks(track_lists):
         params = {
             "recordings": tracks
         }
-        response = requests.post(MBID_LOOKUP_URL, json=params)
+        response = http_post(MBID_LOOKUP_URL, json=params)
         if response.status_code == 200:
             data = response.json()
             for d in data:

@@ -20,7 +20,7 @@ return_json = [
 
 class TestAreaLookup(unittest.TestCase):
 
-    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('troi.http_request.http_post')
     def test_area_lookup(self, req):
 
         mock = unittest.mock.MagicMock()
