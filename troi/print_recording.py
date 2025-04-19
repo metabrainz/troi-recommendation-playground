@@ -1,7 +1,6 @@
 import datetime
-import logging
-
 from troi import Recording, Playlist, PipelineError
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -21,90 +20,108 @@ class PrintRecordingList:
         self.print_genre = False
         self.print_latest_listened_at = False
         self.print_ranking = False
-        self.print_popularity = False
 
     def _examine_recording_for_headers(self, recording):
-        # Look at the first item and decide which columns to show
-        if recording.year is not None:
+        if getattr(recording, 'year', None) is not None:
             self.print_year = True
-
-        if "listen_count" in recording.listenbrainz:
+        if "listen_count" in getattr(recording, 'listenbrainz', {}):
             self.print_listen_count = True
-
-        if "bpm" in recording.acousticbrainz:
+        if "bpm" in getattr(recording, 'acousticbrainz', {}):
             self.print_bpm = True
-
-        if "moods" in recording.acousticbrainz:
+        if "moods" in getattr(recording, 'acousticbrainz', {}):
             self.print_moods = True
-
-        if "genres" in recording.musicbrainz or "tags" in recording.musicbrainz:
+        if "genres" in getattr(recording, 'musicbrainz', {}) or "tags" in getattr(recording, 'musicbrainz', {}):
             self.print_genre = True
-
-        if "latest_listened_at" in recording.listenbrainz:
+        if "latest_listened_at" in getattr(recording, 'listenbrainz', {}):
             self.print_latest_listened_at = True
-
-        if recording.ranking:
+        if getattr(recording, 'ranking', None):
             self.print_ranking = True
-        
-        if "popularity" in recording.musicbrainz:
-            self.print_popularity = True
 
-    def _print_recording(self, recording, year=False, popularity=False, listen_count=False, bpm=False, moods=False, genre=False):
-        """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
-            The year, listen_count, bpm, mood and genre arguments here can override the settings
-            gleaned from the first recording submitted to this class"""
+    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
+        artist = getattr(recording.artist, 'name', None) or "[missing]"
+        if artist == "[missing]":
+            artist = self._get_artist_fallback(recording)
 
-        if recording.artist_credit is None:
-            artist = "[missing]"
-        elif recording.artist_credit.name:
-            artist = recording.artist_credit.name
-        else: 
-            artist = "[[ unknown ]]"
+        rec_name = getattr(recording, 'name', f"[[ mbid:{getattr(recording, 'mbid', '[[ ]]')[:5] } ]]")
+        rec_mbid = getattr(recording, 'mbid', '')[:5]
 
-        if recording.name is None:
-            rec_name = "[[ mbid:%s ]]" % recording.mbid
-        else:
-            rec_name = recording.name
-        rec_mbid = recording.mbid[:5] if recording.mbid else "[[ ]]"
+        print(f"{rec_name:<60} {artist:<50} {rec_mbid:5}", end='')
 
-        text = "%-60s %-50s %5s" % (rec_name[:59], artist[:49], rec_mbid)
-
-        if recording.artist_credit is not None:
-            if recording.artist_credit.artists is not None:
-                text += " %-20s" % ",".join([a.mbid[:5] for a in recording.artist_credit.artists])
-            if recording.artist_credit.artist_credit_id is not None:
-                text += " %8d" % recording.artist_credit.artist_credit_id
-
-        if self.print_year and recording.year is not None:
-            text += " %d" % recording.year
-        if self.print_ranking:
-            text += " %.3f" % recording.ranking
+        if self.print_year and getattr(recording, 'year', None):
+            print(f" {recording.year:4}", end='')
+        if self.print_ranking and getattr(recording, 'ranking', None):
+            print(f" {recording.ranking:.3f}", end='')
         if self.print_listen_count or listen_count:
-            text += " %4d" % recording.listenbrainz['listen_count']
+            print(f" {getattr(recording.listenbrainz, 'listen_count', 0):4}", end='')
         if self.print_bpm or bpm:
-            text += " %3d" % recording.acousticbrainz['bpm']
-        if self.print_popularity or popularity:
-            text += " %.1f" % recording.musicbrainz.get('popularity', 0.0)
+            print(f" {getattr(recording.acousticbrainz, 'bpm', 0):3}", end='')
         if self.print_latest_listened_at:
-            if recording.listenbrainz["latest_listened_at"] is None:
-                text += " never    "
+            last_listened = getattr(recording.listenbrainz, 'latest_listened_at', None)
+            if last_listened is None:
+                print(" never    ", end="")
             else:
-                now = datetime.datetime.now()
-                td = now - recording.listenbrainz["latest_listened_at"]
-                text += " %3d days " % td.days
+                td = datetime.datetime.now() - last_listened
+                print(f" {td.days:3} days ", end="")
         if self.print_moods or moods:
-            # TODO: make this print more than agg, but given the current state of moods/coverage...
-            text = " mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"])
+            mood_aggressive = getattr(recording.acousticbrainz, 'moods', {}).get("mood_aggressive", 0)
+            print(f" mood agg {int(100 * mood_aggressive):3}", end='')
         if self.print_genre or genre:
-            text = " %s" % ",".join(recording.musicbrainz.get("genres", []))
-            text = " %s" % ",".join(recording.musicbrainz.get("tags", []))
+            genres = getattr(recording.musicbrainz, 'genres', [])
+            tags = getattr(recording.musicbrainz, 'tags', [])
+            print(f" {', '.join(genres + tags)}", end='')
 
-        logger.info(text)
+        print()
+
+    def _get_artist_fallback(self, recording):
+        if getattr(recording.artist, 'mbids', None):
+            return f"[[ artist_mbids:{','.join(recording.artist.mbids)} ]]"
+        if getattr(recording.artist, 'artist_credit_id', None):
+            return f"[[ artist_credit_id:{recording.artist.artist_credit_id} ]]"
+        return "[[ unknown ]]"
 
     def print(self, entity):
-        """ Print out a list(Recording) or list(Playlist). """
+        try:
+            if isinstance(entity, (list, Playlist)) and entity:
+                recordings = entity if isinstance(entity, list) else entity.recordings
+                if recordings and isinstance(recordings[0], Recording):
+                    self._examine_recording_for_headers(recordings[0])
 
-        if type(entity) == Recording:
+                    print(f"{'Recording':<60} {'Artist':<50} {'MBID':5}", end='')
+
+                    has_artist_mbids = False
+                    has_artist_credit_id = False
+                    for rec in recordings:
+                        if rec.artist:
+                            if getattr(rec.artist, 'mbids', None):
+                                has_artist_mbids = True
+                            if getattr(rec.artist, 'artist_credit_id', None):
+                                has_artist_credit_id = True
+
+                    if has_artist_mbids:
+                        print(f" {'Artist MBIDs':<20}", end='')
+                    if has_artist_credit_id:
+                        print(f" {'Credit ID':8}", end='')
+                    if self.print_year:
+                        print(f" {'Year':4}", end='')
+                    if self.print_ranking:
+                        print(f" {'Rank':5}", end='')
+                    if self.print_listen_count:
+                        print(f" {'Lis#':4}", end='')
+                    if self.print_bpm:
+                        print(f" {'BPM':3}", end='')
+                    if self.print_latest_listened_at:
+                        print(f" {'LastList':9}", end='')
+                    if self.print_moods:
+                        print(f" {'Mood Agg':11}", end='')
+                    if self.print_genre:
+                        print(f" {'Genres/Tags':<30}", end='')
+                    print()
+                    print("-" * 120)
+
+        except Exception as e:
+            logger.exception(f"Error occurred while printing: {e}")
+
+        if isinstance(entity, Recording):
             self._examine_recording_for_headers(entity)
             self._print_recording(entity)
             return
@@ -112,11 +129,11 @@ class PrintRecordingList:
         for rec in entity:
             self._examine_recording_for_headers(rec)
 
-        if type(entity) == list and type(entity[0]) == Recording:
+        if isinstance(entity, list) and isinstance(entity[0], Recording):
             for rec in entity:
                 self._print_recording(rec)
 
-        if type(entity) == Playlist:
+        if isinstance(entity, Playlist):
             for rec in entity.recordings:
                 self._print_recording(rec)
 
