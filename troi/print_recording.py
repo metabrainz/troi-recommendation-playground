@@ -1,11 +1,7 @@
 import datetime
-import logging
-
 from troi import Recording, Playlist, PipelineError
 
-logger = logging.getLogger(__name__)
-
-class PrintRecordingList:
+class PrintRecordingList():
     """
         Print a list of recordings in a sane matter intended to fit on a reasonably sized screen.
         It prints recording name and artist name always, and year, bpm, listen_count or moods
@@ -21,7 +17,6 @@ class PrintRecordingList:
         self.print_genre = False
         self.print_latest_listened_at = False
         self.print_ranking = False
-        self.print_popularity = False
 
     def _examine_recording_for_headers(self, recording):
         # Look at the first item and decide which columns to show
@@ -45,64 +40,103 @@ class PrintRecordingList:
 
         if recording.ranking:
             self.print_ranking = True
-        
-        if "popularity" in recording.musicbrainz:
-            self.print_popularity = True
 
-    def _print_recording(self, recording, year=False, popularity=False, listen_count=False, bpm=False, moods=False, genre=False):
+    def _print_recording(self, recording, year=False, listen_count=False, bpm=False, moods=False, genre=False):
         """ Print out a recording, formatting it nicely to fit in a reasonably sized window.
             The year, listen_count, bpm, mood and genre arguments here can override the settings
             gleaned from the first recording submitted to this class"""
 
-        if recording.artist_credit is None:
-            artist = "[missing]"
-        elif recording.artist_credit.name:
-            artist = recording.artist_credit.name
-        else: 
-            artist = "[[ unknown ]]"
 
+        if recording.artist is None:
+            artist = "[missing]"
+        elif recording.artist.name is None:
+            if recording.artist.mbids is not None:
+                artist = "[[ artist_mbids:%s ]]" % ",".join(recording.artist.mbids)
+            elif recording.artist.artist_credit_id is not None:
+                artist = "[[ artist_credit_id:%d ]]" % (recording.artist.artist_credit_id)
+            else:
+                artist = "[[ unknown ]]"
+        else:
+            artist = recording.artist.name
         if recording.name is None:
             rec_name = "[[ mbid:%s ]]" % recording.mbid
         else:
             rec_name = recording.name
         rec_mbid = recording.mbid[:5] if recording.mbid else "[[ ]]"
+        print("%-60s %-50s %5s" % (rec_name[:59], artist[:49], rec_mbid), end='')
 
-        text = "%-60s %-50s %5s" % (rec_name[:59], artist[:49], rec_mbid)
-
-        if recording.artist_credit is not None:
-            if recording.artist_credit.artists is not None:
-                text += " %-20s" % ",".join([a.mbid[:5] for a in recording.artist_credit.artists])
-            if recording.artist_credit.artist_credit_id is not None:
-                text += " %8d" % recording.artist_credit.artist_credit_id
+        if recording.artist is not None:
+            if recording.artist.mbids is not None:
+                print(" %-20s" % ",".join([ mbid[:5] for mbid in recording.artist.mbids ]), end='')
+            if recording.artist.artist_credit_id is not None:
+                print(" %8d" % recording.artist.artist_credit_id, end='')
 
         if self.print_year and recording.year is not None:
-            text += " %d" % recording.year
+            print(" %d" % recording.year, end='')
         if self.print_ranking:
-            text += " %.3f" % recording.ranking
+            print(" %.3f" % recording.ranking, end='')
         if self.print_listen_count or listen_count:
-            text += " %4d" % recording.listenbrainz['listen_count']
+            print(" %4d" % recording.listenbrainz['listen_count'], end='')
         if self.print_bpm or bpm:
-            text += " %3d" % recording.acousticbrainz['bpm']
-        if self.print_popularity or popularity:
-            text += " %.1f" % recording.musicbrainz.get('popularity', 0.0)
+            print(" %3d" % recording.acousticbrainz['bpm'], end='')
         if self.print_latest_listened_at:
             if recording.listenbrainz["latest_listened_at"] is None:
-                text += " never    "
+                print(" never    ", end="")
             else:
                 now = datetime.datetime.now()
                 td = now - recording.listenbrainz["latest_listened_at"]
-                text += " %3d days " % td.days
+                print(" %3d days " % td.days, end="")
         if self.print_moods or moods:
             # TODO: make this print more than agg, but given the current state of moods/coverage...
-            text = " mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"])
+            print(" mood agg %3d" % int(100 * recording.acousticbrainz['moods']["mood_aggressive"]), end='')
         if self.print_genre or genre:
-            text = " %s" % ",".join(recording.musicbrainz.get("genres", []))
-            text = " %s" % ",".join(recording.musicbrainz.get("tags", []))
+            print(" %s" % ",".join(recording.musicbrainz.get("genres", [])), end='')
+            print(" %s" % ",".join(recording.musicbrainz.get("tags", [])), end='')
 
-        logger.info(text)
+        print()
 
     def print(self, entity):
         """ Print out a list(Recording) or list(Playlist). """
+
+        try:
+            if isinstance(entity, (list, Playlist)) and entity:
+                recordings = entity if isinstance(entity, list) else entity.recordings
+                if recordings and isinstance(recordings[0], Recording):
+                    self._examine_recording_for_headers(recordings[0])
+                    print("%-60s %-50s %5s" % ("Recording", "Artist", "MBID"), end='')
+                    
+                    has_artist_mbids = False
+                    has_artist_credit_id = False
+                    for rec in recordings:
+                        if rec.artist is not None:
+                            if rec.artist.mbids is not None:
+                                has_artist_mbids = True
+                            if rec.artist.artist_credit_id is not None:
+                                has_artist_credit_id = True
+                    
+                    if has_artist_mbids:
+                        print(" %-20s" % "Artist MBIDs", end='')
+                    if has_artist_credit_id:
+                        print(" %8s" % "Credit ID", end='')
+                    
+                    if self.print_year:
+                        print(" %4s" % "Year", end='')
+                    if self.print_ranking:
+                        print(" %5s" % "Rank", end='')
+                    if self.print_listen_count:
+                        print(" %4s" % "Lis#", end='')
+                    if self.print_bpm:
+                        print(" %3s" % "BPM", end='')
+                    if self.print_latest_listened_at:
+                        print(" %9s" % "LastList", end='')
+                    if self.print_moods:
+                        print(" %11s" % "Mood Agg", end='')
+                    if self.print_genre:
+                        print(" %s" % "Genres/Tags", end='')
+                    print()
+                    print("-" * 120)
+        except:
+            pass
 
         if type(entity) == Recording:
             self._examine_recording_for_headers(entity)
