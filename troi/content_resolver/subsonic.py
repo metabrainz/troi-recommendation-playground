@@ -11,7 +11,7 @@ from troi.content_resolver.model.recording import Recording, FileIdType
 from troi.content_resolver.utils import bcolors
 from troi.content_resolver.py_sonic_fix import FixedConnection
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("troi_subsonic_scan")
 
 
 class SubsonicDatabase(Database):
