@@ -303,7 +303,7 @@ return_json = {
 
 class TestRecordingLookup(unittest.TestCase):
 
-    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('troi.http_request.http_post')
     def test_read(self, req):
 
         mock = unittest.mock.MagicMock()

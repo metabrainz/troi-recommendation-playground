@@ -1,10 +1,10 @@
 from collections import defaultdict
 from time import sleep
 
-import requests
 import ujson
 
 from troi import Element, Artist, ArtistCredit, PipelineError, Recording, Playlist, Release
+import troi.http_request
 
 
 class RecordingLookupElement(Element):
@@ -52,17 +52,10 @@ class RecordingLookupElement(Element):
         if self.lookup_tags:
             inc += " tag"
 
-        while True:
-            headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
-            r = requests.post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc}, headers=headers)
-            if r.status_code == 429:
-                sleep(2)
-                continue
-
-            if r.status_code != 200:
-                raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
-
-            break
+        headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
+        r = troi.http_request.http_post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc}, headers=headers)
+        if r.status_code != 200:
+            raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
 
         try:
             data = ujson.loads(r.text)

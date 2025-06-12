@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from time import sleep
 
-import requests
-
+from troi.http_request import http_get
 from troi import Element, Recording
 
 
@@ -44,17 +43,11 @@ class ListensFeedbackLookup(Element):
         for idx in range(0, len(mbids), batch_size):
             recording_mbids = mbids[idx: idx + batch_size]
 
-            while True:
-                response = requests.get(
-                    f"https://api.listenbrainz.org/1/feedback/user/{self.user_name}/get-feedback-for-recordings",
-                    params={"recording_mbids": ",".join(recording_mbids)},
-                    headers=headers
-                )
-                if response.status_code == 429:
-                    sleep(2)
-                    continue
-
-                break
+            response = http_get(
+                f"https://api.listenbrainz.org/1/feedback/user/{self.user_name}/get-feedback-for-recordings",
+                params={"recording_mbids": ",".join(recording_mbids)},
+                headers=headers
+            )
             response.raise_for_status()
             data = response.json()["feedback"]
             if len(data) == 0:

@@ -2,10 +2,9 @@ import troi
 from time import sleep
 from random import shuffle
 
-import requests
-
 from troi import Recording
 from troi import TARGET_NUMBER_OF_RECORDINGS
+from troi.http_request import http_get
 
 
 class LBRadioPlaylistRecordingElement(troi.Element):
@@ -30,17 +29,11 @@ class LBRadioPlaylistRecordingElement(troi.Element):
     def read(self, entities):
 
         # Fetch the playlist
-        while True:
-            r = requests.get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
-            if r.status_code == 404:
-                raise RuntimeError(f"Cannot find playlist {self.mbid}.")
-            if r.status_code == 429:
-                sleep(2)
-                continue
-            if r.status_code != 200:
-                raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
-
-            break
+        r = http_get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
+        if r.status_code == 404:
+            raise RuntimeError(f"Cannot find playlist {self.mbid}.")
+        if r.status_code != 200:
+            raise RuntimeError(f"Cannot fetch playlist {self.mbid}. {r.text}")
 
         # Give feedback about the playlist
         self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")

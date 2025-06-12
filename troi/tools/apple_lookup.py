@@ -1,8 +1,8 @@
 import logging
-import requests
 
 from .utils import AppleMusicAPI, AppleMusicException
 from more_itertools import chunked
+from troi.http_request import http_post
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ APPLE_MUSIC_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/apple-music-id-f
 def lookup_apple_music_ids(recordings):
     """ Given a list of Recording elements, try to find Apple Music track ids from labs api apple_music_id lookup_from_mbid
     and add those to the recordings. """
-    response = requests.post(
+    response = http_post(
         APPLE_MUSIC_IDS_LOOKUP_URL,
         json=[{"recording_mbid": recording.mbid} for recording in recordings]
     )
