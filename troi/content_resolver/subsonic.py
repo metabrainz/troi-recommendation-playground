@@ -52,9 +52,9 @@ class SubsonicDatabase(Database):
 
         self.run_sync()
 
-        logboth("Checked %s albums:" % self.total)
-        logboth("  %5d albums matched" % self.matched)
-        logboth("  %5d recordings with errors" % self.error)
+        logger.info("Checked %s albums:" % self.total)
+        logger.info("  %5d albums matched" % self.matched)
+        logger.info("  %5d recordings with errors" % self.error)
 
     def connect(self):
         if not self.config:
@@ -81,7 +81,7 @@ class SubsonicDatabase(Database):
 
         cursor = db.connection().cursor()
 
-        logboth("[ load albums ]")
+        logger.info("[ load albums ]")
         album_ids = set()
         albums = []
         offset = 0
@@ -95,7 +95,7 @@ class SubsonicDatabase(Database):
             if album_count < self.BATCH_SIZE:
                 break
 
-        logboth("[ loaded %d albums ]" % len(album_ids))
+        logger.info("[ loaded %d albums ]" % len(album_ids))
 
         if not self.quiet:
             pbar = tqdm(total=len(album_ids))
