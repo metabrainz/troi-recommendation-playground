@@ -16,18 +16,15 @@ logger = logging.getLogger("troi_subsonic_scan")
 APP_LOG_LEVEL_NUM = 19
 logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
 
-def applog(self, message, *args, **kwargs):
-    if self.isEnabledFor(APP_LOG_LEVEL_NUM):
+def applog(message, *args, **kwargs):
+    if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
         self._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
 
-def logboth(self, message, *args, **kwargs):
-    if self.isEnabledFor(APP_LOG_LEVEL_NUM):
-        self._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
-    if self.isEnabledFor(logging.INFO):
-        self._log(logging.INFO, message, args, **kwargs)
-
-logger.applog = applog
-logger.logboth = logboth
+def logboth(message, *args, **kwargs):
+    if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
+        logger._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
+    if logger.isEnabledFor(logging.INFO):
+        logger._log(logging.INFO, message, args, **kwargs)
 
 
 class SubsonicDatabase(Database):
