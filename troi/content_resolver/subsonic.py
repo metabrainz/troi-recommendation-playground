@@ -18,7 +18,7 @@ logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
 
 def applog(message, *args, **kwargs):
     if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
-        self._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
+        logger._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
 
 def logboth(message, *args, **kwargs):
     if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
