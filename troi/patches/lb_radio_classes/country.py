@@ -1,12 +1,11 @@
 import logging
 from time import sleep
 
-import requests
-
 import troi.patch
 from troi import TARGET_NUMBER_OF_RECORDINGS
 from troi.plist import plist
 from troi import Element, ArtistCredit, Recording, PipelineError, DEVELOPMENT_SERVER_URL
+from troi.http_request import http_get, http_post
 
 logger = logging.getLogger(__name__)
 
@@ -35,42 +34,32 @@ class LBRadioCountryRecordingElement(Element):
 
     def lookup_area_by_name(self, area_name):
 
-        while True:
-            r = requests.get("https://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
-            if r.status_code in (503, 429):
-                sleep(1)
-                continue
+        r = http_get("https://musicbrainz.org/ws/2/area?query=%s&fmt=json" % area_name)
+        if r.status_code != 200:
+            raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
 
-            if r.status_code != 200:
-                raise PipelineError("Cannot fetch country code from MusicBrainz. HTTP code %s" % r.status_code)
+        try:
+            area = r.json()['areas'][0]
+        except IndexError:
+            return None
 
-            try:
-                area = r.json()['areas'][0]
-            except IndexError:
-                return None
-
-            if area["type"] == "Country":
-                return area["id"]
-            else:
-                return None
+        if area["type"] == "Country":
+            return area["id"]
+        else:
+            return None
 
     def lookup_area_by_mbid(self, area_mbid):
 
-        while True:
-            r = requests.get("https://musicbrainz.org/ws/2/area/%s?fmt=json" % area_mbid)
-            if r.status_code in (503, 429):
-                sleep(1)
-                continue
+        r = http_get("https://musicbrainz.org/ws/2/area/%s?fmt=json" % area_mbid)
+        if r.status_code != 200:
+            raise PipelineError("Cannot fetch country code from MusicBrainz. Error: %s" % r.text)
 
-            if r.status_code != 200:
-                raise PipelineError("Cannot fetch country code from MusicBrainz. Error: %s" % r.text)
+        area = r.json()
+        if area["type"] != "Country":
+            raise PipelineError("The specified area_mbid (%s) refers to a %s, but only countries are supported." %
+                                (area_mbid, area["type"]))
 
-            area = r.json()
-            if area["type"] != "Country":
-                raise PipelineError("The specified area_mbid (%s) refers to a %s, but only countries are supported." %
-                                    (area_mbid, area["type"]))
-
-            return area["name"]
+        return area["name"]
 
     def recording_from_row(self, row):
         if row['recording_mbid'] is None:
@@ -108,7 +97,7 @@ class LBRadioCountryRecordingElement(Element):
                 raise PipelineError("Cannot lookup country from mbid '%s'" % self.area_mbid)
 
         args = [{"[area_mbid]": self.area_mbid}]
-        r = requests.post(DEVELOPMENT_SERVER_URL + "/popular-recordings-by-country/json", json=args)
+        r = http_post(DEVELOPMENT_SERVER_URL + "/popular-recordings-by-country/json", json=args)
         if r.status_code != 200:
             raise PipelineError("Cannot fetch first dataset recordings from ListenBrainz. HTTP code %s (%s)" %
                                 (r.status_code, r.text))

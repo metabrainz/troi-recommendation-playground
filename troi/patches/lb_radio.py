@@ -2,7 +2,6 @@ from time import sleep
 from random import randint, shuffle
 from uuid import UUID
 
-import requests
 from urllib.parse import quote
 
 import troi.patch
@@ -23,6 +22,7 @@ from troi.patches.lb_radio_classes.recs import LBRadioRecommendationRecordingEle
 from troi.patches.lb_radio_classes.country import LBRadioCountryRecordingElement
 from troi import TARGET_NUMBER_OF_RECORDINGS, Playlist
 from troi.utils import interleave
+from troi.http_request import http_get
 
 
 class LBRadioPatch(troi.patch.Patch):
@@ -84,20 +84,13 @@ class LBRadioPatch(troi.patch.Patch):
             return self.lookup_artist_from_mbid(artist_name)
 
         err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
+        
+        r = http_get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
+        if r.status_code == 404:
+            raise RuntimeError(err_msg)
 
-        while True:
-            r = requests.get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
-            if r.status_code == 404:
-                raise RuntimeError(err_msg)
-
-            if r.status_code == 429:
-                sleep(2)
-                continue
-
-            if r.status_code != 200:
-                raise RuntimeError( f"Could not resolve artist name {artist_name}. Error {r.status_code} {r.text}")
-
-            break
+        if r.status_code != 200:
+            raise RuntimeError( f"Could not resolve artist name {artist_name}. Error {r.status_code} {r.text}")
 
         data = r.json()
         try:
@@ -114,19 +107,12 @@ class LBRadioPatch(troi.patch.Patch):
     def lookup_artist_from_mbid(self, artist_mbid):
         """ Fetch artist names for validation purposes """
 
-        while True:
-            r = requests.get(f"https://musicbrainz.org/ws/2/artist/%s?fmt=json" % str(artist_mbid))
-            if r.status_code == 404:
-                raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code} {r.text}")
+        r = http_get(f"https://musicbrainz.org/ws/2/artist/%s?fmt=json" % str(artist_mbid))
+        if r.status_code == 404:
+            raise RuntimeError(f"Could not resolve artist mbid {artist_mbid}. Error {r.status_code} {r.text}")
 
-            if r.status_code in (429, 503):
-                sleep(2)
-                continue
-
-            if r.status_code != 200:
-                raise RuntimeError(f"Could not resolve artist name {artist_mbid}. Error {r.status_code} {r.text}")
-
-            break
+        if r.status_code != 200:
+            raise RuntimeError(f"Could not resolve artist name {artist_mbid}. Error {r.status_code} {r.text}")
 
         return r.json()["name"], artist_mbid
 

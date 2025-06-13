@@ -1,9 +1,9 @@
-import requests
 import logging
 
 from collections import defaultdict
 from more_itertools import chunked
 from .utils import SoundcloudAPI, SoundCloudException
+from troi.http_request import http_post
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ SOUNDCLOUD_IDS_LOOKUP_URL = "https://labs.api.listenbrainz.org/soundcloud-id-fro
 def lookup_soundcloud_ids(recordings):
     """ Given a list of Recording elements, try to find soundcloud track ids from labs api soundcloud lookup using mbids
     and add those to the recordings. """
-    response = requests.post(
+    response = http_post(
         SOUNDCLOUD_IDS_LOOKUP_URL,
         json=[{"recording_mbid": recording.mbid} for recording in recordings]
     )

@@ -39,7 +39,7 @@ def mocked_requests_post(*args, **kwargs):
 
 class TestMBIDMapping(unittest.TestCase):
 
-    @unittest.mock.patch('requests.post', side_effect=mocked_requests_post)
+    @unittest.mock.patch('troi.http_request.http_post', side_effect=mocked_requests_post)
     def test_read(self, req):
 
         e = troi.musicbrainz.mbid_mapping.MBIDMappingLookupElement()
@@ -57,7 +57,7 @@ class TestMBIDMapping(unittest.TestCase):
         assert entities[0].mbid == "97e69767-5d34-4c97-b36a-f3b2b1ef9dae"
         assert entities[0].name == "Trigger Hippie"
 
-    @unittest.mock.patch('requests.post')
+    @unittest.mock.patch('troi.http_request.http_post')
     def test_read_remove_unmatched(self, req):
 
         mock = unittest.mock.MagicMock()
