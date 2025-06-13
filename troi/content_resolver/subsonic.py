@@ -13,6 +13,22 @@ from troi.content_resolver.py_sonic_fix import FixedConnection
 
 logger = logging.getLogger("troi_subsonic_scan")
 
+APP_LOG_LEVEL_NUM = 19
+logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
+
+def applog(self, message, *args, **kwargs):
+    if self.isEnabledFor(APP_LOG_LEVEL_NUM):
+        self._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
+
+def logboth(self, message, *args, **kwargs):
+    if self.isEnabledFor(APP_LOG_LEVEL_NUM):
+        self._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
+    if self.isEnabledFor(logging.INFO):
+        self._log(logging.INFO, message, args, **kwargs)
+
+logger.applog = applog
+logger.logboth = logboth
+
 
 class SubsonicDatabase(Database):
     '''
@@ -39,9 +55,9 @@ class SubsonicDatabase(Database):
 
         self.run_sync()
 
-        logger.info("Checked %s albums:" % self.total)
-        logger.info("  %5d albums matched" % self.matched)
-        logger.info("  %5d recordings with errors" % self.error)
+        logboth("Checked %s albums:" % self.total)
+        logboth("  %5d albums matched" % self.matched)
+        logboth("  %5d recordings with errors" % self.error)
 
     def connect(self):
         if not self.config:
@@ -69,7 +85,7 @@ class SubsonicDatabase(Database):
 
         cursor = db.connection().cursor()
 
-        logger.info("[ load albums ]")
+        logboth("[ load albums ]")
         album_ids = set()
         albums = []
         offset = 0
@@ -83,7 +99,7 @@ class SubsonicDatabase(Database):
             if album_count < self.BATCH_SIZE:
                 break
 
-        logger.info("[ loaded %d albums ]" % len(album_ids))
+        logboth("[ loaded %d albums ]" % len(album_ids))
 
         if not self.quiet:
             pbar = tqdm(total=len(album_ids))
@@ -103,8 +119,9 @@ class SubsonicDatabase(Database):
                     album_mbid = album_info2["albumInfo"]["musicBrainzId"]
                 except KeyError:
                     if not self.quiet:
-                        pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + "subsonic album '%s' by '%s' has no MBID" %
-                                   (album["name"], album["artist"]))
+                        msg = "subsonic album '%s' by '%s' has no MBID" % (album["name"], album["artist"])
+                        pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
+                        applog("FAIL: " + msg)
                     self.error += 1
                     continue
 
@@ -124,9 +141,12 @@ class SubsonicDatabase(Database):
                         artist_id_index[artist_id] = artist["artistInfo2"]["musicBrainzId"]
                     except KeyError:
                         if not self.quiet:
-                            pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + "recording '%s' by '%s' has no artist MBID" %
-                                    (album["name"], album["artist"]))
-                            pbar.write("Consider retagging this file with Picard! ( https://picard.musicbrainz.org )")
+                            msg = "recording '%s' by '%s' has no artist MBID" % (album["name"], album["artist"])
+                            pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
+                            applog("FAIL " + msg)
+                            msg = "Consider retagging this file with Picard! ( https://picard.musicbrainz.org )"
+                            pbar.write(msg)
+                            applog(msg)
                         self.error += 1
                         continue
 
@@ -146,8 +166,10 @@ class SubsonicDatabase(Database):
                     })
 
             if not self.quiet:
-                pbar.write(bcolors.OKGREEN + "OK   " + bcolors.ENDC + "album %-50s %-50s" %
-                           (album["name"][:49], album["artist"][:49]))
+                msg = "album %-50s %-50s" % (album["name"][:49], album["artist"][:49])
+                pbar.write(bcolors.OKGREEN + "OK   " + bcolors.ENDC + msg)
+                applog(msg)
+
             self.matched += 1
             self.total += 1
             if not self.quiet:
