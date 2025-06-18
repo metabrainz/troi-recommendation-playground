@@ -17,7 +17,7 @@ APP_LOG_LEVEL_NUM = 19
 logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
 
 def applog(message, *args, **kwargs):
-    logger.log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
+    logger._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
 
 
 class SubsonicDatabase(Database):
