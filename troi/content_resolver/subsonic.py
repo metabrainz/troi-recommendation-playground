@@ -20,12 +20,6 @@ def applog(message, *args, **kwargs):
     if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
         logger._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
 
-def logboth(message, *args, **kwargs):
-    if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
-        logger._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
-    if logger.isEnabledFor(logging.INFO):
-        logger._log(logging.INFO, message, args, **kwargs)
-
 
 class SubsonicDatabase(Database):
     '''
