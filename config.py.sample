@@ -1,11 +1,15 @@
 # Where to find the database file
 DATABASE_FILE = ""
 
-# To connect to a subsonic API
-SUBSONIC_HOST = ""  # include http:// or https://
-SUBSONIC_USER = ""
-SUBSONIC_PASSWORD = ""
-SUBSONIC_PORT = 4533
+# To connect to a subsonic API; specify one or more subsonic servers:
+SUBSONIC_SERVERS = {
+    "server_name": {
+        "host": "",  # include http:// or https://
+        "username": "",
+        "password": "",
+        "port": 4533
+    },
+}
 
 # List of music directories to scan by default
 # If paths are passed to scan command, this list is ignored.

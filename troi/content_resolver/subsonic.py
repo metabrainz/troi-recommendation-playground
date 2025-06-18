@@ -34,42 +34,44 @@ class SubsonicDatabase(Database):
         Database.__init__(self, index_dir, quiet)
         self.quiet = quiet
 
-    def sync(self):
+    def sync(self, server_slug):
         """
-            Scan the subsonic client specified in config.py
+            Scan the subsonic client specified in the configuration.
         """
-
         # Keep some stats
         self.total = 0
         self.matched = 0
         self.error = 0
 
-        self.run_sync()
+        self.run_sync(server_slug)
 
         logger.info("Checked %s albums:" % self.total)
         logger.info("  %5d albums matched" % self.matched)
         logger.info("  %5d recordings with errors" % self.error)
 
-    def connect(self):
+    def connect(self, slug):
         if not self.config:
-            logger.error("Missing credentials to connect to subsonic")
+            logger.error("Missing credentials to connect to subsonic server " + slug)
+            return None
+        if slug not in self.config.SUBSONIC_SERVERS:
+            logger.error("Subsonic server '%s' not defined in configuration." % slug)
             return None
 
         logger.info("[ connect to subsonic ]")
 
         return FixedConnection(
-            self.config.SUBSONIC_HOST,
-            username=self.config.SUBSONIC_USER,
-            port=self.config.SUBSONIC_PORT,
-            password=self.config.SUBSONIC_PASSWORD
+            self.config.SUBSONIC_SERVERS[slug]["host"],
+            username=self.config.SUBSONIC_SERVERS[slug]["username"],
+            port=self.config.SUBSONIC_SERVERS[slug]["port"],
+            password=self.config.SUBSONIC_SERVERS[slug]["password"]
         )
 
-    def run_sync(self):
+    def run_sync(self, slug):
         """
-            Perform the sync between the local collection and the subsonic one.
+            Perform the sync between the local collection and the subsonic server specified by slug
         """
 
-        conn = self.connect()
+        conn = self.connect(slug)
         if not conn:
             return
 

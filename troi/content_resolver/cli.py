@@ -33,6 +33,7 @@ def output_playlist(db, playlist, upload_to_subsonic, save_to_m3u, save_to_jspf,
         logger.error("Cannot save empty playlist.")
         return
 
+    # TODO: Fix this
     if upload_to_subsonic and config:
         if recording and config.SUBSONIC_HOST:
             try:
@@ -166,13 +167,14 @@ def metadata(db_file, quiet):
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
-def subsonic(db_file, quiet):
+@click.argument('server_slug', nargs=1)
+def subsonic(db_file, quiet, server_slug):
     """Scan a remote subsonic music collection"""
     set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = SubsonicDatabase(db_file, config, quiet)
     db.open()
-    db.sync()
+    db.sync(server_slug)
 
 
 @click.command()
