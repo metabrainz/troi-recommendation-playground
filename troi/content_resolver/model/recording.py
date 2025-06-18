@@ -40,6 +40,7 @@ class Recording(Model):
     id = AutoField()
     file_id = TextField(null=False, index=True)
     file_id_type = FileIdTypeField(null=False, index=True)
+    file_source = TextField(null=True)
     mtime = TimestampField(null=False)
 
     artist_name = TextField(null=True)

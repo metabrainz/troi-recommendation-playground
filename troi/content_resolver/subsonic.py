@@ -154,7 +154,8 @@ class SubsonicDatabase(Database):
                     "track_num": song.get("track", 1),
                     "disc_num": song.get("discNumber", 1),
                     "subsonic_id": song["id"],
-                    "mtime": datetime.datetime.now()
+                    "mtime": datetime.datetime.now(),
+                    "file_source": slug
                     })
 
             if not self.quiet:
@@ -188,6 +189,7 @@ class SubsonicDatabase(Database):
                 recording.mtime = mdata["mtime"]
                 recording.track_num = mdata["track_num"]
                 recording.disc_num = mdata["disc_num"]
+                recording.file_source = mdata["file_source"]
                 recording.save()
                 return "updated"
             except peewee.DoesNotExist:
@@ -202,7 +204,8 @@ class SubsonicDatabase(Database):
                                              mtime=mdata["mtime"],
                                              duration=mdata["duration"],
                                              track_num=mdata["track_num"],
-                                             disc_num=mdata["disc_num"])
+                                             disc_num=mdata["disc_num"],
+                                             file_source=mdata["file_source"])
                 recording.save()
                 return "added"
 
