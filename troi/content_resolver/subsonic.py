@@ -157,7 +157,7 @@ class SubsonicDatabase(Database):
             if not self.quiet:
                 msg = "album %-50s %-50s" % (album["name"][:49], album["artist"][:49])
                 pbar.write(bcolors.OKGREEN + "OK   " + bcolors.ENDC + msg)
-                logger._log(APP_LOG_LEVEL_NUM, msg)
+                logger.log(APP_LOG_LEVEL_NUM, msg)
 
             self.matched += 1
             self.total += 1
