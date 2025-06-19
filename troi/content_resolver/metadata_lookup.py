@@ -11,6 +11,8 @@ from troi.content_resolver.model.tag import RecordingTag
 from troi.http_request import http_post
 
 logger = logging.getLogger("troi_subsonic_scan")
+APP_LOG_LEVEL_NUM = 19
+logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
 
 RecordingRow = namedtuple('RecordingRow', ('id', 'mbid', 'metadata_id'))
 
@@ -40,7 +42,7 @@ class MetadataLookup:
             for row in cursor.fetchall()
         )
 
-        logger.info("[ %d recordings to lookup ]" % len(recordings))
+        logger.info("[ looking up metadata for %d recordings ]" % len(recordings))
 
         offset = 0
 
@@ -82,6 +84,7 @@ class MetadataLookup:
 
         if not self.quiet:
             self.pbar.update(len(recordings))
+            logger.log(APP_LOG_LEVEL_NUM, "%d recorings looked up." % len(recordings))
 
         with db.atomic():
 
