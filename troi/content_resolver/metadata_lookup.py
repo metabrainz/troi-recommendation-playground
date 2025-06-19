@@ -10,11 +10,9 @@ from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.model.tag import RecordingTag
 from troi.http_request import http_post
 
-logger = logging.getLogger("troi_metadata_lookup")
-
+logger = logging.getLogger("troi_subsonic_scan")
 
 RecordingRow = namedtuple('RecordingRow', ('id', 'mbid', 'metadata_id'))
-
 
 class MetadataLookup:
     '''

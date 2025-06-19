@@ -16,10 +16,6 @@ logger = logging.getLogger("troi_subsonic_scan")
 APP_LOG_LEVEL_NUM = 19
 logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
 
-def applog(message, *args, **kwargs):
-    if logger.isEnabledFor(APP_LOG_LEVEL_NUM):
-        logger._log(APP_LOG_LEVEL_NUM, message, args, **kwargs)
-
 
 class SubsonicDatabase(Database):
     '''
@@ -113,7 +109,7 @@ class SubsonicDatabase(Database):
                     if not self.quiet:
                         msg = "subsonic album '%s' by '%s' has no MBID" % (album["name"], album["artist"])
                         pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
-                        applog("FAIL: " + msg)
+                        logger._log(APP_LOG_LEVEL_NUM, "FAIL: " + msg)
                     self.error += 1
                     continue
 
@@ -135,10 +131,10 @@ class SubsonicDatabase(Database):
                         if not self.quiet:
                             msg = "recording '%s' by '%s' has no artist MBID" % (album["name"], album["artist"])
                             pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
-                            applog("FAIL " + msg)
+                            logger._log(APP_LOG_LEVEL_NUM, "FAIL: " + msg)
                             msg = "Consider retagging this file with Picard! ( https://picard.musicbrainz.org )"
                             pbar.write(msg)
-                            applog(msg)
+                            logger._log(APP_LOG_LEVEL_NUM, msg)
                         self.error += 1
                         continue
 
@@ -161,7 +157,7 @@ class SubsonicDatabase(Database):
             if not self.quiet:
                 msg = "album %-50s %-50s" % (album["name"][:49], album["artist"][:49])
                 pbar.write(bcolors.OKGREEN + "OK   " + bcolors.ENDC + msg)
-                applog(msg)
+                logger._log(APP_LOG_LEVEL_NUM, msg)
 
             self.matched += 1
             self.total += 1
