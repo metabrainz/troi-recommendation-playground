@@ -51,6 +51,7 @@ class MetadataLookup:
                 while offset <= len(recordings):
                     self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
+                    logger.log(APP_LOG_LEVEL_NUM, "%d recordings looked up." % len(recordings))
         else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
@@ -86,7 +87,6 @@ class MetadataLookup:
 
         if not self.quiet:
             self.pbar.update(len(recordings))
-            logger.log(APP_LOG_LEVEL_NUM, "%d recorings looked up." % len(recordings))
 
         with db.atomic():
 
