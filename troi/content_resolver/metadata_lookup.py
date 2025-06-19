@@ -56,7 +56,7 @@ class MetadataLookup:
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                 offset += self.BATCH_SIZE
 
-        logger.info("[ metadata lookup complete ]" % len(recordings))
+        logger.info("[ metadata lookup complete ]")
 
     def process_recordings(self, recordings):
         """
