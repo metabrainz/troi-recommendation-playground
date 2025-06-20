@@ -81,6 +81,7 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
                         , artist_mbid
                         , file_id
                         , file_id_type
+                        , file_source
                      FROM recording
                      JOIN recording_metadata
                        ON recording.id = recording_metadata.recording_id
@@ -99,7 +100,8 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
                 "recording_mbid": rec[1],
                 "artist_mbid": rec[2],
                 "file_id": rec[3],
-                "file_id_type": rec[4]
+                "file_id_type": rec[4],
+                "file_source": rec[5]
             })
 
         for artist in artists:
