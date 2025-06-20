@@ -196,6 +196,7 @@ class ContentResolver:
         
             if local_recording["file_id_type"] == FileIdType.FILE_PATH:
                 target.musicbrainz["filename"] = local_recording["file_id"]
+                target.musicbrainz["file_source"] = local_recording["file_source"]
             if local_recording["file_id_type"] == FileIdType.SUBSONIC_ID:
                 target.musicbrainz["subsonic_id"] = local_recording["file_id"]
             if local_recording["duration"] is not None:
