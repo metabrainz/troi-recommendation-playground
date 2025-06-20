@@ -70,6 +70,7 @@ class ListenBrainzRadioLocal:
         # Now filter out the tracks that were not matched
         filtered = []
         for rec in playlist.playlists[0].recordings:
+            print(rec.musicbrainz)
             if "subsonic_id" in rec.musicbrainz or "filename" in rec.musicbrainz:
                 filtered.append(rec)
 
