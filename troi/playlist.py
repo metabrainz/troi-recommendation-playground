@@ -94,11 +94,15 @@ def _serialize_to_jspf(playlist, created_for=None, track_count=None):
 
         # Output subsonic_ids to the playlist
         subsonic_id = e.musicbrainz.get("subsonic_id", None)
+        file_source = e.musicbrainz.get("file_source", None)
         if subsonic_id is not None:
             if "additional_metadata" not in track["extension"][PLAYLIST_TRACK_EXTENSION_URI]:
                 track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["additional_metadata"] = {}
             track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["additional_metadata"]["subsonic_identifier"] = \
                   SUBSONIC_URI_PREFIX + subsonic_id
+            if file_source is not None:
+                track["extension"][PLAYLIST_TRACK_EXTENSION_URI]["additional_metadata"]["subsonic_file_source"] = \
+                      SUBSONIC_URI_PREFIX + file_source
 
         tracks.append(track)
 
