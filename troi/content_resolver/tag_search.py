@@ -48,7 +48,11 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
 
         recordings = []
         for rec in cursor.fetchall():
-            recordings.append({"recording_mbid": rec[0], "popularity": rec[1], "file_id": rec[2], "file_id_type": rec[3]})
+            recordings.append({"recording_mbid": rec[0],
+                               "popularity": rec[1],
+                               "file_id": rec[2],
+                               "file_id_type": rec[3],
+                               "file_source": rec[4]})
 
         return select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordings)
 
@@ -70,6 +74,7 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
                             , popularity AS percent
                             , file_id
                             , file_id_type
+                            , file_source
                          FROM recording
                          JOIN recording_ids
                            ON recording.id = recording_ids.recording_id
@@ -112,6 +117,7 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
                             , popularity AS percent
                             , file_id
                             , file_id_type
+                            , file_source
                          FROM recording
                          JOIN recording_ids
                            ON recording.id = recording_ids.recording_id
