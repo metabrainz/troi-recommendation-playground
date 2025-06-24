@@ -55,6 +55,7 @@ class RecordingResolverElement(Element):
         query = """SELECT recording.id
                         , file_id
                         , file_id_type
+                        , file_source
                      FROM recording
                     WHERE """
 
@@ -70,7 +71,8 @@ class RecordingResolverElement(Element):
         for row in cursor.fetchall():
             recordings.append({"recording_id": row[0],
                                "file_id": row[1],
-                               "file_id_type": row[2]})
+                               "file_id_type": row[2],
+                               "file_source": row[3]})
 
         # Build indexes
         file_id_index = {}
