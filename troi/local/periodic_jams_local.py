@@ -30,15 +30,9 @@ class PeriodicJamsLocal(ListenBrainzRadioLocal):
         })
 
         # Now generate the playlist
-        try:
-            playlist = patch.generate_playlist()
-        except RuntimeError as err:
-            logger.info(f"LB Radio generation failed: {err}")
-            return None
-
+        playlist = patch.generate_playlist()
         if playlist is None:
-            logger.info("Your prompt generated an empty playlist.")
-            return {"playlist": {"track": []}}
+            raise RuntimeError("Your prompt generated an empty playlist.")
 
         # Resolve any tracks that have not been resolved to a subsonic_id or a local file
         self.resolve_playlist(self.match_threshold, playlist)

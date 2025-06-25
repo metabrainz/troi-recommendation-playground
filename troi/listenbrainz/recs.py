@@ -54,7 +54,7 @@ class UserRecordingRecommendationsElement(Element):
                     requests.exceptions.ConnectionError) as err:
                 if not str(err):
                     err = "Does the user '%s' exist?" % self.user_name
-                raise PipelineError("Cannot fetch recommeded tracks from ListenBrainz: " + str(err))
+                raise PipelineError("Cannot fetch recommended tracks from ListenBrainz: " + str(err))
 
             if not recordings or not len(recordings['payload']['mbids']):
                 break
