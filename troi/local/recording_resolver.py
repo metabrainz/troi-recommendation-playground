@@ -77,7 +77,9 @@ class RecordingResolverElement(Element):
         # Build indexes
         file_id_index = {}
         for recording in recordings:
-            file_id_index[recording["recording_id"]] = (recording["file_id"], recording["file_id_type"])
+            file_id_index[recording["recording_id"]] = (recording["file_id"],
+                                                        recording["file_id_type"],
+                                                        recording["file_source"])
 
         # Set the ids into the recordings
         results = []
@@ -86,6 +88,7 @@ class RecordingResolverElement(Element):
             recording = inputs[0][r["index"]]
             if file_id_type == FileIdType.SUBSONIC_ID.value:
                 recording.musicbrainz["subsonic_id"] = file_id
+                recording.musicbrainz["file_source"] = recording["file_source"]
                 results.append(recording)
 
             if file_id_type == FileIdType.FILE_PATH.value:
