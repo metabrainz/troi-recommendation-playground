@@ -250,12 +250,12 @@ class SubsonicDatabase(Database):
         #                                 , subsonic_id = excluded.subsonic_id
         #                                 , last_updated = excluded.last_updated""", recordings)
 
-    def upload_playlist(self, playlist, playlist_id=None):
+    def upload_playlist(self, playlist, slug, playlist_name=None, playlist_id=None):
         """
             Given a Troi playlist, upload the playlist to the subsonic API.
         """
 
-        conn = self.connect()
+        conn = self.connect(slug)
         if not conn:
             return
 
@@ -272,7 +272,7 @@ class SubsonicDatabase(Database):
                 removed_song_idx = list(range(0, remote_playlist["playlist"]["songCount"]))
                 conn.updatePlaylist(
                     lid=playlist_id,
-                    name=playlist.playlists[0].name,
+                    name=playlist_name,
                     songIdsToAdd=song_ids,
                     songIndexesToRemove=removed_song_idx,
                 )
