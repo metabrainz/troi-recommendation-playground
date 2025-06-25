@@ -22,7 +22,7 @@ from troi.content_resolver.formats import mp3, m4a, flac, ogg_opus, ogg_vorbis, 
 
 from troi.content_resolver.utils import existing_dirs
 
-logger = logging.getLogger("troi_db_scan")
+logger = logging.getLogger("troi_subsonic_scan")
 
 SUPPORTED_FORMATS = (
     flac,
@@ -451,7 +451,7 @@ class Database:
         else:
             logger.info("Use command cleanup --remove to actually remove those.")
 
-    def metadata_sanity_check(self, include_subsonic=False):
+    def metadata_sanity_check(self, include_subsonic=False, return_as_array=False):
         """
         Run a sanity check on the DB to see if data is missing that is required for LB Radio to work.
         """
@@ -463,16 +463,32 @@ class Database:
         num_subsonic = Recording.select(peewee.fn.Count(
             Recording.file_id_type).alias('count')).where(Recording.file_id_type == FileIdType.SUBSONIC_ID)[0].count
 
+        msg = ""
+        msgs = []
         if num_metadata == 0:
-            logger.info("sanity check: You have not downloaded metadata for your collection. Run the metadata command.")
+            msg = "sanity check: You have not downloaded metadata for your collection. Run the metadata command."
         elif num_metadata < num_recordings // 2:
-            logger.info("sanity check: Only %d of your %d recordings have metadata information available."
-                        " Run the metdata command." % (num_metadata, num_recordings))
+            msg = "sanity check: Only %d of your %d recordings have metadata information available." % \
+                  (num_metadata, num_recordings)
+
+        if msg:
+            if return_as_array:
+                msgs.append(msg)
+            else:
+                logger.info(msg)
+            msg = ""
 
         if include_subsonic:
             if num_subsonic == 0 and include_subsonic:
-                logger.info("sanity check: You have not matched your collection against the collection in subsonic."
-                            " Run the subsonic command.")
+                msg = "sanity check: You have not matched your collection against the collection in subsonic."
             elif num_subsonic < num_recordings // 2:
-                logger.info("sanity check: Only %d of your %d recordings have subsonic matches."
-                            " Run the subsonic command." % (num_subsonic, num_recordings))
+                msg = "sanity check: Only %d of your %d recordings have subsonic matches." % \
+                      (num_subsonic, num_recordings)
+        if msg:
+            if return_as_array:
+                msgs.append(msg)
+            else:
+                logger.info(msg)
+
+        if return_as_array:
+            return msgs
