@@ -260,9 +260,9 @@ class SubsonicDatabase(Database):
         if playlist_name is None:
             playlist_name = playlist.playlists[0].name
 
-        conn = self.connect(slug)
+        conn, msg = self.connect(slug)
         if not conn:
-            raise RuntimeError("Cannot connect to service '%s'" % (slug))
+            raise RuntimeError("Cannot connect to service '%s': %s" % (slug, msg))
 
         song_ids = []
         for recording in playlist.playlists[0].recordings:
@@ -273,7 +273,6 @@ class SubsonicDatabase(Database):
 
         if playlist_id:
             try:
-                print("Find playlist, will update")
                 remote_playlist = conn.getPlaylist(pid=playlist_id)
                 removed_song_idx = list(range(0, remote_playlist["playlist"]["songCount"]))
                 conn.updatePlaylist(
@@ -283,7 +282,6 @@ class SubsonicDatabase(Database):
                     songIndexesToRemove=removed_song_idx,
                 )
             except DataNotFoundError:
-                print("create playliste")
                 conn.createPlaylist(name=playlists_name, songIds=song_ids)
         else:
             conn.createPlaylist(name=playlist_name, songIds=song_ids)
