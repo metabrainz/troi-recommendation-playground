@@ -47,20 +47,21 @@ class SubsonicDatabase(Database):
 
     def connect(self, slug):
         if not self.config:
-            logger.error("Missing credentials to connect to subsonic server " + slug)
-            return None
+            msg = "Missing credentials to connect to subsonic server " + slug
+            logger.error(msg)
+            return None, msg
         if slug not in self.config.SUBSONIC_SERVERS:
-            logger.error("Subsonic server '%s' not defined in configuration." % slug)
-            return None
+            msg = "Subsonic server '%s' not defined in configuration." % slug
+            logger.error(msg)
+            return None, msg
 
         logger.info("[ connect to subsonic ]")
-
         return FixedConnection(
             self.config.SUBSONIC_SERVERS[slug]["host"],
             username=self.config.SUBSONIC_SERVERS[slug]["username"],
             port=self.config.SUBSONIC_SERVERS[slug]["port"],
             password=self.config.SUBSONIC_SERVERS[slug]["password"]
-        )
+        ), ""
 
     def run_sync(self, slug):
         """
