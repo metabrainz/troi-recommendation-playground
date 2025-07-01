@@ -18,6 +18,11 @@ class ListenBrainzRadioLocal:
 
     def __init__(self, quiet):
         self.quiet = quiet
+        self._patch = None
+
+    @property
+    def patch(self):
+        return self._patch
 
     def generate(self, mode, prompt, match_threshold):
         """
@@ -28,13 +33,13 @@ class ListenBrainzRadioLocal:
            Returns a troi playlist object.
         """
 
-        patch = LBRadioPatch({"mode": mode, "prompt": prompt, "quiet": self.quiet, "min_recordings": 1})
-        patch.register_service(LocalRecordingSearchByTagService())
-        patch.register_service(LocalRecordingSearchByArtistService())
+        self._patch = LBRadioPatch({"mode": mode, "prompt": prompt, "quiet": self.quiet, "min_recordings": 1})
+        self._patch.register_service(LocalRecordingSearchByTagService())
+        self._patch.register_service(LocalRecordingSearchByArtistService())
 
         # Now generate the playlist
         try:
-            playlist = patch.generate_playlist()
+            playlist = self._patch.generate_playlist()
         except RuntimeError as err:
             logger.info(f"LB Radio generation failed: {err}")
             return None
