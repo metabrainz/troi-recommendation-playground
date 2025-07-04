@@ -27,7 +27,7 @@ class PeriodicJamsLocal(ListenBrainzRadioLocal):
            Generate a periodic jams playlist
         """
     
-        self.patch = PeriodicJamsLocalPatch({
+        self._patch = PeriodicJamsLocalPatch({
             "user_name": self.user_name,
             "quiet": self.quiet,
             "debug": True,
@@ -36,7 +36,7 @@ class PeriodicJamsLocal(ListenBrainzRadioLocal):
 
         # Now generate the playlist
         try:
-            playlist = self.patch.generate_playlist()
+            playlist = self._patch.generate_playlist()
         except RuntimeError as err:
             logger.info(f"LB Radio generation failed: {err}")
             return None
