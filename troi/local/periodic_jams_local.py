@@ -16,13 +16,18 @@ class PeriodicJamsLocal(ListenBrainzRadioLocal):
         self.user_name = user_name
         self.match_threshold = match_threshold
         self.quiet = quiet
+        self._patch = None
+
+    @property
+    def patch(self):
+        return self._patch
 
     def generate(self):
         """
            Generate a periodic jams playlist
         """
     
-        patch = PeriodicJamsLocalPatch({
+        self.patch = PeriodicJamsLocalPatch({
             "user_name": self.user_name,
             "quiet": self.quiet,
             "debug": True,
@@ -30,7 +35,12 @@ class PeriodicJamsLocal(ListenBrainzRadioLocal):
         })
 
         # Now generate the playlist
-        playlist = patch.generate_playlist()
+        try:
+            playlist = self.patch.generate_playlist()
+        except RuntimeError as err:
+            logger.info(f"LB Radio generation failed: {err}")
+            return None
+
         if playlist is None:
             raise RuntimeError("Your prompt generated an empty playlist.")
 
