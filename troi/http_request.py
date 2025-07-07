@@ -69,7 +69,10 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
             else:
                 time_left = reset - time()
                 if time_left > 0:
-                    time_to_wait = time_left / remaining
+                    if remaining:
+                        time_to_wait = time_left / remaining
+                    else:
+                        time_to_wait = time_left
                     sleep(time_to_wait)
             del domain_ratelimit_lookup[_key]
 
