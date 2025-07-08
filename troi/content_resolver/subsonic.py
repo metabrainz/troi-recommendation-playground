@@ -39,11 +39,13 @@ class SubsonicDatabase(Database):
         self.matched = 0
         self.error = 0
 
-        self.run_sync(server_slug)
-
-        logger.info("Checked %s albums:" % self.total)
-        logger.info("  %5d albums matched" % self.matched)
-        logger.info("  %5d recordings with errors" % self.error)
+        msg = self.run_sync(server_slug)
+        if msg:
+            logger.error(msg)
+        else:
+            logger.info("Checked %s albums:" % self.total)
+            logger.info("  %5d albums matched" % self.matched)
+            logger.info("  %5d recordings with errors" % self.error)
 
     def connect(self, slug):
         if not self.config:
@@ -68,9 +70,9 @@ class SubsonicDatabase(Database):
             Perform the sync between the local collection and the subsonic server specified by slug
         """
 
-        conn = self.connect(slug)
+        conn, msg = self.connect(slug)
         if not conn:
-            return
+            return msg
 
         cursor = db.connection().cursor()
 
@@ -167,6 +169,8 @@ class SubsonicDatabase(Database):
 
         if len(recordings) >= self.BATCH_SIZE:
             self.update_recordings(recordings)
+
+        return ""
 
     def add_subsonic(self, mdata):
         """
