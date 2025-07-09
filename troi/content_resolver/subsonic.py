@@ -16,7 +16,6 @@ logger = logging.getLogger("troi_subsonic_scan")
 APP_LOG_LEVEL_NUM = 19
 logging.addLevelName(APP_LOG_LEVEL_NUM, "NOTICE")
 
-
 class SubsonicDatabase(Database):
     '''
     Add subsonic sync capabilities to the Database
