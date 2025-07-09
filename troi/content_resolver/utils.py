@@ -75,7 +75,9 @@ def select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordin
     # Convert results into recordings
     results = plist()
     for rec in matching_recordings:
-        r = TroiRecording(mbid=rec["recording_mbid"])
+        artist = Artist(mbid=rec["artist_mbid"], name=rec["artist_credit_name"])
+        artist_credit = ArtistCredit(artists=[artist])
+        r = TroiRecording(mbid=rec["recording_mbid"], artist_credit=artist_credit)
         if rec["file_id_type"] == FileIdType.SUBSONIC_ID:
             r.musicbrainz = {"subsonic_id": rec["file_id"]}
         if rec["file_id_type"] == FileIdType.FILE_PATH:
