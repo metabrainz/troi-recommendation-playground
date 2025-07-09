@@ -82,7 +82,7 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
                         , file_id
                         , file_id_type
                         , file_source
-                        , artist_credit_name
+                        , artist_name
                      FROM recording
                      JOIN recording_metadata
                        ON recording.id = recording_metadata.recording_id
