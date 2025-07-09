@@ -112,16 +112,19 @@ class UnresolvedRecordingTracker:
                 print("Recording %s not found. Skipping." % mbid)
                 continue
 
-            releases[rec["release"]["mbid"]].append({
-                "artist_name": rec["artist"]["name"],
-                "artists": rec["artist"]["artists"],
-                "release_name": rec["release"]["name"],
-                "release_mbid": rec["release"]["mbid"],
-                "release_group_mbid": rec["release"]["release_group_mbid"],
-                "recording_name": rec["recording"]["name"],
-                "recording_mbid": mbid,
-                "lookup_count": lookup_counts[mbid]
-            })
+            try:
+                releases[rec["release"]["mbid"]].append({
+                    "artist_name": rec["artist"]["name"],
+                    "artists": rec["artist"]["artists"],
+                    "release_name": rec["release"]["name"],
+                    "release_mbid": rec["release"]["mbid"],
+                    "release_group_mbid": rec["release"]["release_group_mbid"],
+                    "recording_name": rec["recording"]["name"],
+                    "recording_mbid": mbid,
+                    "lookup_count": lookup_counts[mbid]
+                })
+            except KeyError:
+                pass   # Sometimes the mbid is missing. I think its a Navidrome problem.
 
         release_list = []
         for mbid in releases:
