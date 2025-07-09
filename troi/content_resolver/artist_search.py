@@ -6,7 +6,6 @@ from time import sleep
 
 import peewee
 
-from troi import Artist, ArtistCredit
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata
 from troi.content_resolver.utils import select_recordings_on_popularity

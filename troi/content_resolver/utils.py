@@ -1,6 +1,7 @@
 import logging
 import os
 
+from troi import Artist, ArtistCredit
 from troi.plist import plist
 from troi import Recording as TroiRecording
 from troi.content_resolver.model.recording import FileIdType
