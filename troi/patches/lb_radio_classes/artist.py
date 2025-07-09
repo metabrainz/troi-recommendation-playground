@@ -69,7 +69,11 @@ class LBRadioArtistRecordingElement(troi.Element):
             msg = "Using seed artist %s" % self.artist_name
             if self.include_similar_artists:
                 if similar_artist_names:
-                    msg += " and similar artists: " + ", ".join(similar_artist_names)
+                    max_similar_artists = 5
+                    if len(similar_artist_names) > max_similar_artists:
+                        msg += " and similar artists: " + ", ".join(similar_artist_names[:5]) + " and more..."
+                    else:
+                        msg += " and similar artists: " + ", ".join(similar_artist_names)
                 else:
                     msg += " only, since this artist has no similar artists (yet)."
             else:
