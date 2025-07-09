@@ -104,7 +104,7 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
                 "file_id": rec[3],
                 "file_id_type": rec[4],
                 "file_source": rec[5],
-                "artist_credit_name": rec[6]
+                "artist_name": rec[6]
             })
 
         for artist in artists:
