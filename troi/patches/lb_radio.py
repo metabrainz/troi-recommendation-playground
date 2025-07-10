@@ -83,7 +83,7 @@ class LBRadioPatch(troi.patch.Patch):
         if isinstance(artist_name, UUID):
             return self.lookup_artist_from_mbid(artist_name)
 
-        err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling."
+        err_msg = f"Artist {artist_name} could not be looked up. Please use exact spelling or specify the artist MBID."
         
         r = http_get( f"https://musicbrainz.org/ws/2/artist?query={quote(artist_name)}&fmt=json")
         if r.status_code == 404:
