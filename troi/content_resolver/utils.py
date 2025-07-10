@@ -1,5 +1,6 @@
 import logging
 import os
+from random import shuffle
 
 from troi import Artist, ArtistCredit
 from troi.plist import plist
@@ -75,7 +76,8 @@ def select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordin
 
     # Convert results into recordings
     results = plist()
-    for rec in matching_recordings:
+    shuffle(matching_recordings)
+    for rec in matching_recordings[:num_recordings]:
         artist = Artist(mbid=rec["artist_mbid"], name=rec["artist_name"])
         artist_credit = ArtistCredit(artists=[artist], name=rec["artist_name"])
         r = TroiRecording(mbid=rec["recording_mbid"], artist_credit=artist_credit)
