@@ -150,14 +150,15 @@ def cleanup(db_file, remove, quiet):
 @click.command()
 @click.option("-d", "--db_file", help="Database file for the local collection", required=False, is_flag=False)
 @click.option('-q', '--quiet', 'quiet', help="Do no print out anything", required=False, is_flag=True)
-def metadata(db_file, quiet):
+@click.argument('server_slug', nargs=1)
+def metadata(db_file, quiet, server_slug):
     """Lookup metadata (popularity and tags) for recordings"""
     set_log_level(quiet)
     db_file = db_file_check(db_file)
     db = Database(db_file, quiet)
     db.open()
     lookup = MetadataLookup(quiet)
-    lookup.lookup()
+    lookup.lookup(server_slug)
 
     logger.info("\nThese top tags describe your collection:")
     tt = TopTags()

@@ -26,7 +26,7 @@ class MetadataLookup:
     def __init__(self, quiet=False):
         self.quiet = quiet
 
-    def lookup(self):
+    def lookup(self, server_slug):
         """
         Iterate over all recordings in the database and call lookup_chunk for chunks of recordings.
         """
@@ -36,7 +36,8 @@ class MetadataLookup:
                                 LEFT JOIN recording_metadata
                                        ON recording.id = recording_metadata.recording_id
                                     WHERE recording_mbid IS NOT NULL
-                                 ORDER BY artist_name, release_name""")
+                                      AND recording.file_source = ?
+                                 ORDER BY artist_name, release_name""", (server_slug,))
         recordings = tuple(
             RecordingRow(id=row[0], mbid=str(row[1]), metadata_id=row[2])
             for row in cursor.fetchall()
