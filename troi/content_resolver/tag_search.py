@@ -53,7 +53,8 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
                                "file_id": rec[2],
                                "file_id_type": rec[3],
                                "file_source": rec[4],
-                               "artist_name": rec[5]}
+                               "artist_mbid": rec[5],
+                               "artist_name": rec[6]}
                               )
 
         return select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordings)
@@ -77,6 +78,7 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
                             , file_id
                             , file_id_type
                             , file_source
+                            , artist_mbid
                             , artist_name
                          FROM recording
                          JOIN recording_ids
@@ -121,6 +123,7 @@ class LocalRecordingSearchByTagService(RecordingSearchByTagService):
                             , file_id
                             , file_id_type
                             , file_source
+                            , artist_mbid
                             , artist_name
                          FROM recording
                          JOIN recording_ids
