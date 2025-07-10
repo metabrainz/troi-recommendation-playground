@@ -94,10 +94,8 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
         placeholders = ",".join(("?", ) * len(similar_artists))
         cursor = db.execute_sql(query % placeholders, params=artist_mbids)
 
-        print("pop %.2f %.2f" % (pop_begin, pop_end)) 
         artists = defaultdict(list)
         for rec in cursor.fetchall():
-            print("  %.2f %-40s %s" % (rec[0], rec[6][:39], rec[7][:39]))
             artists[rec[2]].append({
                 "popularity": rec[0],
                 "recording_mbid": rec[1],

@@ -131,7 +131,6 @@ class SubsonicDatabase(Database):
                         artist_id_index[artist_id] = artist["artistInfo2"]["musicBrainzId"]
                     except KeyError:
                         if not self.quiet:
-                            print(artist_id)
                             msg = "recording '%s' by '%s' has no artist MBID" % (album["name"], album["artist"])
                             pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
                             logger.log(APP_LOG_LEVEL_NUM, "FAIL: " + msg)
