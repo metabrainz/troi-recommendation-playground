@@ -86,6 +86,7 @@ def select_recordings_on_popularity(recordings, pop_begin, pop_end, num_recordin
         if rec["file_id_type"] == FileIdType.FILE_PATH:
             r.musicbrainz = {"filename": rec["file_id"]}
         r.listenbrainz["file_source"] = rec["file_source"]
+        print("FS: '%s'" % rec["file_source"])
 
         results.append(r)
 
