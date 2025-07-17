@@ -170,7 +170,6 @@ class SubsonicDatabase(Database):
                                                            "count": self.total,
                                                            "total": len(album_ids),
                                                            "percent": 100 * self.matched // len(album_ids)}))
-                return ""
 
         if len(recordings) >= self.BATCH_SIZE:
             self.update_recordings(recordings)
