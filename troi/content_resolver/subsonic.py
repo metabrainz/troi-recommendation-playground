@@ -101,7 +101,7 @@ class SubsonicDatabase(Database):
 
         for album in albums:
             #TODO: Remove me
-            if total > 30:
+            if total > 100:
                 break
             album_info = conn.getAlbum(id=album["id"])
 
