@@ -166,7 +166,7 @@ class SubsonicDatabase(Database):
             self.total += 1
             if not self.quiet:
                 pbar.update(1)
-                logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "matched": self.matched,
+                logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "withmbid": self.matched,
                                                            "total": self.total,
                                                            "percent": 100 * self.matched // len(album_ids)}))
 
