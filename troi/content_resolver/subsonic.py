@@ -100,9 +100,6 @@ class SubsonicDatabase(Database):
         artist_id_index = {}
 
         for album in albums:
-            #TODO: Remove me
-            if self.total > 100:
-                break
             album_info = conn.getAlbum(id=album["id"])
 
             # Some servers might already include the MBID in the list or album response
@@ -173,6 +170,7 @@ class SubsonicDatabase(Database):
                                                            "count": self.total,
                                                            "total": len(album_ids),
                                                            "percent": 100 * self.matched // len(album_ids)}))
+                return ""
 
         if len(recordings) >= self.BATCH_SIZE:
             self.update_recordings(recordings)
