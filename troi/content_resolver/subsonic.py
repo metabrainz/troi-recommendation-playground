@@ -100,6 +100,9 @@ class SubsonicDatabase(Database):
         artist_id_index = {}
 
         for album in albums:
+            #TODO: Remove me
+            if total > 30:
+                break
             album_info = conn.getAlbum(id=album["id"])
 
             # Some servers might already include the MBID in the list or album response
