@@ -135,9 +135,6 @@ class SubsonicDatabase(Database):
                             msg = "recording '%s' by '%s' has no artist MBID" % (album["name"], album["artist"])
                             pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
                             logger.log(APP_LOG_LEVEL_NUM, "FAIL: " + msg)
-                            msg = "Consider retagging this file with Picard! ( https://picard.musicbrainz.org )"
-                            pbar.write(msg)
-                            logger.log(APP_LOG_LEVEL_NUM, msg)
                         self.error += 1
                         continue
 
