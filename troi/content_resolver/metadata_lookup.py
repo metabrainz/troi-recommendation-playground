@@ -53,11 +53,11 @@ class MetadataLookup:
                 while offset <= len(recordings):
                     self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
-                    logger.log(APP_LOG_LEVEL_NUM, "%d recordings looked up." % len(recordings))
+                    logger.log(logging.INFO, "%d recordings looked up." % self.count)
                     logger.log(APP_LOG_LEVEL_NUM, json.dumps((("Current task", "ListenBrainz metadata lookup"),
-                                                              ("Recordings looked up", self.count),
-                                                              ("Total recordings", len(recordings)),
-                                                              ("Progress", 100 * offset // len(recordings)))))
+                                                              ("Recordings looked up", f"{self.count:,}"),
+                                                              ("Total recordings", f"{len(recordings):,}"),
+                                                              ("Progress", 100 * self.count // len(recordings)))))
         else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
@@ -94,7 +94,6 @@ class MetadataLookup:
             tag_counts[row["recording_mbid"] + row["tag"]] = str(row["tag_count"])
 
         self.count += len(recordings)
-        print(self.count)
         if not self.quiet:
             self.pbar.update(len(recordings))
 
