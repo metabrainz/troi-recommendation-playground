@@ -166,9 +166,9 @@ class SubsonicDatabase(Database):
             self.total += 1
             if not self.quiet:
                 pbar.update(1)
-                logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "withmbid": self.matched,
-                                                           "count": self.total,
+                logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "count": self.total,
                                                            "total": len(album_ids),
+                                                           "task": "subsonic collection scan",
                                                            "percent": 100 * self.matched // len(album_ids)}))
 
         if len(recordings) >= self.BATCH_SIZE:

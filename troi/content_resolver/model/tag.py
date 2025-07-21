@@ -31,6 +31,7 @@ class RecordingTag(Model):
     id = AutoField()
     recording = ForeignKeyField(Recording)
     tag = ForeignKeyField(Tag, on_delete="CASCADE")
+    count = IntegerField(null=False)
     last_updated = DateTimeField(null=False, default=datetime.datetime.now)
     entity = TextField(null=False)
 

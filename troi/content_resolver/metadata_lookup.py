@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict, namedtuple
 import datetime
+import json
 from time import sleep
 
 from tqdm import tqdm
@@ -53,6 +54,10 @@ class MetadataLookup:
                     self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
                     logger.log(APP_LOG_LEVEL_NUM, "%d recordings looked up." % len(recordings))
+                    logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "count": offset,
+                                                               "total": len(recordings),
+                                                               "task": "ListenBrainz metdata lookup",
+                                                               "percent": 100 * offset // len(recordings)}))
         else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
@@ -79,12 +84,14 @@ class MetadataLookup:
 
         recording_pop = {}
         recording_tags = defaultdict(lambda: defaultdict(list))
+        tag_counts = {}
         tags = set()
         for row in r.json():
             mbid = str(row["recording_mbid"])
             recording_pop[mbid] = row["percent"]
             recording_tags[mbid][row["source"]].append(row["tag"])
             tags.add(row["tag"])
+            tag_counts[row["recording_mbid"] + row["tag"]] = str(row["tag_count"])
 
         if not self.quiet:
             self.pbar.update(len(recordings))
@@ -144,7 +151,10 @@ class MetadataLookup:
                 now = datetime.datetime.now()
                 for row in r.json():
                     recording = mbid_to_recording[row["recording_mbid"]]
-                    db.execute_sql("""INSERT INTO recording_tag (recording_id, tag_id, entity, last_updated)
-                                       VALUES (?, ?, ?, ?)""", (recording.id, tag_ids[row["tag"]], row["source"], now))
+                    db.execute_sql("""INSERT INTO recording_tag (recording_id, tag_id, count, entity, last_updated)
+                                       VALUES (?, ?, ?, ?, ?)""", (recording.id,
+                                                                tag_ids[row["tag"]],
+                                                                tag_counts[row["recording_mbid"] + row["tag"]],
+                                                                row["source"], now))
 
         return True
