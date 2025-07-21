@@ -53,11 +53,12 @@ class MetadataLookup:
                 while offset <= len(recordings):
                     self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
+                    percent = 100 * self.count // len(recordings)
                     logger.log(logging.INFO, "%d recordings looked up." % self.count)
                     logger.log(APP_LOG_LEVEL_NUM, json.dumps((("Current task", "ListenBrainz metadata lookup"),
-                                                              ("Recordings looked up", f"{self.count:,}"),
+                                                              ("Recordings looked up", f"{self.count:,} {percent}%"),
                                                               ("Total recordings", f"{len(recordings):,}"),
-                                                              ("Progress", 100 * self.count // len(recordings)))))
+                                                              ("Progress", percent))))
         else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
