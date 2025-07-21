@@ -165,7 +165,7 @@ class SubsonicDatabase(Database):
                 pbar.update(1)
                 percent = 100 * self.matched // len(album_ids)
                 logger.log(APP_LOG_LEVEL_NUM, json.dumps((("Current task", "Subsonic service scan"),
-                                                          ("Albums looked up", f"{self.total:,} {percent}%"),
+                                                          ("Albums looked up", f"{self.total:,} ({percent}%)"),
                                                           ("Total recordings", f"{len(album_ids):,}"),
                                                           ("Progress", percent))))
 

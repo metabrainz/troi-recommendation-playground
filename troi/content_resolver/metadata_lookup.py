@@ -56,7 +56,7 @@ class MetadataLookup:
                     percent = 100 * self.count // len(recordings)
                     logger.log(logging.INFO, "%d recordings looked up." % self.count)
                     logger.log(APP_LOG_LEVEL_NUM, json.dumps((("Current task", "ListenBrainz metadata lookup"),
-                                                              ("Recordings looked up", f"{self.count:,} {percent}%"),
+                                                              ("Recordings looked up", f"{self.count:,} ({percent}%)"),
                                                               ("Total recordings", f"{len(recordings):,}"),
                                                               ("Progress", percent))))
         else:
