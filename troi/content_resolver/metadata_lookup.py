@@ -47,14 +47,14 @@ class MetadataLookup:
         logger.info("[ looking up metadata for %d recordings ]" % len(recordings))
 
         offset = 0
-
+        count = 0
         if not self.quiet:
             with tqdm(total=len(recordings)) as self.pbar:
                 while offset <= len(recordings):
-                    self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
+                    count += self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
                     logger.log(APP_LOG_LEVEL_NUM, "%d recordings looked up." % len(recordings))
-                    logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "count": offset,
+                    logger.log(APP_LOG_LEVEL_NUM, json.dumps({ "count": count,
                                                                "total": len(recordings),
                                                                "task": "ListenBrainz metdata lookup",
                                                                "percent": 100 * offset // len(recordings)}))
@@ -80,8 +80,9 @@ class MetadataLookup:
         r = http_post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
         if r.status_code != 200:
             logger.info("Fail: %d %s" % (r.status_code, r.text))
-            return False
+            return 0
 
+        count = 0
         recording_pop = {}
         recording_tags = defaultdict(lambda: defaultdict(list))
         tag_counts = {}
@@ -92,6 +93,7 @@ class MetadataLookup:
             recording_tags[mbid][row["source"]].append(row["tag"])
             tags.add(row["tag"])
             tag_counts[row["recording_mbid"] + row["tag"]] = str(row["tag_count"])
+            count += 1
 
         if not self.quiet:
             self.pbar.update(len(recordings))
@@ -157,4 +159,4 @@ class MetadataLookup:
                                                                 tag_counts[row["recording_mbid"] + row["tag"]],
                                                                 row["source"], now))
 
-        return True
+        return count
