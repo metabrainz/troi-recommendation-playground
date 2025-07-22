@@ -44,7 +44,7 @@ class MetadataLookup:
             for row in cursor.fetchall()
         )
 
-        logger.info("[ looking up metadata for %d recordings ]" % len(recordings))
+        logger.info("looking up metadata for %d recordings" % len(recordings))
 
         offset = 0
         self.count = 0
