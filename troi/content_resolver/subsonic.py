@@ -164,10 +164,10 @@ class SubsonicDatabase(Database):
             if not self.quiet:
                 pbar.update(1)
                 percent = 100 * self.matched // len(album_ids)
-                logger.log(APP_LOG_LEVEL_NUM, json.dumps((("Current task", "Subsonic service scan"),
-                                                          ("Albums looked up", f"{self.total:,} ({percent}%)"),
-                                                          ("Total recordings", f"{len(album_ids):,}"),
-                                                          ("Progress", percent))))
+                logger.log(APP_LOG_LEVEL_NUM, "json-" + json.dumps((("Current task", "Subsonic service scan"),
+                                                                  ("Albums looked up", f"{self.total:,} ({percent}%)"),
+                                                                  ("Total recordings", f"{len(album_ids):,}"),
+                                                                  ("Progress", percent))))
 
         if len(recordings) >= self.BATCH_SIZE:
             self.update_recordings(recordings)
