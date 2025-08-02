@@ -75,7 +75,6 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
         If only few recordings match, the pop_begin and pop_end are ignored.
         """
 
-        similar_artists = self.get_similar_artists(artist_mbid)
         query = """SELECT popularity
                         , recording_mbid
                         , artist_mbid
@@ -90,8 +89,13 @@ class LocalRecordingSearchByArtistService(RecordingSearchByArtistService):
                     WHERE artist_mbid in (%s)
                  ORDER BY popularity DESC"""
 
-        artist_mbids = [artist["artist_mbid"] for artist in similar_artists]
-        placeholders = ",".join(("?", ) * len(similar_artists))
+        similar_artists = []
+        if max_similar_artists:
+            similar_artists = self.get_similar_artists(artist_mbid)
+            artist_mbids = [artist["artist_mbid"] for artist in similar_artists]
+        else:
+            artist_mbids = [artist_mbid]
+        placeholders = ",".join(("?", ) * len(artist_mbids))
         cursor = db.execute_sql(query % placeholders, params=artist_mbids)
 
         artists = defaultdict(list)
