@@ -96,9 +96,6 @@ class SubsonicDatabase(Database):
             pbar = tqdm(total=len(album_ids))
         recordings = []
 
-        # cross reference subsonic artist id to artitst_mbid
-        artist_id_index = {}
-
         for album in albums:
             album_info = conn.getAlbum(id=album["id"])
 
@@ -116,33 +113,14 @@ class SubsonicDatabase(Database):
                     self.error += 1
                     continue
 
-
             recordings = []
             for song in album_info["album"]["song"]:
                 album = album_info["album"]
 
-                if "artistId" in song:
-                    artist_id = song["artistId"]
-                else:
-                    artist_id = album["artistId"]
-
-                if artist_id not in artist_id_index:
-                    artist = conn.getArtistInfo2(artist_id)
-                    try:
-                        artist_id_index[artist_id] = artist["artistInfo2"]["musicBrainzId"]
-                    except KeyError:
-                        if not self.quiet:
-                            msg = "recording '%s' by '%s' has no artist MBID" % (album["name"], album["artist"])
-                            pbar.write(bcolors.FAIL + "FAIL " + bcolors.ENDC + msg)
-                            logger.log(APP_LOG_LEVEL_NUM, "FAIL: " + msg)
-                        self.error += 1
-                        continue
-
                 self.add_subsonic({
-                    "artist_name": song["artist"],
+                    "artist_credit_name": song["artist"],
                     "release_name": song["album"],
                     "recording_name": song["title"],
-                    "artist_mbid": artist_id_index[artist_id],
                     "release_mbid": album_mbid,
                     "recording_mbid": song["musicBrainzId"],
                     "duration": song["duration"] * 1000,
@@ -183,10 +161,9 @@ class SubsonicDatabase(Database):
         with db.atomic() as transaction:
             try:
                 recording = Recording.select().where(Recording.file_id == mdata['subsonic_id']).get()
-                recording.artist_name = mdata["artist_name"]
+                recording.artist_credit_name = mdata["artist_credit_name"]
                 recording.release_name = mdata["release_name"]
                 recording.recording_name = mdata["recording_name"]
-                recording.artist_mbid = mdata["artist_mbid"]
                 recording.release_mbid = mdata["release_mbid"]
                 recording.recording_mbid = mdata["recording_mbid"]
                 recording.mtime = mdata["mtime"]
@@ -198,10 +175,9 @@ class SubsonicDatabase(Database):
             except peewee.DoesNotExist:
                 recording = Recording.create(file_id=mdata["subsonic_id"],
                                              file_id_type=FileIdType(FileIdType.SUBSONIC_ID),
-                                             artist_name=mdata["artist_name"],
+                                             artist_credit_name=mdata["artist_credit_name"],
                                              release_name=mdata["release_name"],
                                              recording_name=mdata["recording_name"],
-                                             artist_mbid=mdata["artist_mbid"],
                                              release_mbid=mdata["release_mbid"],
                                              recording_mbid=mdata["recording_mbid"],
                                              mtime=mdata["mtime"],

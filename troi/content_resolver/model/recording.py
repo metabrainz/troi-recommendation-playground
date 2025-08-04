@@ -43,22 +43,41 @@ class Recording(Model):
     file_source = TextField(null=True)
     mtime = TimestampField(null=False)
 
-    artist_name = TextField(null=True)
+    artist_credit_name = TextField(null=True)
     release_name = TextField(null=True)
     recording_name = TextField(null=True)
 
     # Not using the UUIDField here, since it annoyingly removes '-' from the UUID.
+    # Also, artist_mbids are not kept here, see RecordingArtist table definition
     recording_mbid = TextField(null=True, index=True)
-    artist_mbid = TextField(null=True, index=True)
     release_mbid = TextField(null=True, index=True)
 
     duration = IntegerField(null=True)
     track_num = IntegerField(null=True)
     disc_num = IntegerField(null=True)
+    year = IntegerField(null=True)
 
     def __repr__(self):
         return "<Recording('%s','%s')>" % (self.recording_mbid or "", self.recording_name)
 
+
+class RecordingArtist(Model):
+    """
+    A join table to track artist_mbids for the artists in the recording
+    """
+
+    class Meta:
+        database = db
+        table_name = "recording_artist"
+
+    id = AutoField()
+    recording = ForeignKeyField(Recording, backref="metadata")
+    mbid = TextField()
+    name = TextField()
+    join_phrase = TextField()
+
+    def __repr__(self):
+        return "<RecordingArtist('%d',%s,%s)>" % (self.recording or 0, self.name, self.mbid)
 
 class RecordingMetadata(Model):
     """
