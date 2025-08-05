@@ -216,6 +216,8 @@ class MetadataLookup:
             recording_artist_credits.append({ "recording": mbid_to_recording[recording_mbid].id,
                                               "artist_credit": artist_credit["artist_credit_id"]
                                             })
+            
+        print("%d, %d, %d" % (len(artists), len(artist_credits), len(recording_artist_credits)))
                     
         with db.atomic():
             query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(

@@ -469,10 +469,10 @@ class Database:
         msg = ""
         msgs = []
         if num_metadata == 0:
-            msg = "sanity check: You have not downloaded metadata for your collection. Run the metadata command."
+            msg = "Notice: You have not downloaded metadata for your collection. Run the metadata command."
         elif num_metadata < num_recordings // 2:
-            msg = "sanity check: Only %d of your %d recordings have metadata information available." % \
-                  (num_metadata, num_recordings)
+            msg = """Notice: Only %d of your %d recordings have metadata information available, """ \
+                  """likely giving poor results. :(""" % (num_metadata, num_recordings)
 
         if msg:
             if return_as_array:
@@ -483,9 +483,9 @@ class Database:
 
         if include_subsonic:
             if num_subsonic == 0 and include_subsonic:
-                msg = "sanity check: You have not matched your collection against the collection in subsonic."
+                msg = "Notice: You have not matched your collection against the collection in subsonic."
             elif num_subsonic < num_recordings // 2:
-                msg = "sanity check: Only %d of your %d recordings have subsonic matches." % \
+                msg = "Notice: Only %d of your %d recordings have subsonic matches." % \
                       (num_subsonic, num_recordings)
         if msg:
             if return_as_array:
