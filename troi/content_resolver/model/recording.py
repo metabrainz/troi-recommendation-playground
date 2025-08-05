@@ -43,12 +43,13 @@ class Recording(Model):
     file_source = TextField(null=True)
     mtime = TimestampField(null=False)
 
-    artist_credit_name = TextField(null=True)
     release_name = TextField(null=True)
     recording_name = TextField(null=True)
+    
+    # This is the value from the metadata tag/service. Better data is available in the ArtistCredit table
+    artist_name = TextField(null=True)
 
     # Not using the UUIDField here, since it annoyingly removes '-' from the UUID.
-    # Also, artist_mbids are not kept here, see RecordingArtist table definition
     recording_mbid = TextField(null=True, index=True)
     release_mbid = TextField(null=True, index=True)
 
@@ -61,23 +62,44 @@ class Recording(Model):
         return "<Recording('%s','%s')>" % (self.recording_mbid or "", self.recording_name)
 
 
-class RecordingArtist(Model):
+class ArtistCredit(Model):
     """
-    A join table to track artist_mbids for the artists in the recording
+    This class ties together artists
     """
 
     class Meta:
         database = db
-        table_name = "recording_artist"
+        table_name = "artist_credit"
 
-    id = AutoField()
-    recording = ForeignKeyField(Recording, backref="metadata")
+    id = IntegerField()
+    recording = ForeignKeyField(Recording, backref="artist_credit")
+    # This is the complete artist credit name text field
+    name = TextField(null=False)
+
+    def __repr__(self):
+        return "<ArtistCredit(%s,%s)>" % (self.name, self.id)
+
+
+class Artist(Model):
+    """
+    A table to keep track of artist information
+    """
+
+    class Meta:
+        database = db
+        table_name = "artist"
+
+    artist_credit = ForeignKeyField(ArtistCredit, backref="artist")
     mbid = TextField()
     name = TextField()
     join_phrase = TextField()
+    area = TextField()
+    gender = TextField()
+    type = TextField() 
 
     def __repr__(self):
-        return "<RecordingArtist('%d',%s,%s)>" % (self.recording or 0, self.name, self.mbid)
+        return "<Artist(%s,%s)>" % (self.name, self.mbid)
+
 
 class RecordingMetadata(Model):
     """

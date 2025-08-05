@@ -5,11 +5,12 @@ import json
 from time import sleep
 
 from tqdm import tqdm
+from peewee import fn
 
 from troi.content_resolver.model.database import db
-from troi.content_resolver.model.recording import Recording, RecordingMetadata
+from troi.content_resolver.model.recording import Recording, RecordingMetadata, Artist, ArtistCredit
 from troi.content_resolver.model.tag import RecordingTag
-from troi.http_request import http_post
+from troi.http_request import http_post, http_get
 
 logger = logging.getLogger("troi_subsonic_scan")
 APP_LOG_LEVEL_NUM = 19
@@ -51,7 +52,8 @@ class MetadataLookup:
         if not self.quiet:
             with tqdm(total=len(recordings)) as self.pbar:
                 while offset <= len(recordings):
-                    self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
+                    self.count += self.lookup_tags(recordings[offset:offset+self.BATCH_SIZE])
+                    self.lookup_metadata(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
                     percent = 100 * self.count // len(recordings)
                     logger.log(logging.INFO, "%d recordings looked up." % self.count)
@@ -59,6 +61,8 @@ class MetadataLookup:
                                                                       ("Recordings looked up", f"{self.count:,} ({percent}%)"),
                                                                       ("Total recordings", f"{len(recordings):,}"),
                                                                       ("Progress", percent))))
+                    if not self.quiet:
+                        self.pbar.update(len(recordings))
         else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
@@ -66,12 +70,12 @@ class MetadataLookup:
 
         logger.info("[ metadata lookup complete ]")
 
-    def process_recordings(self, recordings):
+    def lookup_tags(self, recordings):
         """
-            This function carries out the actual lookup of the metadata and inserting the
-            popularity and tags into the DB for the given chunk of recordings.
+            This function carries out the fetching of the tags by
+            popularity and inserts them into the DB for the given chunk of recordings.
         """
-
+        
         args = []
         mbid_to_recording = {}
         for rec in recordings:
@@ -81,7 +85,7 @@ class MetadataLookup:
         r = http_post("https://labs.api.listenbrainz.org/bulk-tag-lookup/json", json=args)
         if r.status_code != 200:
             logger.info("Fail: %d %s" % (r.status_code, r.text))
-            return
+            return 0
 
         recording_pop = {}
         recording_tags = defaultdict(lambda: defaultdict(list))
@@ -94,9 +98,6 @@ class MetadataLookup:
             tags.add(row["tag"])
             tag_counts[row["recording_mbid"] + row["tag"]] = str(row["tag_count"])
 
-        self.count += len(recordings)
-        if not self.quiet:
-            self.pbar.update(len(recordings))
 
         with db.atomic():
 
@@ -159,4 +160,73 @@ class MetadataLookup:
                                                                 tag_counts[row["recording_mbid"] + row["tag"]],
                                                                 row["source"], now))
 
-        return
+        return len(recordings)
+
+
+    def lookup_metadata(self, recordings):
+        """
+            This function carries out the lookup of the artist/year metadata and
+            inserts it into the DB for the given chunk of recordings.
+        """
+
+        mbid_to_recording = {}
+        for rec in recordings:
+            mbid_to_recording[rec.mbid] = rec
+            
+        mbids = ",".join(mbid_to_recording.keys())
+        args = {
+            "recording_mbids": mbids,
+            "inc": "artist"   # TODO: THis should support release so we can get year!
+        }
+        r = http_get("https://api.listenbrainz.org/1/metadata/recording", params=args)
+        if r.status_code != 200:
+            logger.info("Fail: %d %s" % (r.status_code, r.text))
+            print("Fail: %d %s" % (r.status_code, r.text))
+            return 0
+
+        # This will collect all the data we want to upsert into the db
+        data = r.json()
+        artist_credits = {}
+        artists = {}
+        for recording_mbid in data.keys():
+            artist_credit = data[recording_mbid]["artist"]
+            for artist in artist_credit["artists"]:
+                mbid = artist["artist_mbid"]
+                ar_data = Artist(mbid=mbid,
+                                 name=artist["name"],
+                                 join_phrase=artist["join_phrase"])
+                if "area" in artist and artist["area"]:
+                    ar_data.area = artist["area"]
+                if "gender" in artist and artist["gender"]:
+                    ar_data.gender = artist["gender"]
+                if "type" in artist and artist["type"]:
+                    ar_data.type = artist["type"]
+                    
+                artists[mbid] = ar_data
+                
+            if artist_credit["artist_credit_id"] not in artist_credits:
+                ac = ArtistCredit(id=artist_credit["artist_credit_id"],
+                                  recording=mbid_to_recording[recording_mbid].id,
+                                  name=artist_credit["name"])
+                artist_credits[artist_credit["artist_credit_id"]] = ac
+                    
+        from icecream import ic
+        ic(artist_credits)
+        ic(artists)
+        
+        with db.atomic():
+            query = Artist.insert_many(artists.values()).on_conflict(
+                conflict_target=[Artist.mbid],
+                preserve=[Artist.name, Artist.join_phrase, Artist.area, Artist.gender, Artist.type],
+                update={'name': fn.EXCLUDED, 'join_phrase': fn.EXCLUDED, 'area': fn.EXCLUDED, 'gender': fn.EXCLUDED, 'type': fn.EXCLUDED}
+            )
+            query.execute() 
+
+            query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(
+                conflict_target=(ArtistCredit.recording),
+                preserve=[ArtistCredit.name],
+                update={'name': fn.EXCLUDED}
+            )
+            query.execute()
+        
+        return len(data)
