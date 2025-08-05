@@ -1,6 +1,8 @@
 import datetime
 import json
 import logging
+from urllib.error import URLError
+from time import sleep
 
 from libsonic.errors import DataNotFoundError
 import peewee
@@ -81,7 +83,15 @@ class SubsonicDatabase(Database):
         albums = []
         offset = 0
         while True:
-            results = conn.getAlbumList2(ltype="alphabeticalByArtist", size=self.BATCH_SIZE, offset=offset)
+            while True:
+                try:
+                    results = conn.getAlbumList2(ltype="alphabeticalByArtist", size=self.BATCH_SIZE, offset=offset)
+                    break
+                except URLError:
+                    print("URLerror")
+                    sleep(1)
+                    continue
+
             albums.extend(results["albumList2"]["album"])
             album_ids.update([r["id"] for r in results["albumList2"]["album"]])
 
@@ -97,12 +107,34 @@ class SubsonicDatabase(Database):
         recordings = []
 
         for album in albums:
-            album_info = conn.getAlbum(id=album["id"])
+            while True:
+                try:
+                    album_info = conn.getAlbum(id=album["id"])
+                    break
+                except URLError:
+                    print("URLerror")
+                    sleep(1)
+                    continue
 
             # Some servers might already include the MBID in the list or album response
-            album_mbid = album_info.get("musicBrainzId", album.get("musicBrainzId"))
+            while True:
+                try:
+                    album_mbid = album_info.get("musicBrainzId", album.get("musicBrainzId"))
+                    break
+                except URLError:
+                    print("URLerror")
+                    sleep(1)
+                    continue
+
             if not album_mbid:
-                album_info2 = conn.getAlbumInfo2(aid=album["id"])
+                while True:
+                    try:
+                        album_info2 = conn.getAlbumInfo2(aid=album["id"])
+                        break
+                    except URLError:
+                        print("URLerror")
+                        sleep(1)
+                        continue
                 try:
                     album_mbid = album_info2["albumInfo"]["musicBrainzId"]
                 except KeyError:
