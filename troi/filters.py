@@ -237,7 +237,7 @@ class EmptyRecordingFilterElement(troi.Element):
         return [Recording]
 
     def read(self, input):
-        recordings = inputs[0]
+        recordings = input[0]
         output = []
         for rec in recordings:
             if rec.name is not None and (rec.artist and rec.artist.name is not None) and rec.mbid is not None:

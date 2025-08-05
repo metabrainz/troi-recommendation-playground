@@ -1,7 +1,7 @@
 import requests
 from time import time, sleep
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 from urllib.parse import urlparse
 
 # Index keep track of rate limits of the various services 
