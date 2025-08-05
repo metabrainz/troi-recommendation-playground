@@ -71,8 +71,7 @@ class ArtistCredit(Model):
         database = db
         table_name = "artist_credit"
 
-    id = IntegerField()
-    recording = ForeignKeyField(Recording, backref="artist_credit")
+    id = IntegerField(primary_key=True)
     # This is the complete artist credit name text field
     name = TextField(null=False)
 
@@ -89,16 +88,35 @@ class Artist(Model):
         database = db
         table_name = "artist"
 
+    mbid = TextField(primary_key=True)
     artist_credit = ForeignKeyField(ArtistCredit, backref="artist")
-    mbid = TextField()
     name = TextField()
     join_phrase = TextField()
-    area = TextField()
-    gender = TextField()
-    type = TextField() 
+    area = TextField(null=True)
+    gender = TextField(null=True)
+    type = TextField(null=True) 
 
     def __repr__(self):
         return "<Artist(%s,%s)>" % (self.name, self.mbid)
+
+
+class RecordingArtistCredit(Model):
+    """
+    Join table for recording and artist credit
+    """
+
+    class Meta:
+        database = db
+        table_name = "recording_artist_credit"
+        indexes = (
+            (('recording', 'artist_credit'), True),
+        )
+
+    recording = ForeignKeyField(Recording, backref='recording_artist_credit')
+    artist_credit = ForeignKeyField(ArtistCredit, backref='recording_artist_credit')
+
+    def __repr__(self):
+        return "<RecordingArtistCredit('%d','%.3f')>" % (self.recording or 0, self.artist_credit or 0)
 
 
 class RecordingMetadata(Model):

@@ -8,7 +8,7 @@ from tqdm import tqdm
 from peewee import fn
 
 from troi.content_resolver.model.database import db
-from troi.content_resolver.model.recording import Recording, RecordingMetadata, Artist, ArtistCredit
+from troi.content_resolver.model.recording import Recording, RecordingMetadata, Artist, ArtistCredit, RecordingArtistCredit
 from troi.content_resolver.model.tag import RecordingTag
 from troi.http_request import http_post, http_get
 
@@ -188,33 +188,46 @@ class MetadataLookup:
         data = r.json()
         artist_credits = {}
         artists = {}
+        recording_artist_credits = []
         for recording_mbid in data.keys():
             artist_credit = data[recording_mbid]["artist"]
             for artist in artist_credit["artists"]:
                 mbid = artist["artist_mbid"]
-                ar_data = Artist(mbid=mbid,
-                                 name=artist["name"],
-                                 join_phrase=artist["join_phrase"])
+                ar_data = { "artist_credit": artist_credit["artist_credit_id"],
+                            "mbid": mbid,
+                            "name": artist["name"],
+                            "join_phrase": artist["join_phrase"] }
                 if "area" in artist and artist["area"]:
-                    ar_data.area = artist["area"]
+                    ar_data["area"] = artist["area"]
                 if "gender" in artist and artist["gender"]:
-                    ar_data.gender = artist["gender"]
+                    ar_data["gender"] = artist["gender"]
                 if "type" in artist and artist["type"]:
-                    ar_data.type = artist["type"]
+                    ar_data["type"] = artist["type"]
                     
                 artists[mbid] = ar_data
                 
             if artist_credit["artist_credit_id"] not in artist_credits:
-                ac = ArtistCredit(id=artist_credit["artist_credit_id"],
-                                  recording=mbid_to_recording[recording_mbid].id,
-                                  name=artist_credit["name"])
+                ac = { "id": artist_credit["artist_credit_id"],
+                       "name": artist_credit["name"] }
                 artist_credits[artist_credit["artist_credit_id"]] = ac
+                
+            recording_artist_credits.append({ "recording": mbid_to_recording[recording_mbid].id,
+                                              "artist_credit": artist_credit["artist_credit_id"]
+                                            })
                     
         from icecream import ic
         ic(artist_credits)
         ic(artists)
+        ic(recording_artist_credits)
         
         with db.atomic():
+            query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(
+                conflict_target=(ArtistCredit.id),
+                preserve=[ArtistCredit.name],
+                update={'name': fn.EXCLUDED}
+            )
+            query.execute()
+
             query = Artist.insert_many(artists.values()).on_conflict(
                 conflict_target=[Artist.mbid],
                 preserve=[Artist.name, Artist.join_phrase, Artist.area, Artist.gender, Artist.type],
@@ -222,10 +235,9 @@ class MetadataLookup:
             )
             query.execute() 
 
-            query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(
-                conflict_target=(ArtistCredit.recording),
-                preserve=[ArtistCredit.name],
-                update={'name': fn.EXCLUDED}
+            query = RecordingArtistCredit.insert_many(recording_artist_credits).on_conflict(
+                conflict_target=(RecordingArtistCredit.recording),
+                action='NOTHING'
             )
             query.execute()
         

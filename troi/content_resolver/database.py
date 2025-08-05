@@ -14,7 +14,7 @@ import peewee
 from tqdm import tqdm
 
 from troi.content_resolver.model.database import db, setup_db
-from troi.content_resolver.model.recording import Recording, RecordingMetadata, Artist, ArtistCredit, FileIdType
+from troi.content_resolver.model.recording import Recording, RecordingMetadata, Artist, ArtistCredit, FileIdType, RecordingArtistCredit
 from troi.content_resolver.model.unresolved_recording import UnresolvedRecording
 from troi.content_resolver.model.tag import Tag, RecordingTag
 from troi.content_resolver.model.directory import Directory
@@ -117,6 +117,7 @@ class Database:
             db.create_tables((
                 Recording,
                 RecordingMetadata,
+                RecordingArtistCredit,
                 Artist,
                 ArtistCredit,
                 Tag,
