@@ -471,7 +471,7 @@ class Database:
         if num_metadata == 0:
             msg = "Notice: You have not downloaded metadata for your collection. Run the metadata command."
         elif num_metadata < num_recordings // 2:
-            msg = """Notice: Only %d of your %d recordings have metadata information available, """ \
+            msg = """Notice: Only %d of your %d recordings have tag/popularity information available, """ \
                   """likely giving poor results. :(""" % (num_metadata, num_recordings)
 
         if msg:
