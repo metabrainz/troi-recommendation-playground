@@ -178,12 +178,11 @@ class MetadataLookup:
             
         args = {
             "recording_mbids": mbids,
-            "inc": "artist"   # TODO: THis should support release so we can get year!
+            "inc": "artist release"
         }
         r = http_post("https://api.listenbrainz.org/1/metadata/recording", json=args)
         if r.status_code != 200:
             logger.info("Fail: %d %s" % (r.status_code, r.text))
-            print("Fail: %d %s" % (r.status_code, r.text))
             return 0
 
         # This will collect all the data we want to upsert into the db
@@ -191,6 +190,7 @@ class MetadataLookup:
         artist_credits = {}
         artists = {}
         recording_artist_credits = []
+        recording_year_mapping = []
         for recording_mbid in data.keys():
             artist_credit = data[recording_mbid]["artist"]
             for artist in artist_credit["artists"]:
@@ -208,6 +208,10 @@ class MetadataLookup:
                     
                 artists[mbid] = ar_data
                 
+            release = data[recording_mbid]["release"]
+            if "year" in release and release["year"]:
+                recording_year_mapping.append((recording_mbid, release["year"]))
+                
             if artist_credit["artist_credit_id"] not in artist_credits:
                 ac = { "id": artist_credit["artist_credit_id"],
                        "name": artist_credit["name"] }
@@ -216,7 +220,7 @@ class MetadataLookup:
             recording_artist_credits.append({ "recording": mbid_to_recording[recording_mbid].id,
                                               "artist_credit": artist_credit["artist_credit_id"]
                                             })
-                    
+            
         with db.atomic():
             query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(
                 conflict_target=(ArtistCredit.id),
@@ -237,7 +241,15 @@ class MetadataLookup:
                 action='NOTHING'
             )
             query.execute()
-        
+            
+            args = []
+            query = """UPDATE recording SET year = CASE """
+            for mbid, year in recording_year_mapping:
+                query += "WHEN recording_mbid = ? THEN ? "
+                args.extend([mbid, year])
+            query += "END"
+            db.execute_sql(query, args) 
+
         self.count += len(recordings)
         if not self.quiet:
             self.pbar.update(len(recordings))
