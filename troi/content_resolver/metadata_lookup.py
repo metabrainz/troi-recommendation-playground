@@ -49,17 +49,19 @@ class MetadataLookup:
 
         offset = 0
         self.count = 0
+        total_recordings = len(recordings) * 2  # We have metadata and tags to look up
         if not self.quiet:
-            with tqdm(total=len(recordings)*2) as self.pbar:
+            with tqdm(total=total_recordings) as self.pbar:
                 while offset <= len(recordings):
                     self.lookup_tags(recordings[offset:offset+self.BATCH_SIZE])
                     self.lookup_metadata(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
-                    percent = 100 * self.count // len(recordings)
+                    print(self.count)
+                    percent = 100 * self.count // total_recordings
                     logger.log(logging.INFO, "%d recordings looked up." % self.count)
                     logger.log(APP_LOG_LEVEL_NUM, "json-" + json.dumps((("Current task", "ListenBrainz metadata lookup"),
                                                                       ("Recordings looked up", f"{self.count:,} ({percent}%)"),
-                                                                      ("Total recordings", f"{len(recordings):,}"),
+                                                                      ("Total recordings", f"{total_recordings:,}"),
                                                                       ("Progress", percent))))
         else:
             while offset <= len(recordings):
@@ -159,9 +161,7 @@ class MetadataLookup:
                                                                 row["source"], now))
         self.count += len(recordings)
         if not self.quiet:
-            self.pbar.update(self.count)
-
-        return len(recordings)
+            self.pbar.update(len(recordings))
 
 
     def lookup_metadata(self, recordings):
@@ -240,6 +240,4 @@ class MetadataLookup:
         
         self.count += len(recordings)
         if not self.quiet:
-            self.pbar.update(self.count)
-
-        return len(data)
+            self.pbar.update(len(recordings))
