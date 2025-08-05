@@ -49,17 +49,19 @@ class MetadataLookup:
 
         offset = 0
         self.count = 0
+        total_recordings = len(recordings) * 2  # We have metadata and tags to look up
         if not self.quiet:
-            with tqdm(total=len(recordings)*2) as self.pbar:
+            with tqdm(total=total_recordings) as self.pbar:
                 while offset <= len(recordings):
                     self.lookup_tags(recordings[offset:offset+self.BATCH_SIZE])
                     self.lookup_metadata(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
-                    percent = 100 * self.count // len(recordings)
+                    print(self.count)
+                    percent = 100 * self.count // total_recordings
                     logger.log(logging.INFO, "%d recordings looked up." % self.count)
                     logger.log(APP_LOG_LEVEL_NUM, "json-" + json.dumps((("Current task", "ListenBrainz metadata lookup"),
                                                                       ("Recordings looked up", f"{self.count:,} ({percent}%)"),
-                                                                      ("Total recordings", f"{len(recordings):,}"),
+                                                                      ("Total recordings", f"{total_recordings:,}"),
                                                                       ("Progress", percent))))
         else:
             while offset <= len(recordings):
@@ -159,9 +161,7 @@ class MetadataLookup:
                                                                 row["source"], now))
         self.count += len(recordings)
         if not self.quiet:
-            self.pbar.update(self.count)
-
-        return len(recordings)
+            self.pbar.update(len(recordings))
 
 
     def lookup_metadata(self, recordings):
@@ -178,12 +178,11 @@ class MetadataLookup:
             
         args = {
             "recording_mbids": mbids,
-            "inc": "artist"   # TODO: THis should support release so we can get year!
+            "inc": "artist release"
         }
         r = http_post("https://api.listenbrainz.org/1/metadata/recording", json=args)
         if r.status_code != 200:
             logger.info("Fail: %d %s" % (r.status_code, r.text))
-            print("Fail: %d %s" % (r.status_code, r.text))
             return 0
 
         # This will collect all the data we want to upsert into the db
@@ -191,6 +190,7 @@ class MetadataLookup:
         artist_credits = {}
         artists = {}
         recording_artist_credits = []
+        recording_year_mapping = []
         for recording_mbid in data.keys():
             artist_credit = data[recording_mbid]["artist"]
             for artist in artist_credit["artists"]:
@@ -208,6 +208,10 @@ class MetadataLookup:
                     
                 artists[mbid] = ar_data
                 
+            release = data[recording_mbid]["release"]
+            if "year" in release and release["year"]:
+                recording_year_mapping.append((recording_mbid, release["year"]))
+                
             if artist_credit["artist_credit_id"] not in artist_credits:
                 ac = { "id": artist_credit["artist_credit_id"],
                        "name": artist_credit["name"] }
@@ -217,8 +221,6 @@ class MetadataLookup:
                                               "artist_credit": artist_credit["artist_credit_id"]
                                             })
             
-        print("%d, %d, %d" % (len(artists), len(artist_credits), len(recording_artist_credits)))
-                    
         with db.atomic():
             query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(
                 conflict_target=(ArtistCredit.id),
@@ -239,9 +241,15 @@ class MetadataLookup:
                 action='NOTHING'
             )
             query.execute()
-        
+            
+            args = []
+            query = """UPDATE recording SET year = CASE """
+            for mbid, year in recording_year_mapping:
+                query += "WHEN recording_mbid = ? THEN ? "
+                args.extend([mbid, year])
+            query += "END"
+            db.execute_sql(query, args) 
+
         self.count += len(recordings)
         if not self.quiet:
-            self.pbar.update(self.count)
-
-        return len(data)
+            self.pbar.update(len(recordings))
