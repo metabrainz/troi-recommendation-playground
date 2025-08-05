@@ -10,7 +10,7 @@ from peewee import fn
 from troi.content_resolver.model.database import db
 from troi.content_resolver.model.recording import Recording, RecordingMetadata, Artist, ArtistCredit, RecordingArtistCredit
 from troi.content_resolver.model.tag import RecordingTag
-from troi.http_request import http_post, http_get
+from troi.http_request import http_post
 
 logger = logging.getLogger("troi_subsonic_scan")
 APP_LOG_LEVEL_NUM = 19
@@ -50,9 +50,9 @@ class MetadataLookup:
         offset = 0
         self.count = 0
         if not self.quiet:
-            with tqdm(total=len(recordings)) as self.pbar:
+            with tqdm(total=len(recordings)*2) as self.pbar:
                 while offset <= len(recordings):
-                    self.count += self.lookup_tags(recordings[offset:offset+self.BATCH_SIZE])
+                    self.lookup_tags(recordings[offset:offset+self.BATCH_SIZE])
                     self.lookup_metadata(recordings[offset:offset+self.BATCH_SIZE])
                     offset += self.BATCH_SIZE
                     percent = 100 * self.count // len(recordings)
@@ -61,8 +61,6 @@ class MetadataLookup:
                                                                       ("Recordings looked up", f"{self.count:,} ({percent}%)"),
                                                                       ("Total recordings", f"{len(recordings):,}"),
                                                                       ("Progress", percent))))
-                    if not self.quiet:
-                        self.pbar.update(len(recordings))
         else:
             while offset <= len(recordings):
                 self.process_recordings(recordings[offset:offset+self.BATCH_SIZE])
@@ -159,6 +157,9 @@ class MetadataLookup:
                                                                 tag_ids[row["tag"]],
                                                                 tag_counts[row["recording_mbid"] + row["tag"]],
                                                                 row["source"], now))
+        self.count += len(recordings)
+        if not self.quiet:
+            self.pbar.update(self.count)
 
         return len(recordings)
 
@@ -170,15 +171,16 @@ class MetadataLookup:
         """
 
         mbid_to_recording = {}
+        mbids = []
         for rec in recordings:
             mbid_to_recording[rec.mbid] = rec
+            mbids.append(rec.mbid)
             
-        mbids = ",".join(mbid_to_recording.keys())
         args = {
             "recording_mbids": mbids,
             "inc": "artist"   # TODO: THis should support release so we can get year!
         }
-        r = http_get("https://api.listenbrainz.org/1/metadata/recording", params=args)
+        r = http_post("https://api.listenbrainz.org/1/metadata/recording", json=args)
         if r.status_code != 200:
             logger.info("Fail: %d %s" % (r.status_code, r.text))
             print("Fail: %d %s" % (r.status_code, r.text))
@@ -215,11 +217,6 @@ class MetadataLookup:
                                               "artist_credit": artist_credit["artist_credit_id"]
                                             })
                     
-        from icecream import ic
-        ic(artist_credits)
-        ic(artists)
-        ic(recording_artist_credits)
-        
         with db.atomic():
             query = ArtistCredit.insert_many(artist_credits.values()).on_conflict(
                 conflict_target=(ArtistCredit.id),
@@ -241,4 +238,8 @@ class MetadataLookup:
             )
             query.execute()
         
+        self.count += len(recordings)
+        if not self.quiet:
+            self.pbar.update(self.count)
+
         return len(data)
