@@ -60,18 +60,21 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
     parse = urlparse(url)
     while True:
         _key = parse.scheme + parse.netloc
-        if _key in domain_ratelimit_lookup:
-            (limit, remaining, reset) = domain_ratelimit_lookup[_key]
+        ratelimit = domain_ratelimit_lookup.get(_key, None)
+        if ratelimit is not None:
+            (limit, remaining, reset) = ratelimit
 
             # MB's rate limit headers are borked, so for the time being, use nearly 1s
             if parse.netloc.startswith("musicbrainz.org"):
                 time_left = .9
             else:
                 time_left = reset - time()
-                if time_left > 0:
-                    time_to_wait = time_left / remaining
-                    sleep(time_to_wait)
-            del domain_ratelimit_lookup[_key]
+
+            if time_left > 0:
+                time_to_wait = time_left / remaining
+                sleep(time_to_wait)
+
+            domain_ratelimit_lookup.pop(_key, None)
 
         if method == "GET":
             r = session.get(url, params=params, headers=headers, **kwargs)
