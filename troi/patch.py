@@ -36,10 +36,11 @@ class Patch(ABC):
         self.pipeline = self.create(self.patch_args)
         self._set_element_patch(self.pipeline)
 
+        auth_token = self.patch_args["token"]
         # Setup extensible services
         self.services = {}
-        self.register_service(RecordingSearchByTagService())
-        self.register_service(RecordingSearchByArtistService())
+        self.register_service(RecordingSearchByTagService(auth_token=auth_token))
+        self.register_service(RecordingSearchByArtistService(auth_token=auth_token))
 
     @staticmethod
     def inputs():

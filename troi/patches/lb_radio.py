@@ -119,6 +119,7 @@ class LBRadioPatch(troi.patch.Patch):
     def create(self, inputs):
         self.prompt = inputs["prompt"]
         self.mode = inputs["mode"]
+        auth_token = inputs["token"]
 
         # First parse the prompt
         pp = PromptParser()
@@ -205,7 +206,7 @@ class LBRadioPatch(troi.patch.Patch):
 
             if element["entity"] == "playlist":
                 source = LBRadioPlaylistRecordingElement(element["values"][0],
-                                                         mode=mode)
+                                                         mode=mode, auth_token=auth_token)
 
             if element["entity"] == "stats":
                 if len(element["opts"]) == 0:
@@ -221,7 +222,9 @@ class LBRadioPatch(troi.patch.Patch):
                 source = LBRadioStatsRecordingElement(
                     element["values"][0],
                     mode=mode,
-                    time_range=element["opts"][0])
+                    time_range=element["opts"][0],
+                    auth_token=auth_token
+                )
 
             if element["entity"] == "recs":
                 if len(element["values"]) == 0:

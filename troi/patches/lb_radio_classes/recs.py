@@ -18,12 +18,14 @@ class LBRadioRecommendationRecordingElement(troi.Element):
     MAX_RECOMMENDED_RECORDINGS = 1000
     MAX_RECORDINGS_TO_FETCH_PER_CALL = 100
 
-    def __init__(self, user_name, listened="all", mode="easy"):
+    def __init__(self, user_name, listened="all", mode="easy", auth_token=None):
         troi.Element.__init__(self)
         self.user_name = user_name
         self.listened = listened
         self.mode = mode
         self.client = liblistenbrainz.ListenBrainz()
+        if auth_token:
+            self.client.set_auth_token(auth_token)
 
     def inputs(self):
         return []

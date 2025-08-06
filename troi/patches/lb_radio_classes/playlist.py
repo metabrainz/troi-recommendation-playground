@@ -15,10 +15,11 @@ class LBRadioPlaylistRecordingElement(troi.Element):
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
 
-    def __init__(self, mbid, mode="easy"):
+    def __init__(self, mbid, mode="easy", auth_token=None):
         troi.Element.__init__(self)
         self.mbid = mbid
         self.mode = mode
+        self.headers = {"Authorization": f"Token {auth_token}"} if auth_token else None
 
     def inputs(self):
         return []
@@ -29,7 +30,7 @@ class LBRadioPlaylistRecordingElement(troi.Element):
     def read(self, entities):
 
         # Fetch the playlist
-        r = http_get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}")
+        r = http_get(f"https://api.listenbrainz.org/1/playlist/{self.mbid}", headers=self.headers)
         if r.status_code == 404:
             raise RuntimeError(f"Cannot find playlist {self.mbid}.")
         if r.status_code != 200:

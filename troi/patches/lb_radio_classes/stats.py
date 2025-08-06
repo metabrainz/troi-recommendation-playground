@@ -17,12 +17,14 @@ class LBRadioStatsRecordingElement(troi.Element):
 
     NUM_RECORDINGS_TO_COLLECT = TARGET_NUMBER_OF_RECORDINGS * 2
 
-    def __init__(self, user_name, time_range, mode="easy"):
+    def __init__(self, user_name, time_range, mode="easy", auth_token=None):
         troi.Element.__init__(self)
         self.user_name = user_name
         self.time_range = time_range
         self.mode = mode
         self.client = liblistenbrainz.ListenBrainz()
+        if auth_token:
+            self.client.set_auth_token(auth_token)
 
         if time_range not in TIME_RANGES:
             raise RuntimeError("entity stats must specify one of the following time range options: " + ", ".join(TIME_RANGES))
