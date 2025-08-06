@@ -11,8 +11,9 @@ class RecordingSearchByTagService(Service):
 
     SLUG = "recording-search-by-tag"
 
-    def __init__(self):
+    def __init__(self, auth_token=None):
         super().__init__(self.SLUG)
+        self.headers = {"Authorization": f"Token {auth_token}"} if auth_token else None
 
     def search(self, tags, operator, pop_begin, pop_end, num_recordings):
         """
@@ -26,7 +27,7 @@ class RecordingSearchByTagService(Service):
             "pop_end": pop_end,
             "tag": tags
         }
-        r = http_get("https://api.listenbrainz.org/1/lb-radio/tags", params=data)
+        r = http_get("https://api.listenbrainz.org/1/lb-radio/tags", params=data, headers=self.headers)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch recordings for tags. {r.text}")
 
@@ -37,8 +38,9 @@ class RecordingSearchByArtistService(Service):
 
     SLUG = "recording-search-by-artist"
 
-    def __init__(self):
+    def __init__(self, auth_token=None):
         super().__init__(self.SLUG)
+        self.headers = {"Authorization": f"Token {auth_token}"} if auth_token else None
 
     def search(self, mode, artist_mbid, pop_begin, pop_end, max_recordings_per_artist, max_similar_artists):
         """
@@ -58,7 +60,7 @@ class RecordingSearchByArtistService(Service):
                 "pop_end": pop_end
         }
         url = f"https://api.listenbrainz.org/1/lb-radio/artist/{artist_mbid}"
-        r = http_get(url, params=params)
+        r = http_get(url, params=params, headers=self.headers)
         if r.status_code != 200:
             raise RuntimeError(f"Cannot fetch lb_radio artists: {r.status_code} ({r.text})")
 
