@@ -70,6 +70,9 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
             else:
                 time_left = reset - time()
 
+            if remaining == 0:
+                remaining = 1
+
             if time_left > 0:
                 time_to_wait = time_left / remaining
                 sleep(time_to_wait)
