@@ -1,11 +1,13 @@
 import requests
 from time import time, sleep
+from threading import Lock
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from urllib.parse import urlparse
 
 # Index keep track of rate limits of the various services 
 # we may call. key: scheme, domain value: RateLimit-Limit, Remaining, Reset
+ratelimit_lock = Lock()
 domain_ratelimit_lookup = {}
 
 def requests_retry_session(
@@ -49,6 +51,8 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
         delay for that. Will need to remove after https://tickets.metabrainz.org/browse/MBH-589
         is fixed. """
 
+    global ratelimit_lock
+
     if not headers:
         headers = {}
     headers["User-Agent"] = "ListenBrainz Troi (rob@meb)"
@@ -60,8 +64,13 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
     parse = urlparse(url)
     while True:
         _key = parse.scheme + parse.netloc
-        if _key in domain_ratelimit_lookup:
+        ratelimit_lock.acquire()
+        have_key = _key in domain_ratelimit_lookup
+        ratelimit_lock.release()
+        if have_key:
+            ratelimit_lock.acquire()
             (limit, remaining, reset) = domain_ratelimit_lookup[_key]
+            ratelimit_lock.release()
 
             # MB's rate limit headers are borked, so for the time being, use nearly 1s
             if parse.netloc.startswith("musicbrainz.org"):
@@ -71,7 +80,10 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
                 if time_left > 0:
                     time_to_wait = time_left / remaining
                     sleep(time_to_wait)
+
+            ratelimit_lock.acquire()
             del domain_ratelimit_lookup[_key]
+            ratelimit_lock.release()
 
         if method == "GET":
             r = session.get(url, params=params, headers=headers, **kwargs)
@@ -82,7 +94,9 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
             reset = int(r.headers["X-RateLimit-Reset"])
             remaining = int(r.headers["X-RateLimit-Remaining"])
             limit = int(r.headers["X-RateLimit-Limit"])
+            ratelimit_lock.acquire()
             domain_ratelimit_lookup[_key] = (limit, remaining, reset)
+            ratelimit_lock.release()
         except KeyError:
             pass
 
