@@ -4,16 +4,17 @@ from unittest.mock import patch
 from troi import Artist, ArtistCredit, Release, Recording
 import troi.listenbrainz.stats
 
+# liblistenbrainz.ListenBrainz().get_user_artists('rob', 1, 1, 'week')
 artist_ret = {
     'payload': {
         'artists': [
             {
-                 'artist_mbids': [], 
-                 'artist_name': 'Pretty Lights',
-                 'listen_count': 1641
+                'artist_mbid': 'a8b39181-6939-451e-9641-2db231b73706',
+                'artist_name': 'Abakus',
+                'listen_count': 14
             }
-         ]
-     }
+        ],
+    }
 }
 
 release_ret = {
@@ -66,9 +67,8 @@ class TestStats(unittest.TestCase):
         entities = u.read()
         stats_mock.assert_called_with("rob", 1, 1, "week")
         assert len(entities) == 1
-        assert isinstance(entities[0], ArtistCredit)
-        assert entities[0].name == 'Pretty Lights'
-        assert len(entities[0].artists) == 0
+        assert isinstance(entities[0], Artist)
+        assert entities[0].name == 'Abakus'
 
     @patch('liblistenbrainz.ListenBrainz.get_user_releases')
     def test_user_release_stats(self, stats_mock):
