@@ -35,14 +35,14 @@ def lookup_spotify_ids(recordings):
 
 def _check_unplayable_tracks(sp: spotipy.Spotify, playlist_id: str):
     """ Retrieve tracks for given spotify playlist and split into lists of playable and unplayable tracks """
-    playlist = sp.playlist_items(playlist_id, fields="items(track(name,id,is_playable))", market="from_token")
+    playlist = sp._get(f"playlists/{playlist_id}/items", fields="items(item(name,id,is_playable))", market="from_token")
     playable = []
     unplayable = []
     for idx, item in enumerate(playlist["items"]):
-        if item["track"]["is_playable"]:
-            playable.append((idx, item["track"]["id"]))
+        if item["item"]["is_playable"]:
+            playable.append((idx, item["item"]["id"]))
         else:
-            unplayable.append((idx, item["track"]["id"]))
+            unplayable.append((idx, item["item"]["id"]))
     return playable, unplayable
 
 
@@ -73,11 +73,14 @@ def _get_fixed_up_tracks(sp: spotipy.Spotify, spotify_ids, index):
         for same item match, prefer the one occurring earlier. If no alternative is playable, ignore the
         item altogether.
     """
-    new_tracks = sp.tracks(spotify_ids, market="from_token")
     new_tracks_ids = set()
-    for item in new_tracks["tracks"]:
-        if item["is_playable"]:
-            new_tracks_ids.add(item["id"])
+    for spotify_id in spotify_ids:
+        try:
+            item = sp.track(spotify_id, market="from_token")
+            if item["is_playable"]:
+                new_tracks_ids.add(item["id"])
+        except Exception:
+            continue
 
     fixed_up_items = []
     for idx, spotify_ids in index.items():
@@ -115,10 +118,10 @@ def fixup_spotify_playlist(sp: spotipy.Spotify, playlist_id: str, mbid_spotify_i
     finalized_ids = [x[1] for x in all_items]
 
     # clear existing playlist
-    sp.playlist_replace_items(playlist_id, [])
+    sp._put(f"playlists/{playlist_id}/items", payload={"uris": []})
     # spotify API allows a max of 100 tracks in 1 request
     for chunk in chunked(finalized_ids, 100):
-        sp.playlist_add_items(playlist_id, chunk)
+        sp._post(f"playlists/{playlist_id}/items", payload={"uris": chunk})
 
 
 def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool = True,
@@ -160,22 +163,24 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
 
     if not playlist_id:
         # create new playlist
-        spotify_playlist = spotify.user_playlist_create(
-            user=spotify_user_id,
-            name=playlist_name,
-            public=is_public,
-            collaborative=is_collaborative,
-            description=playlist_description
+        spotify_playlist = spotify._post(
+            "me/playlists",
+            payload={
+                "name": playlist_name,
+                "public": is_public,
+                "collaborative": is_collaborative,
+                "description": playlist_description
+            }
         )
         playlist_id = spotify_playlist["id"]
         playlist_url = spotify_playlist["external_urls"]["spotify"]
     else:
         # existing playlist, clear it
-        spotify.playlist_replace_items(playlist_id, [])
+        spotify._put(f"playlists/{playlist_id}/items", payload={"uris": []})
 
     # spotify API allows a max of 100 tracks in 1 request
     for chunk in chunked(spotify_track_ids, 100):
-        spotify.playlist_add_items(playlist_id, chunk)
+        spotify._post(f"playlists/{playlist_id}/items", payload={"uris": chunk})
 
     fixup_spotify_playlist(spotify, playlist_id, mbid_spotify_index, spotify_mbid_index)
 
@@ -195,7 +200,7 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
 
     # spotipy limits to 100 items for each call, so run iteratively with an offset until there are no more tracks
     while True:
-        results = sp.playlist_items(playlist_id, limit=100, offset=offset)
+        results = sp._get(f"playlists/{playlist_id}/items", limit=100, offset=offset)
         if len(results['items']) == 0:
             break
 
@@ -213,7 +218,7 @@ def get_tracks_from_spotify_playlist(spotify_token, playlist_id):
 def _convert_spotify_tracks_to_json(spotify_tracks: list):
     tracks = []
     for track in spotify_tracks:
-        artists = track["track"].get("artists", [])
+        artists = track["item"].get("artists", [])
         artist_names = []
         for a in artists:
             name = a.get("name")
@@ -221,7 +226,7 @@ def _convert_spotify_tracks_to_json(spotify_tracks: list):
                 artist_names.append(name)
         artist_name = ", ".join(artist_names)
         tracks.append({
-            "recording_name": track["track"]["name"],
+            "recording_name": track["item"]["name"],
             "artist_name": artist_name,
         })
     return tracks
