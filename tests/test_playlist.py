@@ -85,35 +85,35 @@ class TestSpotifySubmission(unittest.TestCase):
             }
         ])
 
-        mock_requests.post("https://api.spotify.com/v1/users/test-user-id/playlists", json={
+        mock_requests.post("https://api.spotify.com/v1/me/playlists", json={
             "id": playlist_id,
             "external_urls": {
                 "spotify": playlist_url
             }
         })
 
-        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "baz"})
+        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={"snapshot_id": "baz"})
 
-        mock_requests.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "foo"})
+        mock_requests.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={"snapshot_id": "foo"})
 
-        mock_requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={
+        mock_requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={
             "items": [
                 {
-                    "track": {
+                    "item": {
                         "name": "Backstreet Boys",
                         "id": "47BBI51FKFwOMlIiX6m8ya",
                         "is_playable": True
                     }
                 },
                 {
-                    "track": {
+                    "item": {
                         "name": "New Order",
                         "id": "7y9bltr6hV3CsbqXWgwVZv",
                         "is_playable": False
                     }
                 },
                 {
-                    "track": {
+                    "item": {
                         "name": "Love Your Voice",
                         "id": "4hyVrAsoKKjxAvQjPRt0ai",
                         "is_playable": True
@@ -124,22 +124,20 @@ class TestSpotifySubmission(unittest.TestCase):
 
         # the New Order track is unplayable and its alternative track ids should be rechecked
         mock_requests.get(
-            f"https://api.spotify.com/v1/tracks/?ids=4LWQfAhwP1Tf1wbzmT6NwW,7clvpmRL6Ga8OyOs0is5RP&market=from_token",
-            complete_qs=True,  # complete_qs to ensure that the track ids being rechecked are the exact ones we want
+            "https://api.spotify.com/v1/tracks/4LWQfAhwP1Tf1wbzmT6NwW",
             json={
-                "tracks": [
-                    {
-                        "id": "4LWQfAhwP1Tf1wbzmT6NwW",
-                        "is_playable": True
-                    },
-                    {
-                        "id": "7clvpmRL6Ga8OyOs0is5RP",
-                        "is_playable": True
-                    }
-                ]
+                "id": "4LWQfAhwP1Tf1wbzmT6NwW",
+                "is_playable": True
             }
         )
-        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "bar"})
+        mock_requests.get(
+            "https://api.spotify.com/v1/tracks/7clvpmRL6Ga8OyOs0is5RP",
+            json={
+                "id": "7clvpmRL6Ga8OyOs0is5RP",
+                "is_playable": True
+            }
+        )
+        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={"snapshot_id": "bar"})
 
         patch = DummyPatch({
             "min_recordings": 1,
@@ -174,11 +172,13 @@ class TestSpotifySubmission(unittest.TestCase):
         # we had 4 tracks with mbids, out of those no matching spotify id was found for the last track id.
         # so we submitted the first spotify track id for the remaining tracks preserving the order in which
         # occur in the original playlist
-        self.assertEqual(history[2].json(), [
-            "spotify:track:47BBI51FKFwOMlIiX6m8ya",
-            "spotify:track:7y9bltr6hV3CsbqXWgwVZv",
-            "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
-        ])
+        self.assertEqual(history[2].json(), {
+            "uris": [
+                "47BBI51FKFwOMlIiX6m8ya",
+                "7y9bltr6hV3CsbqXWgwVZv",
+                "4hyVrAsoKKjxAvQjPRt0ai"
+            ]
+        })
 
         # history[3] is the request to retrieve tracks for checking whether the playlist has unplayable tracks
         # history[4] is the request to retrieve info for alternative spotify ids of unplayable tracks, only thing
@@ -188,10 +188,12 @@ class TestSpotifySubmission(unittest.TestCase):
         # we had found one track to be unplayable and replaced it with an alternative playable track. now updating the
         # playlist again so check the all the correct tracks and the new replaced tracks are sent and also in the
         # original order in which the tracks occur in the playlist
-        self.assertEqual(history[6].json(), [
-            "spotify:track:47BBI51FKFwOMlIiX6m8ya",
-            "spotify:track:4LWQfAhwP1Tf1wbzmT6NwW",
-            "spotify:track:4hyVrAsoKKjxAvQjPRt0ai"
-        ])
+        self.assertEqual(history[7].json(), {
+            "uris": [
+                "47BBI51FKFwOMlIiX6m8ya",
+                "4LWQfAhwP1Tf1wbzmT6NwW",
+                "4hyVrAsoKKjxAvQjPRt0ai"
+            ]
+        })
 
         self.assertEqual(playlist.playlists[0].additional_metadata["external_urls"]["spotify"], playlist_url)
