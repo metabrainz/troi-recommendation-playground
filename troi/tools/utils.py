@@ -110,7 +110,7 @@ class SoundcloudAPI:
     def __init__(self, access_token):
         self.access_token = access_token
         self.headers = {
-            "Authorization": f"OAuth {self.access_token}",
+            "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
         }
 
