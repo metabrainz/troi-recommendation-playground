@@ -451,3 +451,88 @@ class HatedRecordingsFilterElement(troi.Element):
                 continue
             results.append(r)
         return results
+
+
+class SequentialArtistFilterElement(troi.Element):
+    """
+    Reorder recordings to prevent sequential tracks by the same artist.
+    
+    This element uses a greedy algorithm to maximize spacing between tracks
+    from the same artist. It processes recordings by iteratively selecting
+    the next track from the artist that appears furthest back in the result,
+    ensuring maximum diversity in the playlist.
+    
+    If all available recordings are from the same artist as the last track
+    (e.g., when one artist dominates the playlist), the filter will still
+    include them, as excluding them would lose recordings.
+    """
+
+    @staticmethod
+    def inputs():
+        return [Recording]
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs):
+        recordings = inputs[0]
+        
+        if len(recordings) <= 1:
+            return recordings
+        
+        # Filter out recordings without artist_credit
+        valid_recordings = [
+            r for r in recordings 
+            if r.artist_credit and r.artist_credit.artist_credit_id
+        ]
+        
+        if len(valid_recordings) == 0:
+            return recordings
+        
+        if len(valid_recordings) == 1:
+            return valid_recordings
+        
+        # Group recordings by artist_credit_id
+        artist_groups = defaultdict(list)
+        for rec in valid_recordings:
+            artist_groups[rec.artist_credit.artist_credit_id].append(rec)
+        
+        # If there's only one artist, return as-is
+        if len(artist_groups) == 1:
+            return valid_recordings
+        
+        # Greedy algorithm: always pick from the artist that appears furthest back
+        result = []
+        last_positions = {}  # artist_credit_id -> last position in result
+        
+        while any(artist_groups.values()):
+            # Find the best next recording
+            best_artist = None
+            best_position = float('inf')  # We want the SMALLEST (earliest) position
+            
+            # Look at the first recording from each artist
+            for artist_id in artist_groups:
+                if not artist_groups[artist_id]:
+                    continue
+                
+                # Get the last position this artist appeared (-1 if never)
+                last_pos = last_positions.get(artist_id, -1)
+                
+                # Prefer artists that appeared furthest back (smallest position)
+                # Artists that never appeared get -1, which is smallest
+                if last_pos < best_position:
+                    best_position = last_pos
+                    best_artist = artist_id
+            
+            # If we found an artist, add their next recording
+            if best_artist is not None:
+                rec = artist_groups[best_artist].pop(0)
+                result.append(rec)
+                last_positions[best_artist] = len(result) - 1
+            else:
+                # Fallback: shouldn't happen, but if it does, just break
+                break
+        
+        return result
+
