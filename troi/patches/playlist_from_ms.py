@@ -17,16 +17,18 @@ class ImportPlaylistPatch(Patch):
         A patch that retrieves an existing playlist from Spotify for use in Troi.
 
         \b
-        MS_TOKEN is the music service token from which the playlist is retrieved. For now, only Spotify tokens are accepted. 
+        MS_TOKEN is the music service token from which the playlist is retrieved.
         PLAYLIST_ID is the playlist id to retrieve the tracks from it.
-        MUSIC_SERVICE is the music service from which the playlist is retrieved
-        APPLE_USER_TOKEN is the apple user token. Optional, if music service is not Apple Music
+        MUSIC_SERVICE is the music service from which the playlist is retrieved.
+        APPLE_USER_TOKEN is the apple user token. Optional, if music service is not Apple Music.
+        LISTENBRAINZ_TOKEN is the ListenBrainz auth token for the MBID lookup API. Optional.
         """
         return [
             {"type": "argument", "args": ["ms_token"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["playlist_id"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["music_service"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["apple_user_token"], "kwargs": {"required": False}},
+            {"type": "argument", "args": ["listenbrainz_token"], "kwargs": {"required": False}},
         ]
 
     @staticmethod
@@ -47,9 +49,12 @@ class ImportPlaylistPatch(Patch):
         playlist_id = inputs["playlist_id"]
         music_service = inputs["music_service"]
         apple_user_token = inputs["apple_user_token"]
+        listenbrainz_token = inputs.get("listenbrainz_token")
 
         if apple_user_token == "":
             apple_user_token = None
+        if listenbrainz_token == "":
+            listenbrainz_token = None
 
         if music_service == "apple_music" and apple_user_token is None:
             raise RuntimeError("Authentication is required")
@@ -66,7 +71,13 @@ class ImportPlaylistPatch(Patch):
 
         _, name, desc = get_tracks(ms_token, apple_user_token, playlist_id) if music_service == "apple_music" else get_tracks(ms_token, playlist_id)
 
-        source = RecordingsFromMusicServiceElement(token=ms_token, playlist_id=playlist_id, music_service=music_service, apple_user_token=apple_user_token)
+        source = RecordingsFromMusicServiceElement(
+            token=ms_token,
+            playlist_id=playlist_id,
+            music_service=music_service,
+            apple_user_token=apple_user_token,
+            listenbrainz_token=listenbrainz_token,
+        )
         
         rec_lookup = RecordingLookupElement()
         rec_lookup.set_sources(source)
