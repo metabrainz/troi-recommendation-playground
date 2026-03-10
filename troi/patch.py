@@ -187,7 +187,6 @@ class Patch(ABC):
         save = self.patch_args["save"]
         if result is not None and spotify and upload:
             for url, _ in playlist.submit_to_spotify(
-                spotify["user_id"],
                 spotify["token"],
                 spotify["is_public"],
                 spotify["is_collaborative"],

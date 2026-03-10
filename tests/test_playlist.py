@@ -85,18 +85,18 @@ class TestSpotifySubmission(unittest.TestCase):
             }
         ])
 
-        mock_requests.post("https://api.spotify.com/v1/users/test-user-id/playlists", json={
+        mock_requests.post("https://api.spotify.com/v1/me/playlists", json={
             "id": playlist_id,
             "external_urls": {
                 "spotify": playlist_url
             }
         })
 
-        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "baz"})
+        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={"snapshot_id": "baz"})
 
-        mock_requests.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "foo"})
+        mock_requests.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={"snapshot_id": "foo"})
 
-        mock_requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={
+        mock_requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={
             "items": [
                 {
                     "track": {
@@ -139,7 +139,7 @@ class TestSpotifySubmission(unittest.TestCase):
                 ]
             }
         )
-        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", json={"snapshot_id": "bar"})
+        mock_requests.put(f"https://api.spotify.com/v1/playlists/{playlist_id}/items", json={"snapshot_id": "bar"})
 
         patch = DummyPatch({
             "min_recordings": 1,

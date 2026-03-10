@@ -51,7 +51,6 @@ cli.add_command(resolver_cli, name="db")
 @click.option('--name', '-n', help="Override the default name of the generated playlist", required=False)
 @click.option('--desc', '-d', help="Override the default description of the generated playlist", required=False)
 @click.option('--min-recordings', '-m', help="The minimum number of playlist required for the playlist", type=int, required=False)
-@click.option('--spotify-user-id', help="The spotify user name to upload the playlist to", type=str, required=False)
 @click.option('--spotify-token',
               help="The spotify token with the correct permissions required to upload playlists",
               type=str,
@@ -85,7 +84,7 @@ cli.add_command(resolver_cli, name="db")
               multiple=True)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, min_recordings,
-             spotify_user_id, spotify_token, spotify_url, soundcloud_token, soundcloud_url,
+             spotify_token, spotify_url, soundcloud_token, soundcloud_url,
              apple_music_developer_token, apple_music_user_token, apple_music_url):
     """
     Generate a global MBID based playlist using a patch
@@ -110,7 +109,6 @@ def playlist(patch, quiet, save, token, upload, args, created_for, name, desc, m
     }
     if spotify_token:
         patch_args["spotify"] = {
-            "user_id": spotify_user_id,
             "token": spotify_token,
             "is_public": True,
             "is_collaborative": False,

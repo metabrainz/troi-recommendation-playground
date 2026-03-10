@@ -13,7 +13,7 @@ MBID_LOOKUP_URL = "https://api.listenbrainz.org/1/metadata/lookup/"
 logger = logging.getLogger(__name__)
 
 
-def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_token=None):
+def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_token=None, listenbrainz_token=None):
     """ Convert Spotify playlist tracks to a list of MBID tracks.
     """
     if music_service == "spotify":
@@ -26,18 +26,22 @@ def music_service_tracks_to_mbid(token, playlist_id, music_service, apple_user_t
         raise ValueError("Unknown music service")
 
     track_lists = list(chunked(tracks, MAX_LOOKUPS_PER_POST))
-    return mbid_mapping_tracks(track_lists)
+    return mbid_mapping_tracks(track_lists, listenbrainz_token)
 
 
-def mbid_mapping_tracks(track_lists):
+def mbid_mapping_tracks(track_lists, listenbrainz_token=None):
     """ Given a track_name and artist_name, try to find MBID for these tracks from mbid lookup.
     """
+    headers = {}
+    if listenbrainz_token:
+        headers["Authorization"] = f"Token {listenbrainz_token}"
+
     track_mbids = []
     for tracks in track_lists:
         params = {
             "recordings": tracks
         }
-        response = http_post(MBID_LOOKUP_URL, json=params)
+        response = http_post(MBID_LOOKUP_URL, json=params, headers=headers)
         if response.status_code == 200:
             data = response.json()
             for d in data:

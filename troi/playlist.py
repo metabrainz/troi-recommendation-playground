@@ -299,7 +299,6 @@ class PlaylistElement(Element):
         return playlist_mbids
 
     def submit_to_spotify(self,
-                          user_id: str,
                           token: str,
                           is_public: bool = True,
                           is_collaborative: bool = False,
@@ -320,7 +319,7 @@ class PlaylistElement(Element):
             if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
                 existing_url = existing_urls[idx]
 
-            playlist_url, playlist_id = submit_to_spotify(sp, playlist, user_id, is_public, is_collaborative, existing_url)
+            playlist_url, playlist_id = submit_to_spotify(sp, playlist, is_public, is_collaborative, existing_url)
             submitted.append((playlist_url, playlist_id))
 
         return submitted
@@ -582,7 +581,7 @@ class PlaylistMakerElement(Element):
 class RecordingsFromMusicServiceElement(Element):
     """ Create a troi.Playlist entity from track and artist names."""
 
-    def __init__(self, token=None, playlist_id=None, music_service=None, apple_user_token=None):
+    def __init__(self, token=None, playlist_id=None, music_service=None, apple_user_token=None, listenbrainz_token=None):
         """
             Args:
                 playlist_id: id of the playlist to be used for creating the playlist element
@@ -595,6 +594,7 @@ class RecordingsFromMusicServiceElement(Element):
         self.playlist_id = playlist_id
         self.music_service = music_service
         self.apple_user_token = apple_user_token
+        self.listenbrainz_token = listenbrainz_token
 
 
     @staticmethod
@@ -604,7 +604,7 @@ class RecordingsFromMusicServiceElement(Element):
     def read(self, inputs):
         recordings = []
 
-        mbid_mapped_tracks = music_service_tracks_to_mbid(self.token, self.playlist_id, self.music_service, self.apple_user_token)
+        mbid_mapped_tracks = music_service_tracks_to_mbid(self.token, self.playlist_id, self.music_service, self.apple_user_token, self.listenbrainz_token)
         if mbid_mapped_tracks:
             for mbid in mbid_mapped_tracks:
                 recordings.append(Recording(mbid=mbid))

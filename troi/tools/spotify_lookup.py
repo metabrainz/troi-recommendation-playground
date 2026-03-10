@@ -121,7 +121,7 @@ def fixup_spotify_playlist(sp: spotipy.Spotify, playlist_id: str, mbid_spotify_i
         sp.playlist_add_items(playlist_id, chunk)
 
 
-def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool = True,
+def submit_to_spotify(spotify, playlist, is_public: bool = True,
                       is_collaborative: bool = False, existing_url: str = None):
     """ Submit or update an existing spotify playlist.
 
@@ -160,8 +160,7 @@ def submit_to_spotify(spotify, playlist, spotify_user_id: str, is_public: bool =
 
     if not playlist_id:
         # create new playlist
-        spotify_playlist = spotify.user_playlist_create(
-            user=spotify_user_id,
+        spotify_playlist = spotify.current_user_playlist_create(
             name=playlist_name,
             public=is_public,
             collaborative=is_collaborative,
