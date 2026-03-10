@@ -611,7 +611,55 @@ class RecordingsFromMusicServiceElement(Element):
 
         return recordings
 
-    
+
+class RecordingsFromXSPFElement(Element):
+    """Create Recording objects from raw XSPF XML content.
+
+    Tracks that carry a MusicBrainz recording URI in their <identifier> element
+    are used directly. All other tracks are resolved to MBIDs via the ListenBrainz
+    metadata lookup API.
+    """
+
+    def __init__(self, xspf_content: str):
+        """
+        Args:
+            xspf_content: Raw XSPF XML string.
+        """
+        super().__init__()
+        self.xspf_content = xspf_content
+
+    @staticmethod
+    def outputs():
+        return [Recording]
+
+    def read(self, inputs):
+        from more_itertools import chunked
+        from troi.tools.xspf_lookup import parse_xspf
+        from troi.tools.common_lookup import mbid_mapping_tracks, MAX_LOOKUPS_PER_POST
+
+        _, _, tracks = parse_xspf(self.xspf_content)
+
+        recordings = []
+        tracks_needing_resolution = []
+
+        for track in tracks:
+            if "recording_mbid" in track:
+                recordings.append(Recording(mbid=track["recording_mbid"]))
+            else:
+                tracks_needing_resolution.append({
+                    "recording_name": track["recording_name"],
+                    "artist_name": track["artist_name"],
+                })
+
+        if tracks_needing_resolution:
+            track_lists = list(chunked(tracks_needing_resolution, MAX_LOOKUPS_PER_POST))
+            resolved_mbids = mbid_mapping_tracks(track_lists)
+            for mbid in resolved_mbids:
+                recordings.append(Recording(mbid=mbid))
+
+        return recordings
+
+
 class PlaylistFromJSPFElement(Element):
     """ Create a troi.Playlist entity from a ListenBrainz JSPF playlist or LB playlist."""
 
