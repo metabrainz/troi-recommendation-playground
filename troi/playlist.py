@@ -299,7 +299,6 @@ class PlaylistElement(Element):
         return playlist_mbids
 
     def submit_to_spotify(self,
-                          user_id: str,
                           token: str,
                           is_public: bool = True,
                           is_collaborative: bool = False,
@@ -320,7 +319,7 @@ class PlaylistElement(Element):
             if existing_urls and idx < len(existing_urls) and existing_urls[idx]:
                 existing_url = existing_urls[idx]
 
-            playlist_url, playlist_id = submit_to_spotify(sp, playlist, user_id, is_public, is_collaborative, existing_url)
+            playlist_url, playlist_id = submit_to_spotify(sp, playlist, is_public, is_collaborative, existing_url)
             submitted.append((playlist_url, playlist_id))
 
         return submitted

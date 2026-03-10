@@ -85,7 +85,7 @@ class TestSpotifySubmission(unittest.TestCase):
             }
         ])
 
-        mock_requests.post("https://api.spotify.com/v1/users/test-user-id/playlists", json={
+        mock_requests.post("https://api.spotify.com/v1/me/playlists", json={
             "id": playlist_id,
             "external_urls": {
                 "spotify": playlist_url
