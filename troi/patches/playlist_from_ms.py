@@ -21,14 +21,12 @@ class ImportPlaylistPatch(Patch):
         PLAYLIST_ID is the playlist id to retrieve the tracks from it.
         MUSIC_SERVICE is the music service from which the playlist is retrieved.
         APPLE_USER_TOKEN is the apple user token. Optional, if music service is not Apple Music.
-        LISTENBRAINZ_TOKEN is the ListenBrainz auth token for the MBID lookup API. Optional.
         """
         return [
             {"type": "argument", "args": ["ms_token"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["playlist_id"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["music_service"], "kwargs": {"required": False}},
             {"type": "argument", "args": ["apple_user_token"], "kwargs": {"required": False}},
-            {"type": "argument", "args": ["listenbrainz_token"], "kwargs": {"required": False}},
         ]
 
     @staticmethod
@@ -49,7 +47,7 @@ class ImportPlaylistPatch(Patch):
         playlist_id = inputs["playlist_id"]
         music_service = inputs["music_service"]
         apple_user_token = inputs["apple_user_token"]
-        listenbrainz_token = inputs.get("listenbrainz_token")
+        listenbrainz_token = inputs.get("token")
 
         if apple_user_token == "":
             apple_user_token = None
