@@ -80,6 +80,9 @@ class LBRadioRecommendationRecordingElement(troi.Element):
 
         self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s {listened}recommended songs")
 
-        # TODO: How do we prevent sequential tracks by the same artist?
+        # Note: Sequential artist filtering is handled by SequentialArtistFilterElement
+        # in the pipeline, which should be inserted after RecordingLookupElement
+        # (when artist_credit information is available) if desired.
 
         return recordings
+
