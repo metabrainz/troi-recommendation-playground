@@ -36,9 +36,12 @@ class ImportXSPFPlaylistPatch(Patch):
 
         name, desc, _ = parse_xspf(xspf_content)
 
-        source = RecordingsFromXSPFElement(xspf_content=xspf_content)
+        lb_token = inputs.get("token")
+        source = RecordingsFromXSPFElement(
+            xspf_content=xspf_content, listenbrainz_token=lb_token
+        )
 
-        rec_lookup = RecordingLookupElement()
+        rec_lookup = RecordingLookupElement(auth_token=lb_token)
         rec_lookup.set_sources(source)
 
         pl_maker = PlaylistMakerElement(name, desc, patch_slug=self.slug())

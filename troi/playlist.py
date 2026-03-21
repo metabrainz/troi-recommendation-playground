@@ -620,13 +620,15 @@ class RecordingsFromXSPFElement(Element):
     metadata lookup API.
     """
 
-    def __init__(self, xspf_content: str):
+    def __init__(self, xspf_content: str, listenbrainz_token=None):
         """
         Args:
             xspf_content: Raw XSPF XML string.
+            listenbrainz_token: ListenBrainz user token for metadata lookup API (required by LB).
         """
         super().__init__()
         self.xspf_content = xspf_content
+        self.listenbrainz_token = listenbrainz_token
 
     @staticmethod
     def outputs():
@@ -653,7 +655,9 @@ class RecordingsFromXSPFElement(Element):
 
         if tracks_needing_resolution:
             track_lists = list(chunked(tracks_needing_resolution, MAX_LOOKUPS_PER_POST))
-            resolved_mbids = mbid_mapping_tracks(track_lists)
+            resolved_mbids = mbid_mapping_tracks(
+                track_lists, listenbrainz_token=self.listenbrainz_token
+            )
             for mbid in resolved_mbids:
                 recordings.append(Recording(mbid=mbid))
 
