@@ -52,7 +52,7 @@ class RecordingLookupElement(Element):
         if self.lookup_tags:
             inc += " tag"
 
-        lookup_service = self.patch.services.get("recording-lookup")
+        lookup_service = self.patch.services.get("recording-lookup") if self.patch else None
         if lookup_service is not None:
             data = lookup_service.lookup(recording_mbids, inc)
         else:
