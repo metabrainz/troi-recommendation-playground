@@ -52,15 +52,19 @@ class RecordingLookupElement(Element):
         if self.lookup_tags:
             inc += " tag"
 
-        headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
-        r = troi.http_request.http_post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc}, headers=headers)
-        if r.status_code != 200:
-            raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
+        lookup_service = self.patch.services.get("recording-lookup") if self.patch else None
+        if lookup_service is not None:
+            data = lookup_service.lookup(recording_mbids, inc)
+        else:
+            headers = {"Authorization": f"Token {self.auth_token}"} if self.auth_token else {}
+            r = troi.http_request.http_post(self.SERVER_URL, json={"recording_mbids": recording_mbids, "inc": inc}, headers=headers)
+            if r.status_code != 200:
+                raise PipelineError("Cannot fetch recordings from ListenBrainz: HTTP code %d (%s)" % (r.status_code, r.text))
 
-        try:
-            data = ujson.loads(r.text)
-        except ValueError as err:
-            raise PipelineError("Cannot parse recordings: " + str(err))
+            try:
+                data = ujson.loads(r.text)
+            except ValueError as err:
+                raise PipelineError("Cannot parse recordings: " + str(err))
 
         output = []
         for r in recordings:
