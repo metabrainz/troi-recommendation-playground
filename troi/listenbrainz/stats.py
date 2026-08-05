@@ -28,17 +28,14 @@ class UserArtistsElement(Element):
         self.time_range = time_range
 
     def outputs(self):
-        return [ArtistCredit]
+        return [Artist]
 
     def read(self, inputs=[]):
-
         artist_list = []
         artists = self.client.get_user_artists(self.user_name, self.count, self.offset, self.time_range)
-        artist_credits = []
-        for a in artists['payload']['artists']:
-            artists = [Artist(mbid=mbid) for mbid in a['artist_mbids']]
-            artist_list.append(ArtistCredit(name=a['artist_name'], artists=artists))
 
+        for a in artists['payload']['artists']:
+            artist_list.append(Artist(name=a['artist_name'], mbid=a['artist_mbid']))
         return artist_list
 
 
