@@ -33,6 +33,20 @@ class LBRadioRecommendationRecordingElement(troi.Element):
     def outputs(self):
         return [Recording]
 
+    def _select_recs(self, candidates, target):
+        recordings = []
+        for r in candidates:
+            if r.get("recording_mbid") is None:
+                continue
+            latest = r.get("latest_listened_at")
+            if self.listened == "all" or \
+                    (self.listened == "unlistened" and latest is None) or \
+                    (self.listened == "listened" and latest is not None):
+                recordings.append(Recording(mbid=r["recording_mbid"]))
+                if len(recordings) >= target:
+                    break
+        return recordings
+
     def read(self, entities):
 
         if self.mode == "easy":
@@ -42,36 +56,35 @@ class LBRadioRecommendationRecordingElement(troi.Element):
         else:
             offset = self.MAX_RECOMMENDED_RECORDINGS * 2 // 3
 
-        added = 0
-        skipped = 0
-        recordings = []
-        count = self.MAX_RECOMMENDED_RECORDINGS // 3
-        while count > 0:
-            # Fetch the user recs
-            try:
-                result = self.client.get_user_recommendation_recordings(self.user_name, "raw",
-                                                                        min(self.MAX_RECORDINGS_TO_FETCH_PER_CALL, count), offset)
-            except liblistenbrainz.errors.ListenBrainzAPIException as err:
-                raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
+        target = self.MAX_RECOMMENDED_RECORDINGS // 3
 
-            if result is None or len(result['payload']['mbids']) == 0:
-                break
+        service = self.patch.services.get("recs") if self.patch else None
+        if service is not None:
+            recordings = self._select_recs((service.fetch(self.user_name) or [])[offset:], target)
+        else:
+            recordings = []
+            count = target
+            while count > 0:
+                try:
+                    result = self.client.get_user_recommendation_recordings(self.user_name, "raw",
+                                                                            min(self.MAX_RECORDINGS_TO_FETCH_PER_CALL, count), offset)
+                except liblistenbrainz.errors.ListenBrainzAPIException:
+                    raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
-            # Turn them into recordings
-            for r in result['payload']['mbids']:
-                if r['recording_mbid'] is not None:
-                    offset += 1
-                    latest = r.get("latest_listened_at", None)
-                    if self.listened == "all" or (self.listened == "unlistened" and latest is None) or \
-                            (self.listened == "listened" and latest is not None):
-                        count -= 1
-                        recordings.append(Recording(mbid=r['recording_mbid']))
-                        added += 1
-                    else:
-                        skipped += 1
+                if result is None or len(result['payload']['mbids']) == 0:
+                    break
 
-            # Shuffle the recordings
-            shuffle(recordings)
+                for r in result['payload']['mbids']:
+                    if r.get("recording_mbid") is not None:
+                        offset += 1
+                        latest = r.get("latest_listened_at")
+                        if self.listened == "all" or \
+                                (self.listened == "unlistened" and latest is None) or \
+                                (self.listened == "listened" and latest is not None):
+                            count -= 1
+                            recordings.append(Recording(mbid=r["recording_mbid"]))
+
+        shuffle(recordings)
 
         # Give feedback on what we collected
         listened = ""
