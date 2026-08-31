@@ -42,6 +42,7 @@ class LBRadioStatsRecordingElement(troi.Element):
         else:
             offset = 200
 
+        # Fetch the user stats
         service = self.patch.services.get("stats") if self.patch else None
         if service is not None:
             raw_recordings = service.fetch(self.user_name, self.time_range, offset)

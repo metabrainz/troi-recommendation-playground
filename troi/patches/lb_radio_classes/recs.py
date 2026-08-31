@@ -65,6 +65,7 @@ class LBRadioRecommendationRecordingElement(troi.Element):
             recordings = []
             count = target
             while count > 0:
+                # Fetch the user recs
                 try:
                     result = self.client.get_user_recommendation_recordings(self.user_name, "raw",
                                                                             min(self.MAX_RECORDINGS_TO_FETCH_PER_CALL, count), offset)
@@ -74,16 +75,14 @@ class LBRadioRecommendationRecordingElement(troi.Element):
                 if result is None or len(result['payload']['mbids']) == 0:
                     break
 
-                for r in result['payload']['mbids']:
-                    if r.get("recording_mbid") is not None:
-                        offset += 1
-                        latest = r.get("latest_listened_at")
-                        if self.listened == "all" or \
-                                (self.listened == "unlistened" and latest is None) or \
-                                (self.listened == "listened" and latest is not None):
-                            count -= 1
-                            recordings.append(Recording(mbid=r["recording_mbid"]))
+                # Turn them into recordings
+                page = result['payload']['mbids']
+                selected = self._select_recs(page, count)
+                recordings.extend(selected)
+                count -= len(selected)
+                offset += sum(1 for r in page if r.get("recording_mbid") is not None)
 
+        # Shuffle the recordings
         shuffle(recordings)
 
         # Give feedback on what we collected

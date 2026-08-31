@@ -33,6 +33,7 @@ class LBRadioPlaylistRecordingElement(troi.Element):
         # Give feedback about the playlist
         self.local_storage["data_cache"]["element-descriptions"].append(f"playlist {self.mbid}")
 
+        # Fetch the playlist
         service = self.patch.services.get("playlist") if self.patch else None
         if service is not None:
             mbid_list = service.fetch(self.mbid, self.auth_token)
@@ -59,6 +60,7 @@ class LBRadioPlaylistRecordingElement(troi.Element):
 
                 mbid_list.append(mbid)
 
+        # Fetch the recordings, then shuffle
         shuffle(mbid_list)
 
         # Select and convert the first n MBIDs into Recordings
