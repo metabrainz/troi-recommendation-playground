@@ -1,6 +1,4 @@
-import troi
-from random import randint, shuffle
-from uuid import UUID
+from random import shuffle
 
 import troi
 import liblistenbrainz
@@ -45,21 +43,27 @@ class LBRadioStatsRecordingElement(troi.Element):
             offset = 200
 
         # Fetch the user stats
-        try:
-            result = self.client.get_user_recordings(self.user_name, 100, offset, self.time_range)
-        except liblistenbrainz.errors.ListenBrainzAPIException as err:
-            raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
+        service = self.patch.services.get("stats") if self.patch else None
+        if service is not None:
+            raw_recordings = service.fetch(self.user_name, self.time_range, offset)
+        else:
+            try:
+                result = self.client.get_user_recordings(self.user_name, 100, offset, self.time_range)
+            except liblistenbrainz.errors.ListenBrainzAPIException:
+                raise RuntimeError("Cannot fetch recording stats for user %s" % self.user_name)
 
-        if result is None or "recordings" not in result["payload"]:
-            raise RuntimeError("There are no stats available for user '%s' for the %s time_range." %
-                               (self.user_name, self.time_range))
+            if result is None or "recordings" not in result["payload"]:
+                raise RuntimeError("There are no stats available for user '%s' for the %s time_range." %
+                                   (self.user_name, self.time_range))
+
+            raw_recordings = result['payload']['recordings']
 
         # Give feedback on what we collected
         self.local_storage["data_cache"]["element-descriptions"].append(f"{self.user_name}'s stats for {self.time_range}")
 
         # Turn them into recordings
         recordings = []
-        for r in result['payload']['recordings']:
+        for r in raw_recordings:
             if r['recording_mbid'] is not None:
                 artists = [Artist(mbid=mbid) for mbid in r["artist_mbids"]]
                 artist_credit = ArtistCredit(artists=artists, musicbrainz={"artist_mbids": r["artist_mbids"]})
