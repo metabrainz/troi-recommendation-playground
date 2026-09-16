@@ -8,13 +8,24 @@ from urllib.parse import urlparse
 # we may call. key: scheme, domain value: RateLimit-Limit, Remaining, Reset
 domain_ratelimit_lookup = {}
 
+# urllib3's Retry leaves POST out of allowed_methods, so a POST that comes back 503 or
+# 429 is handed to us un-retried. We retry it here, at most this many times.
+MAX_RETRIES = 5
+RETRY_BACKOFF = .3
+
+# Used when the caller doesn't pass a timeout of its own
+TIMEOUT = 60
+
+
 def requests_retry_session(
     retries=3,
     backoff_factor=0.3,
     status_forcelist=(500, 502, 504, 503, 429),
     session=None,
 ):
-    """ Create the session object for retry handling """
+    """ Create the session object for retry handling. allowed_methods is left at its
+        default so that a POST is never replayed after a connection or read error --
+        that could submit a playlist twice. """
 
     session = session or requests.Session()
     retry = Retry(
@@ -42,6 +53,16 @@ def http_put(url, headers=None, params=None, **kwargs):
     """ Convenience function for http put"""
     return http_fetch(url, "PUT", headers=headers, params=params, **kwargs)
 
+def retry_delay(r, attempt):
+    """ How long to wait before retrying a 503/429 -- the Retry-After the service sent,
+        or an exponential backoff if it didn't send a usable one. """
+
+    try:
+        return max(0.0, float(r.headers["Retry-After"]))
+    except (KeyError, ValueError):
+        # Absent, or an HTTP date, which we don't bother parsing
+        return RETRY_BACKOFF * 2 ** attempt
+
 def http_fetch(url, method, headers=None, params=None, **kwargs):
     """ HTTP fetch wrapper that uses HTTPAdapter sessions with back-off retries
         and support for delaying calls based on the RateLimit headers provided
@@ -56,8 +77,11 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
     if method not in ("GET", "POST"):
         raise ValueError("Only GET and POST are supported.")
 
+    kwargs.setdefault("timeout", TIMEOUT)
+
     session = requests_retry_session()
     parse = urlparse(url)
+    attempt = 0
     while True:
         _key = parse.scheme + parse.netloc
         ratelimit = domain_ratelimit_lookup.get(_key, None)
@@ -89,11 +113,14 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
             remaining = int(r.headers["X-RateLimit-Remaining"])
             limit = int(r.headers["X-RateLimit-Limit"])
             domain_ratelimit_lookup[_key] = (limit, remaining, reset)
-        except KeyError:
+        except (KeyError, ValueError):
             pass
 
-        # This should never happen, but if it does, just retry
-        if r.status_code in (503, 429):
+        # Overloaded or rate limited. Back off and try again, but give up eventually --
+        # looping forever wedges the pipeline and hammers a service that is already down.
+        if r.status_code in (503, 429) and attempt < MAX_RETRIES:
+            sleep(retry_delay(r, attempt))
+            attempt += 1
             continue
 
         return r
