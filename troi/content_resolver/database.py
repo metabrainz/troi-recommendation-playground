@@ -313,7 +313,20 @@ class Database:
 
         if datas:
             with db.atomic():
-                result = Recording.insert_many(datas).on_conflict_replace().execute()
+                result = Recording.insert_many(datas).on_conflict(
+                    conflict_target=[Recording.file_id, Recording.file_id_type],
+                    preserve=[
+                            Recording.artist_mbid,
+                            Recording.artist_name,
+                            Recording.disc_num,
+                            Recording.mtime,
+                            Recording.recording_mbid,
+                            Recording.recording_name,
+                            Recording.release_mbid,
+                            Recording.release_name,
+                            Recording.track_num
+                        ]
+                ).execute()
 
         return statuses
 
