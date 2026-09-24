@@ -53,8 +53,8 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
         headers = {}
     headers["User-Agent"] = "ListenBrainz Troi (rob@meb)"
 
-    if method not in ("GET", "POST"):
-        raise ValueError("Only GET and POST are supported.")
+    if method not in ("GET", "POST", "PUT"):
+        raise ValueError("Only GET, POST and PUT are supported.")
 
     session = requests_retry_session()
     parse = urlparse(url)
@@ -79,10 +79,7 @@ def http_fetch(url, method, headers=None, params=None, **kwargs):
 
             domain_ratelimit_lookup.pop(_key, None)
 
-        if method == "GET":
-            r = session.get(url, params=params, headers=headers, **kwargs)
-        else:
-            r = session.post(url, params=params, headers=headers, **kwargs)
+        r = session.request(method, url, params=params, headers=headers, **kwargs)
 
         try:
             reset = int(r.headers["X-RateLimit-Reset"])
