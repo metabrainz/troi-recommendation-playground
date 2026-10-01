@@ -165,7 +165,7 @@ class Patch(ABC):
 
             desc = self.patch_args["desc"]
             if desc:
-                playlist.playlists[0].descripton = desc
+                playlist.playlists[0].description = desc
 
             logger.info("done.")
         except troi.PipelineError as err:

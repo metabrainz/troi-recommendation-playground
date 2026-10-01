@@ -129,9 +129,9 @@ class TestHttpFetch(unittest.TestCase):
         self.assertEqual(result["response"].status_code, 200)
         self.assertEqual(troi.http_request.domain_ratelimit_lookup, {})
 
-    def test_only_get_and_post_are_supported(self):
+    def test_unsupported_method_raises(self):
         with self.assertRaises(ValueError):
-            http_fetch("http://127.0.0.1/", "PUT")
+            http_fetch("http://127.0.0.1/", "DELETE")
 
 
 class TestRetryDelay(unittest.TestCase):
