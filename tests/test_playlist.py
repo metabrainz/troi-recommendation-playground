@@ -195,3 +195,22 @@ class TestSpotifySubmission(unittest.TestCase):
         ])
 
         self.assertEqual(playlist.playlists[0].additional_metadata["external_urls"]["spotify"], playlist_url)
+
+
+class TestPlaylistOverrides(unittest.TestCase):
+
+    def test_name_and_desc_override(self):
+        patch = DummyPatch({
+            "min_recordings": 1,
+            "name": "Overridden name",
+            "desc": "Overridden description",
+            "quiet": True
+        })
+        playlist = patch.generate_playlist()
+
+        self.assertEqual(playlist.playlists[0].name, "Overridden name")
+        self.assertEqual(playlist.playlists[0].description, "Overridden description")
+
+        jspf = playlist.get_jspf()["playlist"]
+        self.assertEqual(jspf["title"], "Overridden name")
+        self.assertEqual(jspf["annotation"], "Overridden description")
